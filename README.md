@@ -1,2 +1,1 @@
-# go
-wasmCloud Go ecosystem libraries and tooling
+# go-vanity-urls
