@@ -3,12 +3,27 @@ name: Go
 on:
   push:
     branches: ["main"]
+    paths:
+      - '.github/workflows/provider-go.yaml'
+      - 'provider/**'
   pull_request:
     branches: ["main"]
+    paths:
+      - '.github/workflows/provider-go.yaml'
+      - 'provider/**'
+
+env:
+  GOLANGCI_VERSION: "v1.61"
+
+permissions:
+  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./provider
     strategy:
       matrix:
         module:
@@ -21,7 +36,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.22"
+          go-version-file: "./provider/go.mod"
 
       - name: Build
         run: go build -C ${{ matrix.module }} -v ./...
@@ -35,11 +50,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: stable
+          go-version-file: "./provider/go.mod"
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.61
-          # temporary until current issues in the repo are fixed
-          only-new-issues: true
+          version: ${{ env.GOLANGCI_VERSION }}
+          working-directory: ./provider
 
