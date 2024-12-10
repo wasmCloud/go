@@ -5,7 +5,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/resource"
 
-	"go.wasmcloud.dev/component/x/wasitel/wasiteltrace/internal/types"
+	"go.wasmcloud.dev/x/wasitel/wasiteltrace/internal/types"
 )
 
 // Iterator transforms an attribute iterator into OTLP key-values.

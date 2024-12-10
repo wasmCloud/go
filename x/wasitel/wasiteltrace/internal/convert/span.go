@@ -10,7 +10,7 @@ import (
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 
-	"go.wasmcloud.dev/component/x/wasitel/wasiteltrace/internal/types"
+	"go.wasmcloud.dev/x/wasitel/wasiteltrace/internal/types"
 )
 
 // ResourceSpans transforms a slice of OpenTelemetry spans into a slice of

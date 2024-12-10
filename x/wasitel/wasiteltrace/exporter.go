@@ -7,7 +7,7 @@ import (
 
 	"go.opentelemetry.io/otel/sdk/trace"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
-	"go.wasmcloud.dev/component/x/wasitel/wasiteltrace/internal/convert"
+	"go.wasmcloud.dev/x/wasitel/wasiteltrace/internal/convert"
 )
 
 func New(opts ...Option) (*Exporter, error) {

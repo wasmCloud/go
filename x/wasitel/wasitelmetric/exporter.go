@@ -7,7 +7,7 @@ import (
 
 	metric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
-	"go.wasmcloud.dev/component/x/wasitel/wasitelmetric/internal/convert"
+	"go.wasmcloud.dev/x/wasitel/wasitelmetric/internal/convert"
 )
 
 func New(opts ...Option) (*Exporter, error) {
