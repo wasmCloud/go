@@ -3,17 +3,17 @@ name: Publish WIT package
 on:
   push:
     tags:
-    - 'wit-v*'
+    - 'component-wit-v*'
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write # for softprops/action-gh-release
+      packages: write # for publishing the wit to ghcr.io
     steps:
     - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
     - name: Extract tag context
@@ -39,18 +39,18 @@ jobs:
         wasi = "wasi.dev"
 
         [registry."wasmcloud.com".oci]
-        auth = { username = "${OCI_USERNAME}", password = "${OCI_PASSWORD}" }
+        auth = { username = "${OCI_USERNAME,,}", password = "${OCI_PASSWORD}" }
         EOF
         echo "WASH_PACKAGE_CONFIG_FILE=$(realpath package_config.toml)" >> $GITHUB_ENV
     - name: Build
       run: |
-        wash wit build -f package.wasm
+        wash wit build --wit-dir ./component/wit -f package.wasm
     - name: Push version-tagged WebAssembly binary to GHCR
       run: |
         wash wit publish package.wasm
     - name: Package tarball for release
       run: |
-        tar -cvzf ${{ steps.ctx.outputs.tarball }} wit
+        tar -cvzf ${{ steps.ctx.outputs.tarball }} -C ./component wit
     - name: Release
       uses: softprops/action-gh-release@01570a1f39cb168c169c802c3bceb9e93fb10974
       with:
