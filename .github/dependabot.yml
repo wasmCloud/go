@@ -3,7 +3,13 @@ updates:
   - package-ecosystem: "gomod"
     directories:
       - "/component"
+      - "/component/_examples/**"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "gomod"
+    directories:
       - "/provider"
+      - "/provider/examples/**"
     schedule:
       interval: "daily"
   - package-ecosystem: "github-actions"
