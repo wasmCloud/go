@@ -1,0 +1,58 @@
+name: Publish WIT package
+
+on:
+  push:
+    tags:
+    - 'wit-v*'
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
+    - name: Extract tag context
+      id: ctx
+      run: |
+          version=${GITHUB_REF_NAME#wit-v}
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "tarball=wit-${version}.tar.gz" >> "$GITHUB_OUTPUT"
+          echo "version is ${version}"
+    - uses: taiki-e/install-action@acf70b3a1ed953bccebc8c5d80cfdb16ec8ccc36
+      with:
+        tool: wash-cli@0.36.1
+    - name: Generate and set config
+      shell: bash
+      env:
+        OCI_USERNAME: ${{ github.repository_owner }}
+        OCI_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        cat << EOF > package_config.toml
+        [namespace_registries]
+        wasmcloud = "wasmcloud.com"
+        wrpc = "bytecodealliance.org"
+        wasi = "wasi.dev"
+
+        [registry."wasmcloud.com".oci]
+        auth = { username = "${OCI_USERNAME}", password = "${OCI_PASSWORD}" }
+        EOF
+        echo "WASH_PACKAGE_CONFIG_FILE=$(realpath package_config.toml)" >> $GITHUB_ENV
+    - name: Build
+      run: |
+        wash wit build -f package.wasm
+    - name: Push version-tagged WebAssembly binary to GHCR
+      run: |
+        wash wit publish package.wasm
+    - name: Package tarball for release
+      run: |
+        tar -cvzf ${{ steps.ctx.outputs.tarball }} wit
+    - name: Release
+      uses: softprops/action-gh-release@01570a1f39cb168c169c802c3bceb9e93fb10974
+      with:
+        files: ${{ steps.ctx.outputs.tarball }}
+        make_latest: "false"
