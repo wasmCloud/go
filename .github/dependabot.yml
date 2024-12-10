@@ -1,12 +1,11 @@
 version: 2
 updates:
   - package-ecosystem: "gomod"
-    directory: "/"
+    directories:
+      - "/component"
+      - "/provider"
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "America/New_York"
+      interval: "daily"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
