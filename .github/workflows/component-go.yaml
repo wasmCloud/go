@@ -92,14 +92,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version-file: "./component/_examples/${{ matrix.example }}/go.mod"
+          go-version-file: "./examples/component/${{ matrix.example }}/go.mod"
       - uses: acifani/setup-tinygo@v2
         with:
           tinygo-version: ${{ matrix.tinygo-version }}
       - uses: golangci/golangci-lint-action@v6
         with:
           version: ${{ env.GOLANGCI_VERSION }}
-          working-directory: "./component/_examples/${{ matrix.example }}"
+          working-directory: "./examples/component/${{ matrix.example }}"
       - uses: cargo-bins/cargo-binstall@main
       - name: Tools
         run: |
@@ -116,6 +116,6 @@ jobs:
           fi
 
       - name: wash build
-        working-directory: "./component/_examples/${{ matrix.example }}"
+        working-directory: "./examples/component/${{ matrix.example }}"
         run: |
           wash build
