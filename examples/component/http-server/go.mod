@@ -32,5 +32,5 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-// NOTE(lxf): Remove this line if running outside of component-sdk-go repository
+// NOTE(lxf): Remove this line if running outside of wasmCloud/go repository
 replace go.wasmcloud.dev/component => ../../../component

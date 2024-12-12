@@ -20,5 +20,5 @@ require (
 	golang.org/x/sys v0.28.0 // indirect
 )
 
-// NOTE(lxf): Remove this line if running outside of component-sdk-go repository
+// NOTE(lxf): Remove this line if running outside of wasmCloud/go repository
 replace go.wasmcloud.dev/component => ../../../component
