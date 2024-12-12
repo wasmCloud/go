@@ -1,6 +1,6 @@
 # MAINTAINERS
 
-The following individuals are responsible for reviewing code, managing issues, and ensuring the overall quality of `component-sdk-go`.
+The following individuals are responsible for reviewing code, managing issues, and ensuring the overall quality of `wasmCloud/go`.
 
 ## @wasmCloud/go-maintainers
 
