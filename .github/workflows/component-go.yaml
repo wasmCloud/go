@@ -6,11 +6,13 @@ on:
     paths:
       - '.github/workflows/component-go.yaml'
       - 'component/**'
+      - 'examples/component/**'
   pull_request:
     branches: ["main"]
     paths:
       - '.github/workflows/component-go.yaml'
       - 'component/**'
+      - 'examples/component/**'
 
 env:
   TINYGO_VERSION: "0.33.0"
