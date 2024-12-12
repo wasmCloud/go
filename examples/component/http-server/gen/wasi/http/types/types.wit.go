@@ -8,10 +8,10 @@
 package types
 
 import (
-	monotonicclock "github.com/wasmCloud/component-sdk-go/_examples/http-server/gen/wasi/clocks/monotonic-clock"
-	ioerror "github.com/wasmCloud/component-sdk-go/_examples/http-server/gen/wasi/io/error"
-	"github.com/wasmCloud/component-sdk-go/_examples/http-server/gen/wasi/io/poll"
-	"github.com/wasmCloud/component-sdk-go/_examples/http-server/gen/wasi/io/streams"
+	monotonicclock "github.com/wasmCloud/go/examples/component/http-server/gen/wasi/clocks/monotonic-clock"
+	ioerror "github.com/wasmCloud/go/examples/component/http-server/gen/wasi/io/error"
+	"github.com/wasmCloud/go/examples/component/http-server/gen/wasi/io/poll"
+	"github.com/wasmCloud/go/examples/component/http-server/gen/wasi/io/streams"
 	"go.bytecodealliance.org/cm"
 )
 

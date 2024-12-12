@@ -3,7 +3,7 @@
 package tcp
 
 import (
-	"github.com/wasmCloud/component-sdk-go/_examples/invoke/gen/wasi/sockets/network"
+	"github.com/wasmCloud/go/examples/component/invoke/gen/wasi/sockets/network"
 	"go.bytecodealliance.org/cm"
 	"unsafe"
 )

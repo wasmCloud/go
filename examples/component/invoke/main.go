@@ -3,7 +3,7 @@
 package main
 
 import (
-	"github.com/wasmCloud/component-sdk-go/_examples/invoke/gen/example/invoker/invoker"
+	"github.com/wasmCloud/go/examples/component/invoke/gen/example/invoker/invoker"
 	"go.wasmcloud.dev/component/log/wasilog"
 )
 

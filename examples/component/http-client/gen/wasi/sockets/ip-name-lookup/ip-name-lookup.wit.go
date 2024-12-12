@@ -4,8 +4,8 @@
 package ipnamelookup
 
 import (
-	"github.com/wasmCloud/component-sdk-go/_examples/http-client/gen/wasi/io/poll"
-	"github.com/wasmCloud/component-sdk-go/_examples/http-client/gen/wasi/sockets/network"
+	"github.com/wasmCloud/go/examples/component/http-client/gen/wasi/io/poll"
+	"github.com/wasmCloud/go/examples/component/http-client/gen/wasi/sockets/network"
 	"go.bytecodealliance.org/cm"
 )
 

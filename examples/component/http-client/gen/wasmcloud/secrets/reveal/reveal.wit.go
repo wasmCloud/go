@@ -4,7 +4,7 @@
 package reveal
 
 import (
-	"github.com/wasmCloud/component-sdk-go/_examples/http-client/gen/wasmcloud/secrets/store"
+	"github.com/wasmCloud/go/examples/component/http-client/gen/wasmcloud/secrets/store"
 	"go.bytecodealliance.org/cm"
 )
 

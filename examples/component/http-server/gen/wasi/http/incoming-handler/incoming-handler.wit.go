@@ -7,7 +7,7 @@
 package incominghandler
 
 import (
-	"github.com/wasmCloud/component-sdk-go/_examples/http-server/gen/wasi/http/types"
+	"github.com/wasmCloud/go/examples/component/http-server/gen/wasi/http/types"
 )
 
 // IncomingRequest represents the exported type alias "wasi:http/incoming-handler@0.2.0#incoming-request".

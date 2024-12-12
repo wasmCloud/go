@@ -4,7 +4,7 @@
 package terminalstderr
 
 import (
-	terminaloutput "github.com/wasmCloud/component-sdk-go/_examples/invoke/gen/wasi/cli/terminal-output"
+	terminaloutput "github.com/wasmCloud/go/examples/component/invoke/gen/wasi/cli/terminal-output"
 	"go.bytecodealliance.org/cm"
 )
 

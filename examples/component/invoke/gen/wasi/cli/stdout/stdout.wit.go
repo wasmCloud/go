@@ -4,7 +4,7 @@
 package stdout
 
 import (
-	"github.com/wasmCloud/component-sdk-go/_examples/invoke/gen/wasi/io/streams"
+	"github.com/wasmCloud/go/examples/component/invoke/gen/wasi/io/streams"
 	"go.bytecodealliance.org/cm"
 )
 

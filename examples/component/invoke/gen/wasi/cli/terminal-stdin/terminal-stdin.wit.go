@@ -4,7 +4,7 @@
 package terminalstdin
 
 import (
-	terminalinput "github.com/wasmCloud/component-sdk-go/_examples/invoke/gen/wasi/cli/terminal-input"
+	terminalinput "github.com/wasmCloud/go/examples/component/invoke/gen/wasi/cli/terminal-input"
 	"go.bytecodealliance.org/cm"
 )
 

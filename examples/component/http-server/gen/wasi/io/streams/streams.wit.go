@@ -4,8 +4,8 @@
 package streams
 
 import (
-	ioerror "github.com/wasmCloud/component-sdk-go/_examples/http-server/gen/wasi/io/error"
-	"github.com/wasmCloud/component-sdk-go/_examples/http-server/gen/wasi/io/poll"
+	ioerror "github.com/wasmCloud/go/examples/component/http-server/gen/wasi/io/error"
+	"github.com/wasmCloud/go/examples/component/http-server/gen/wasi/io/poll"
 	"go.bytecodealliance.org/cm"
 )
 

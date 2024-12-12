@@ -4,10 +4,10 @@
 package tcp
 
 import (
-	monotonicclock "github.com/wasmCloud/component-sdk-go/_examples/invoke/gen/wasi/clocks/monotonic-clock"
-	"github.com/wasmCloud/component-sdk-go/_examples/invoke/gen/wasi/io/poll"
-	"github.com/wasmCloud/component-sdk-go/_examples/invoke/gen/wasi/io/streams"
-	"github.com/wasmCloud/component-sdk-go/_examples/invoke/gen/wasi/sockets/network"
+	monotonicclock "github.com/wasmCloud/go/examples/component/invoke/gen/wasi/clocks/monotonic-clock"
+	"github.com/wasmCloud/go/examples/component/invoke/gen/wasi/io/poll"
+	"github.com/wasmCloud/go/examples/component/invoke/gen/wasi/io/streams"
+	"github.com/wasmCloud/go/examples/component/invoke/gen/wasi/sockets/network"
 	"go.bytecodealliance.org/cm"
 )
 

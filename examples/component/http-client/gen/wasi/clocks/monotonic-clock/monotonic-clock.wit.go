@@ -4,7 +4,7 @@
 package monotonicclock
 
 import (
-	"github.com/wasmCloud/component-sdk-go/_examples/http-client/gen/wasi/io/poll"
+	"github.com/wasmCloud/go/examples/component/http-client/gen/wasi/io/poll"
 	"go.bytecodealliance.org/cm"
 )
 

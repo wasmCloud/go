@@ -4,7 +4,7 @@
 package terminalstdout
 
 import (
-	terminaloutput "github.com/wasmCloud/component-sdk-go/_examples/http-client/gen/wasi/cli/terminal-output"
+	terminaloutput "github.com/wasmCloud/go/examples/component/http-client/gen/wasi/cli/terminal-output"
 	"go.bytecodealliance.org/cm"
 )
 

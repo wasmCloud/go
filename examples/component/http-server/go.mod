@@ -1,4 +1,4 @@
-module github.com/wasmCloud/component-sdk-go/_examples/http-server
+module github.com/wasmCloud/go/examples/component/http-server
 
 go 1.23.0
 
@@ -33,4 +33,4 @@ require (
 )
 
 // NOTE(lxf): Remove this line if running outside of component-sdk-go repository
-replace go.wasmcloud.dev/component => ../..
+replace go.wasmcloud.dev/component => ../../../component

@@ -4,8 +4,8 @@
 package types
 
 import (
-	wallclock "github.com/wasmCloud/component-sdk-go/_examples/http-client/gen/wasi/clocks/wall-clock"
-	"github.com/wasmCloud/component-sdk-go/_examples/http-client/gen/wasi/io/streams"
+	wallclock "github.com/wasmCloud/go/examples/component/http-client/gen/wasi/clocks/wall-clock"
+	"github.com/wasmCloud/go/examples/component/http-client/gen/wasi/io/streams"
 	"go.bytecodealliance.org/cm"
 )
 

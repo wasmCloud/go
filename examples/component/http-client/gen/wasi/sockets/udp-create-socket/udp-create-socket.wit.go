@@ -4,8 +4,8 @@
 package udpcreatesocket
 
 import (
-	"github.com/wasmCloud/component-sdk-go/_examples/http-client/gen/wasi/sockets/network"
-	"github.com/wasmCloud/component-sdk-go/_examples/http-client/gen/wasi/sockets/udp"
+	"github.com/wasmCloud/go/examples/component/http-client/gen/wasi/sockets/network"
+	"github.com/wasmCloud/go/examples/component/http-client/gen/wasi/sockets/udp"
 	"go.bytecodealliance.org/cm"
 )
 
