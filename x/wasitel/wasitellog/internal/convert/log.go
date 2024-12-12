@@ -7,7 +7,7 @@ package convert
 import (
 	"time"
 
-	"go.wasmcloud.dev/component/x/wasitel/wasitellog/internal/types"
+	"go.wasmcloud.dev/x/wasitel/wasitellog/internal/types"
 
 	"go.opentelemetry.io/otel/attribute"
 	api "go.opentelemetry.io/otel/log"

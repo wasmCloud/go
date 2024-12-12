@@ -1,4 +1,4 @@
-module go.wasmcloud.dev/component/x/wasitel
+module go.wasmcloud.dev/x/wasitel
 
 go 1.23.2
 
@@ -20,5 +20,3 @@ require (
 	go.opentelemetry.io/otel/metric v1.32.0 // indirect
 	golang.org/x/sys v0.27.0 // indirect
 )
-
-replace go.wasmcloud.dev/component => ../../

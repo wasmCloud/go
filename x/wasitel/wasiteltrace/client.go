@@ -9,7 +9,7 @@ import (
 	"net/url"
 
 	"go.wasmcloud.dev/component/net/wasihttp"
-	"go.wasmcloud.dev/component/x/wasitel/wasiteltrace/internal/types"
+	"go.wasmcloud.dev/x/wasitel/wasiteltrace/internal/types"
 )
 
 type client struct {

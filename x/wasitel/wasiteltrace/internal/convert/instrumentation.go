@@ -4,7 +4,7 @@ package convert
 import (
 	"go.opentelemetry.io/otel/sdk/instrumentation"
 
-	"go.wasmcloud.dev/component/x/wasitel/wasiteltrace/internal/types"
+	"go.wasmcloud.dev/x/wasitel/wasiteltrace/internal/types"
 )
 
 func convertInstrumentationScope(il instrumentation.Scope) *types.InstrumentationScope {

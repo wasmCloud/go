@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	logsdk "go.opentelemetry.io/otel/sdk/log"
-	"go.wasmcloud.dev/component/x/wasitel/wasitellog/internal/convert"
+	"go.wasmcloud.dev/x/wasitel/wasitellog/internal/convert"
 )
 
 func New(opts ...Option) (*Exporter, error) {

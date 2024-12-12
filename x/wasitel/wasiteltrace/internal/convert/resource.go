@@ -4,7 +4,7 @@ package convert
 import (
 	"go.opentelemetry.io/otel/sdk/resource"
 
-	"go.wasmcloud.dev/component/x/wasitel/wasiteltrace/internal/types"
+	"go.wasmcloud.dev/x/wasitel/wasiteltrace/internal/types"
 )
 
 // Resource transforms a Resource into an OTLP Resource.
