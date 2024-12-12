@@ -1,4 +1,4 @@
-//go:generate wit-bindgen-wrpc go --out-dir bindings --package github.com/wasmCloud/provider-sdk-go/examples/http-server/bindings wit
+//go:generate wit-bindgen-wrpc go --out-dir bindings --package github.com/wasmCloud/go/examples/provider/http-server/bindings wit
 
 package main
 

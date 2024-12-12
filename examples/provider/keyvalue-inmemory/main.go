@@ -1,5 +1,5 @@
-//go:generate wit-bindgen-wrpc go -w server --out-dir bindings --package github.com/wasmCloud/provider-sdk-go/examples/keyvalue-inmemory/bindings wit
-//go:generate wit-bindgen-wrpc go -w testing --out-dir bindings/testing --package github.com/wasmCloud/provider-sdk-go/examples/keyvalue-inmemory/bindings/testing wit
+//go:generate wit-bindgen-wrpc go -w server --out-dir bindings --package github.com/wasmCloud/go/examples/provider/keyvalue-inmemory/bindings wit
+//go:generate wit-bindgen-wrpc go -w testing --out-dir bindings/testing --package github.com/wasmCloud/go/examples/provider/keyvalue-inmemory/bindings/testing wit
 
 package main
 
@@ -10,7 +10,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	server "github.com/wasmCloud/provider-sdk-go/examples/keyvalue-inmemory/bindings"
+	server "github.com/wasmCloud/go/examples/provider/keyvalue-inmemory/bindings"
 	"go.opentelemetry.io/otel"
 	"go.wasmcloud.dev/provider"
 )

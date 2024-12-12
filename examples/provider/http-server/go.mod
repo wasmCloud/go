@@ -1,8 +1,8 @@
-module github.com/wasmCloud/provider-sdk-go/examples/http-server
+module github.com/wasmCloud/go/examples/provider/http-server
 
 go 1.22.3
 
-replace go.wasmcloud.dev/provider => ../..
+replace go.wasmcloud.dev/provider => ../../../provider
 
 require (
 	go.wasmcloud.dev/provider v0.0.0-20240124183610-1a92f8d04935

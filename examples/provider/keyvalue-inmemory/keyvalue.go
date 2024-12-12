@@ -5,7 +5,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/wasmCloud/provider-sdk-go/examples/keyvalue-inmemory/bindings/exports/wrpc/keyvalue/store"
+	"github.com/wasmCloud/go/examples/provider/keyvalue-inmemory/bindings/exports/wrpc/keyvalue/store"
 	"go.opentelemetry.io/otel/trace"
 	"go.wasmcloud.dev/provider"
 	wrpc "wrpc.io/go"

@@ -1,8 +1,8 @@
-module github.com/wasmCloud/provider-sdk-go/examples/keyvalue-inmemory
+module github.com/wasmCloud/go/examples/provider/keyvalue-inmemory
 
 go 1.22.3
 
-replace go.wasmcloud.dev/provider => ../..
+replace go.wasmcloud.dev/provider => ../../../provider
 
 require (
 	github.com/nats-io/nats.go v1.37.0

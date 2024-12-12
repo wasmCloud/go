@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/nats-io/nats.go"
-	"github.com/wasmCloud/provider-sdk-go/examples/keyvalue-inmemory/bindings/testing/wrpc/keyvalue/store"
+	"github.com/wasmCloud/go/examples/provider/keyvalue-inmemory/bindings/testing/wrpc/keyvalue/store"
 	"go.wasmcloud.dev/provider"
 	wrpcnats "wrpc.io/go/nats"
 
