@@ -42,20 +42,19 @@ jobs:
       - uses: taiki-e/install-action@a2ff97ae7a403b9e691f3d5d5e214415068a681b # v2.46.7
         with:
           tool: ${{ format('wash-cli@{0},wasm-tools@{1}', env.WASH_VERSION, env.WASM_TOOLS_VERSION) }}
-      - name: Create project from template
+      - uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5.2.0
+        with:
+          go-version-file: "templates/components/${{ matrix.template-name }}/go.mod"
+      - uses: acifani/setup-tinygo@b2ba42b249c7d3efdfe94166ec0f48b3191404f7 # v2.0.0
+        with:
+          tinygo-version: ${{ matrix.tinygo-version }}
+      - name: Build and Test
         run: |
           cd $RUNNER_TEMP
           rm -rf sample-component || true
           wash new component --silent --path $GITHUB_WORKSPACE/templates/components/${{ matrix.template-name }} sample-component
-      - uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5.2.0
-        with:
-          go-version-file: "${{ env.RUNNER_TEMP }}/sample-component/go.mod"
-      - uses: acifani/setup-tinygo@b2ba42b249c7d3efdfe94166ec0f48b3191404f7 # v2.0.0
-        with:
-          tinygo-version: ${{ matrix.tinygo-version }}
-      - name: Build project
-        working-directory: "${{ env.RUNNER_TEMP }}/sample-component"
-        run: wash build
+          cd sample-component
+          wash build
       - uses: golangci/golangci-lint-action@971e284b6050e8a5849b72094c50ab08da042db8 # v6.1.1
         with:
           version: ${{ env.GOLANGCI_VERSION }}
