@@ -1,0 +1,52 @@
+apiVersion: core.oam.dev/v1beta1
+kind: Application
+metadata:
+  name: wasitel-http
+  annotations:
+    description: 'Demo for showing the native wasm OpenTelemetry integration'
+    wasmcloud.dev/authors: wasmCloud team
+    wasmcloud.dev/source-url: https://github.com/wasmCloud/go/blob/main/examples/component/wasitel-http/wadm.yaml
+    wasmcloud.dev/readme-md-url: https://github.com/wasmCloud/go/blob/main/examples/component/wasitel-http/README.md
+    wasmcloud.dev/homepage: https://github.com/wasmCloud/go/blob/main/examples/component/wasitel-http
+    wasmcloud.dev/categories: |
+      opentelemetry,otel,wasitel,http
+spec:
+  components:
+    - name: http-component
+      type: component
+      properties:
+        image: file://./build/wasitel-http_s.wasm
+      traits:
+        - type: spreadscaler
+          properties:
+            replicas: 1
+        - type: link
+          properties:
+            target: http-client
+            namespace: wasi
+            package: http
+            interfaces: [outgoing-handler]
+    - name: http-server
+      type: capability
+      properties:
+        image: ghcr.io/wasmcloud/http-server:0.25.0
+      traits:
+        - type: link
+          properties:
+            target: http-component
+            namespace: wasi
+            package: http
+            interfaces: [incoming-handler]
+            source_config:
+              - name: default-http
+                properties:
+                  address: 0.0.0.0:8000
+    - name: http-client
+      type: capability
+      properties:
+        image: ghcr.io/wasmcloud/http-client:0.12.1
+      traits:
+        - type: spreadscaler
+          properties:
+            replicas: 1
+
