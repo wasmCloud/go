@@ -48,17 +48,16 @@ jobs:
       - uses: acifani/setup-tinygo@b2ba42b249c7d3efdfe94166ec0f48b3191404f7 # v2.0.0
         with:
           tinygo-version: ${{ matrix.tinygo-version }}
-      - name: Build and Test
+      - name: Create project from template
         run: |
-          cd $RUNNER_TEMP
+          mkdir .tmp || true
+          cd .tmp
           rm -rf sample-component || true
           wash new component --silent --path $GITHUB_WORKSPACE/templates/components/${{ matrix.template-name }} sample-component
-          cd sample-component
-          wash build
       - uses: golangci/golangci-lint-action@971e284b6050e8a5849b72094c50ab08da042db8 # v6.1.1
         with:
           version: ${{ env.GOLANGCI_VERSION }}
-          working-directory: "${{ env.RUNNER_TEMP }}/sample-component"
+          working-directory: ".tmp/sample-component"
       - name: Test
         run: go test -v ./...
-        working-directory: "${{ env.RUNNER_TEMP }}/sample-component"
+        working-directory: ".tmp/sample-component"
