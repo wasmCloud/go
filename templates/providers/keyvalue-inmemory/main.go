@@ -48,7 +48,7 @@ func run(source io.Reader) error {
 	// Handle RPC operations
 	stopFunc, err := server.Serve(wasmcloudprovider.RPCClient, p)
 	if err != nil {
-		wasmcloudprovider.Shutdown()
+		_ = wasmcloudprovider.Shutdown()
 		return err
 	}
 
@@ -63,11 +63,11 @@ func run(source io.Reader) error {
 
 	select {
 	case err = <-providerCh:
-		stopFunc()
+		_ = stopFunc()
 		return err
 	case <-signalCh:
-		wasmcloudprovider.Shutdown()
-		stopFunc()
+		_ = wasmcloudprovider.Shutdown()
+		_ = stopFunc()
 	}
 
 	return nil

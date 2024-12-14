@@ -28,7 +28,7 @@ func Ok[T any](v T) *wrpc.Result[T, store.Error] {
 }
 
 func (p *Provider) Delete(ctx context.Context, bucket string, key string) (*wrpc.Result[struct{}, store.Error], error) {
-	ctx, span := p.tracer.Start(ctx, "Delete")
+	_, span := p.tracer.Start(ctx, "Delete")
 	defer span.End()
 
 	v, ok := p.Load(bucket)
@@ -44,7 +44,7 @@ func (p *Provider) Delete(ctx context.Context, bucket string, key string) (*wrpc
 }
 
 func (p *Provider) Exists(ctx context.Context, bucket string, key string) (*wrpc.Result[bool, store.Error], error) {
-	ctx, span := p.tracer.Start(ctx, "Exists")
+	_, span := p.tracer.Start(ctx, "Exists")
 	defer span.End()
 
 	v, ok := p.Load(bucket)
@@ -60,7 +60,7 @@ func (p *Provider) Exists(ctx context.Context, bucket string, key string) (*wrpc
 }
 
 func (p *Provider) Get(ctx context.Context, bucket string, key string) (*wrpc.Result[[]uint8, store.Error], error) {
-	ctx, span := p.tracer.Start(ctx, "Get")
+	_, span := p.tracer.Start(ctx, "Get")
 	defer span.End()
 
 	v, ok := p.Load(bucket)
@@ -83,7 +83,7 @@ func (p *Provider) Get(ctx context.Context, bucket string, key string) (*wrpc.Re
 }
 
 func (p *Provider) Set(ctx context.Context, bucket string, key string, value []byte) (*wrpc.Result[struct{}, store.Error], error) {
-	ctx, span := p.tracer.Start(ctx, "Set")
+	_, span := p.tracer.Start(ctx, "Set")
 	defer span.End()
 
 	b := &sync.Map{}
@@ -99,7 +99,7 @@ func (p *Provider) Set(ctx context.Context, bucket string, key string, value []b
 }
 
 func (p *Provider) ListKeys(ctx context.Context, bucket string, cursor *uint64) (*wrpc.Result[store.KeyResponse, store.Error], error) {
-	ctx, span := p.tracer.Start(ctx, "ListKeys")
+	_, span := p.tracer.Start(ctx, "ListKeys")
 	defer span.End()
 
 	if cursor != nil {
