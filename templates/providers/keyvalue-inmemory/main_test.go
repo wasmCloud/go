@@ -195,7 +195,9 @@ func TestDelete(t *testing.T) {
 		}
 	}()
 	// Give the provider a second to start
-	env.EnsureProviderStarted()
+	if err := env.EnsureProviderStarted(); err != nil {
+		log.Fatal(err)
+	}
 
 	wrpc, err := env.WrpcClient()
 	if err != nil {
@@ -276,7 +278,9 @@ func TestListKeys(t *testing.T) {
 		}
 	}()
 	// Give the provider a second to start
-	env.EnsureProviderStarted()
+	if err := env.EnsureProviderStarted(); err != nil {
+		log.Fatal(err)
+	}
 
 	wrpc, err := env.WrpcClient()
 	if err != nil {
