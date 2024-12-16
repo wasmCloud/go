@@ -13,7 +13,7 @@ on:
       - "templates/**"
 
 env:
-  TINYGO_VERSION: "0.33.0"
+  TINYGO_VERSION: "0.34.0"
   GOLANGCI_VERSION: "v1.61"
   WASH_VERSION: "0.37.0"
   WASM_TOOLS_VERSION: "1.220.0"
@@ -39,33 +39,26 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: taiki-e/install-action@a2ff97ae7a403b9e691f3d5d5e214415068a681b # v2.46.7
         with:
-          tool: wash-cli@${{ env.WASH_VERSION }}
-      - uses: taiki-e/install-action@a2ff97ae7a403b9e691f3d5d5e214415068a681b # v2.46.7
-        with:
-          tool: wasm-tools@${{ env.WASM_TOOLS_VERSION }}
-      - uses: taiki-e/install-action@a2ff97ae7a403b9e691f3d5d5e214415068a681b # v2.46.7
-        with:
-          tool: wrpc@${{ env.WRPC_VERSION }}
+          tool: ${{ format('wash-cli@{0},wasm-tools@{1}', env.WASH_VERSION, env.WASM_TOOLS_VERSION) }}
       - uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5.2.0
         with:
           go-version-file: "templates/providers/${{ matrix.template-name }}/go.mod"
       - name: wash new
+        working-directory: "${{ runner.temp }}"
         run: |
-          mkdir .tmp || true
-          cd .tmp
           rm -rf sample-provider || true
           wash new provider --silent --path $GITHUB_WORKSPACE/templates/providers/${{ matrix.template-name }} sample-provider
       - name: wash build
         run: wash build
-        working-directory: ".tmp/sample-provider"
+        working-directory: "${{ runner.temp }}/sample-provider"
       - name: Go Lint
         uses: golangci/golangci-lint-action@971e284b6050e8a5849b72094c50ab08da042db8 # v6.1.1
         with:
           version: ${{ env.GOLANGCI_VERSION }}
-          working-directory: ".tmp/sample-provider"
+          working-directory: "${{ runner.temp }}/sample-provider"
       - name: Go Test
         run: go test -v ./...
-        working-directory: ".tmp/sample-provider"
+        working-directory: "${{ runner.temp }}/sample-provider"
 
   components:
     # Context: https://github.com/golangci/golangci-lint-action/blob/v6.1.1/README.md#annotations
@@ -78,9 +71,6 @@ jobs:
       matrix:
         template-name:
           - http-hello-world
-        tinygo-version:
-          - "0.33.0"
-          - "0.34.0"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -92,21 +82,20 @@ jobs:
           go-version-file: "templates/components/${{ matrix.template-name }}/go.mod"
       - uses: acifani/setup-tinygo@b2ba42b249c7d3efdfe94166ec0f48b3191404f7 # v2.0.0
         with:
-          tinygo-version: ${{ matrix.tinygo-version }}
+          tinygo-version: ${{ env.TINYGO_VERSION }}
       - name: wash new
+        working-directory: ${{ runner.temp }}
         run: |
-          mkdir .tmp || true
-          cd .tmp
           rm -rf sample-component || true
           wash new component --silent --path $GITHUB_WORKSPACE/templates/components/${{ matrix.template-name }} sample-component
       - name: wash build
         run: wash build
-        working-directory: ".tmp/sample-component"
+        working-directory: "${{ runner.temp }}/sample-component"
       - name: Go Lint
         uses: golangci/golangci-lint-action@971e284b6050e8a5849b72094c50ab08da042db8 # v6.1.1
         with:
           version: ${{ env.GOLANGCI_VERSION }}
-          working-directory: ".tmp/sample-component"
+          working-directory: "${{ runner.temp }}/sample-component"
       - name: Go Test
         run: go test -v ./...
-        working-directory: ".tmp/sample-component"
+        working-directory: "${{ runner.temp }}/sample-component"
