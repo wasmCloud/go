@@ -7,7 +7,7 @@
 
 ## Examples:
 
-To be added.
+For usage examples, please check out the [`wasitel-http` example component](https://github.com/wasmCloud/go/tree/main/examples/component/wasitel-http).
 
 ### Acknowledgements
 
