@@ -1,0 +1,7 @@
+package example:wasitel-echo;
+
+world component {
+  include wasmcloud:component-go/imports@0.1.0;
+  import wasi:http/outgoing-handler@0.2.0; // required by wasitel to send metrics
+  export wasi:http/incoming-handler@0.2.0;
+}
