@@ -1,0 +1,38 @@
+name: Dependabot go mod tidy
+
+on:
+  pull_request:
+    paths:
+      - '**/go.mod'
+
+permissions:
+  contents: read
+
+jobs:
+  dependabot:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'wasmCloud/go' }}
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5.2.0
+        with:
+          go-version: 'stable'
+      - name: Go mod tidy
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          for mod_dir in $(find . -type f -name 'go.mod' | xargs dirname); do
+            pushd "$mod_dir"
+            go mod tidy
+            popd
+          done
+
+          git add $(git ls-files -m)
+          git commit -m "chore: go mod tidy" --signoff
+          git push
