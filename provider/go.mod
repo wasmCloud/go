@@ -8,15 +8,15 @@ require (
 	github.com/nats-io/nats.go v1.37.0
 	github.com/nats-io/nkeys v0.4.7
 	go.opentelemetry.io/otel v1.33.0
-	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc v0.0.0-20240801233905-f7977e064c9c
-	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp v0.4.0
+	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc v0.9.0
+	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp v0.9.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.33.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v1.33.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.28.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.28.0
-	go.opentelemetry.io/otel/log v0.4.0
+	go.opentelemetry.io/otel/log v0.9.0
 	go.opentelemetry.io/otel/sdk v1.33.0
-	go.opentelemetry.io/otel/sdk/log v0.4.0
+	go.opentelemetry.io/otel/sdk/log v0.9.0
 	go.opentelemetry.io/otel/sdk/metric v1.33.0
 	wrpc.io/go v0.1.0
 )
