@@ -4,10 +4,12 @@ go 1.23.0
 
 require (
 	github.com/stretchr/testify v1.10.0
-	go.bytecodealliance.org v0.4.1
+	go.bytecodealliance.org v0.5.0
 	go.wasmcloud.dev/component v0.0.5
 	go.wasmcloud.dev/wadge v0.7.0
 )
+
+require go.bytecodealliance.org/cm v0.1.0
 
 require (
 	github.com/bytecodealliance/wasm-tools-go v0.3.0 // indirect
