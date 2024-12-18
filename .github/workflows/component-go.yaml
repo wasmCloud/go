@@ -1,9 +1,6 @@
 name: Go
 
 on:
-  # We trigger this workflow once a week on Saturdays to make sure the examples don't get stale
-  schedule:
-    - cron: "0 0 * * 6"
   push:
     branches: ["main"]
     paths:
@@ -126,7 +123,7 @@ jobs:
 
       - name: run tests
         working-directory: "./examples/component/${{ matrix.example }}"
-        run: go test .
+        run: go test ./...
 
       # Run the wadm file and make sure it deploys
       - name: test component load
