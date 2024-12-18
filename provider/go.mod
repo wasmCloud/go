@@ -5,7 +5,7 @@ go 1.22.7
 toolchain go1.23.2
 
 require (
-	github.com/nats-io/nats.go v1.37.0
+	github.com/nats-io/nats.go v1.38.0
 	github.com/nats-io/nkeys v0.4.9
 	go.opentelemetry.io/otel v1.33.0
 	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc v0.9.0
@@ -27,7 +27,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.24.0 // indirect
-	github.com/klauspost/compress v1.17.8 // indirect
+	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.28.0 // indirect
