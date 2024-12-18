@@ -1,0 +1,8 @@
+package wasmcloud:harness;
+
+world component {
+  include wasmcloud:component-go/imports@0.1.0;
+  
+  export wasmcloud:postgres/query@0.1.1-draft;
+  export wasi:logging/logging@0.1.0-draft;
+}
