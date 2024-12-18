@@ -6,8 +6,7 @@ toolchain go1.23.2
 
 require (
 	github.com/stretchr/testify v1.9.0
-	go.bytecodealliance.org v0.5.0
-	go.bytecodealliance.org/cm v0.1.0
+	go.bytecodealliance.org v0.4.1
 	go.wasmcloud.dev/component v0.0.5
 	go.wasmcloud.dev/wadge v0.7.0
 )

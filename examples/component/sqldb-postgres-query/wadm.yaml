@@ -2,7 +2,7 @@
 apiVersion: core.oam.dev/v1beta1
 kind: Application
 metadata:
-  name: go-sqldb-postgres-query
+  name: sqldb-postgres-query
   annotations:
     description: |
       Demo WebAssembly component using the wasmCloud SQLDB Postgres provider via the wasmcloud:postgres WIT interface
@@ -50,7 +50,7 @@ spec:
       type: capability
       properties:
         image:
-          ghcr.io/wasmcloud/sqldb-postgres:0.7.1
+          ghcr.io/wasmcloud/sqldb-postgres:0.7.2
           ## To configure OTEL integration for this provider specifically, uncomment the lines below
           # - name: otel
           #   properties:

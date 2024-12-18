@@ -126,7 +126,7 @@ jobs:
 
       - name: run tests
         working-directory: "./examples/component/${{ matrix.example }}"
-        run: go test .
+        run: go test ./...
 
       # Run the wadm file and make sure it deploys
       - name: test component load
