@@ -30,7 +30,7 @@ func init() {
 
 func TestIncomingHandler(t *testing.T) {
 	wadge.RunTest(t, func() {
-		req, err := http.NewRequest("", "/test", nil)
+		req, err := http.NewRequest("", "/", nil)
 		if err != nil {
 			t.Fatalf("failed to create new HTTP request: %s", err)
 		}
@@ -47,7 +47,7 @@ func TestIncomingHandler(t *testing.T) {
 				"text/plain",
 			},
 			"x-requested-path": {
-				"/test",
+				"/",
 			},
 			"x-existing-paths": {
 				"/error,/form,/headers,/post",
