@@ -84,7 +84,9 @@ jobs:
         example:
           - http-server
           - http-client
+          - http-password-checker
           - invoke
+          - sqldb-postgres-query
         tinygo-version:
           - "0.33.0"
           - "0.34.0"
@@ -118,3 +120,30 @@ jobs:
         working-directory: "./examples/component/${{ matrix.example }}"
         run: |
           wash build
+
+      - name: run tests
+        working-directory: "./examples/component/${{ matrix.example }}"
+        run: go test ./...
+
+      # Run the wadm file and make sure it deploys
+      - name: test component load
+        shell: bash
+        working-directory: "./examples/component/${{ matrix.example }}"
+        # TODO: Add a test to the matrix for testing the running component (i.e. with `curl` or `wash call`)
+        run: |
+          set -xe
+          wash up -d --wadm-manifest wadm.yaml;
+          sleep 1;
+          TRIES=0
+          while [[ $(wash get inventory --output=json | jq '.inventories[0].components | length') -eq 0 ]] ; do
+            if [[ $TRIES -gt 10 ]]; then
+              echo "❌ failed to find component in inventory output after deploying example manifest";
+              exit -1;
+            fi
+            TRIES=$((TRIES+1));
+            sleep 1;
+          done;
+          echo "✅ successfully started at least one component";
+          wash app delete wadm.yaml;
+          wash down --all;
+          exit 0;
