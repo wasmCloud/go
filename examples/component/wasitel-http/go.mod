@@ -5,7 +5,7 @@ go 1.23.2
 require (
 	go.bytecodealliance.org v0.4.1
 	go.opentelemetry.io/otel v1.33.0
-	go.opentelemetry.io/otel/sdk v1.32.0
+	go.opentelemetry.io/otel/sdk v1.33.0
 	go.wasmcloud.dev/component v0.0.5
 	go.wasmcloud.dev/x/wasitel v0.0.1
 )
