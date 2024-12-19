@@ -21,13 +21,25 @@ jobs:
       - uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5.2.0
         with:
           go-version: 'stable'
+      - name: List changed go.mod files
+        uses: tj-actions/changed-files@bab30c2299617f6615ec02a68b9a40d10bd21366 # v45.0.5
+        id: changed_go_mod
+        with:
+          dir_names: "true"
+          files: |
+            **/go.mod
+          files_ignore: |
+            templates/**/go.mod
       - name: Go mod tidy
+        if: ${{ steps.changed_go_mod.outputs.any_changed == 'true' }}
         shell: bash
+        env:
+          CHANGED_GO_MOD_DIRS: ${{ steps.changed_go_mod.outputs.all_changed_files }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          for mod_dir in $(find . -type f -name 'go.mod' | xargs dirname); do
+          for mod_dir in ${CHANGED_GO_MOD_DIRS}; do
             pushd "$mod_dir"
             go mod tidy
             popd
