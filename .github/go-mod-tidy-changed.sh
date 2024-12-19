@@ -14,7 +14,7 @@ for mod_dir in ${CHANGED_GO_MOD_DIRS}; do
     popd
 
     if [[ "${mod_dir}" == component* ]]; then
-        example_dirs=$(find -d examples/component -maxdepth 1 -mindepth 1)
+        example_dirs=$(find examples/component -maxdepth 1 -mindepth 1 -type d)
         for example_dir in ${example_dirs}; do 
             pushd "$example_dir"
             go mod tidy
@@ -23,7 +23,7 @@ for mod_dir in ${CHANGED_GO_MOD_DIRS}; do
     fi
 
     if [[ "${mod_dir}" == provider* ]]; then
-        example_dirs=$(find -d examples/provider -maxdepth 1 -mindepth 1)
+        example_dirs=$(find examples/provider -maxdepth 1 -mindepth 1 -type d)
         for example_dir in ${example_dirs}; do 
             pushd "$example_dir"
             go mod tidy
