@@ -25,26 +25,27 @@ jobs:
         uses: tj-actions/changed-files@bab30c2299617f6615ec02a68b9a40d10bd21366 # v45.0.5
         id: changed_go_mod
         with:
-          dir_names: "true"
           files: |
             **/go.mod
           files_ignore: |
             templates/**/go.mod
-      - name: Go mod tidy
+      - name: Go mod tidy changed modules
         if: ${{ steps.changed_go_mod.outputs.any_changed == 'true' }}
         shell: bash
-        env:
-          CHANGED_GO_MOD_DIRS: ${{ steps.changed_go_mod.outputs.all_changed_files }}
+        run: |
+          ./.github/go-mod-tidy-changed.sh ${{ steps.changed_go_mod.outputs.all_changed_files }}
+      - name: Verify Changed files
+        uses: tj-actions/verify-changed-files@v20
+        id: verify_changed_files
+        with:
+          files: |
+            **/go.mod
+            **/go.sum
+      - name: Push changes
+        if: ${{ steps.verify_changed_files.outputs.files_changed == 'true' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          for mod_dir in ${CHANGED_GO_MOD_DIRS}; do
-            pushd "$mod_dir"
-            go mod tidy
-            popd
-          done
-
           git add $(git ls-files -m)
           git commit -m "chore: go mod tidy" --signoff
           git push
