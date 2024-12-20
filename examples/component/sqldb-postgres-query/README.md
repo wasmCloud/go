@@ -9,14 +9,17 @@ This folder contains a WebAssembly component that makes use of:
 
 ## 📦 Dependencies
 
-- `go` 1.23+
+Before starting, ensure that you have the following installed in addition to the Go toolchain:
+
 - `tinygo` 0.33+
 - [`docker`][docker] for easily running instances of [`postgres`]
 - [`wash`][wash] for building and running the components and [wasmCloud][wasmcloud] hosts
+- [`wasm-tools`][wasm-tools] for Go bindings
 
 [docker]: https://docs.docker.com
 [wash]: https://wasmcloud.com/docs/installation
 [wadm]: https://github.com/wasmCloud/wadm
+[wasm-tools]: https://github.com/bytecodealliance/wasm-tools#installation
 
 ## 👟 Quickstart
 
