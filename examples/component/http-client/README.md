@@ -1,13 +1,15 @@
-# TinyGo HTTP Password Checker
+# Go HTTP Client
 
-This repository contains a WebAssembly Component written in [TinyGo][tinygo], which:
+This repository contains a WebAssembly Component compiled using [TinyGo][tinygo], which:
 
 - Implements a [`wasi:http`][wasi-http]-compliant HTTP handler
 - Uses the [`httpserver` provider][httpserver-provider] to serve requests
+- Calls a random number generator service to get random numbers using [`wasi:http`][wasi-http]
 - Can be declaratively provisioned with [`wadm`][wadm]
 
 [wasi-http]: https://github.com/WebAssembly/wasi-http
 [httpserver-provider]: https://github.com/wasmCloud/wasmCloud/tree/main/crates/provider-http-server
+[httpclient-provider]: https://github.com/wasmCloud/wasmCloud/tree/main/crates/provider-http-client
 [wadm]: https://github.com/wasmCloud/wadm
 [tinygo]: https://tinygo.org/getting-started/install/
 [wash]:  https://wasmcloud.com/docs/ecosystem/wash/
@@ -35,7 +37,9 @@ wash dev
 - Builds this project
 - Builds a declarative WADM manifest consisting of:
   - Your locally built component
-  - A [HTTP server provider][httpserver-provider] which will receive requests from the outside world (on port 8000 by default)
+  - A [HTTP server provider][httpserver-provider] which will receive requests from the outside world
+    (on port 8000 by default)
+  - A [HTTP client provider][httpclient-provider] which will call a random number generator service
   - Necessary links between providers and your component so your component can handle web traffic
 - Deploys the built manifest (i.e all dependencies to run this application) locally
 - Watches your code for changes and re-deploys when necessary.
@@ -44,23 +48,13 @@ wash dev
 
 ## Send a request to the running component
 
-Once `wash dev` is serving your component, to send a request to the running component (via the HTTP server provider):
+Once `wash dev` is serving your component, to send a request to the running component (via the HTTP
+server provider). It will call an upstream API and return a list of random numbers:
 
 ```console
-curl localhost:8000/api/v1/check -d '{"value": "tes12345!"}'
+curl localhost:8000
+[438,424,166,260,681]
 ```
-
-You should see a JSON response like:
-
-```json
-{
-    "valid": false, "message": "insecure password, try including more special characters, using uppercase letters or using a longer password"
-}
-```
-
-## Adding Capabilities
-
-To learn how to extend this example with additional capabilities, see the [Adding Capabilities](https://wasmcloud.com/docs/tour/adding-capabilities?lang=rust) section of the wasmCloud documentation.
 
 # Issues/ FAQ
 
@@ -74,13 +68,14 @@ To learn how to extend this example with additional capabilities, see the [Addin
 If `curl`ing produces
 
 ```
-➜ curl localhost:8000
+curl localhost:8000
 failed to invoke `wrpc:http/incoming-handler.handle`: failed to invoke `wrpc:http/incoming-handler@0.1.0.handle`: failed to shutdown synchronous parameter channel: not connected%
 ```
 
 You *may* need to just wait a little bit -- the HTTP server takes a second or two to start up.
 
-If the issue *persists*, you *may* have a lingering HTTP server provider running on your system. You can use `pgrep` to find it:
+If the issue *persists*, you *may* have a lingering HTTP server provider running on your system. You
+can use `pgrep` to find it:
 
 ```console
 ❯ pgrep -la ghcr_io
