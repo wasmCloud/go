@@ -8,4 +8,14 @@ layout:
 multigroup: true
 projectName: operator
 repo: github.com/wasmCloud/go/x/operator
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: oam.dev
+  group: core
+  kind: Application
+  path: github.com/wasmCloud/go/x/operator/api/oam/v1beta1
+  version: v1beta1
 version: "3"
