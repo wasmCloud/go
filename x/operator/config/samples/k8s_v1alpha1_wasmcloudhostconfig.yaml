@@ -1,0 +1,10 @@
+apiVersion: k8s.wasmcloud.dev/v1alpha1
+kind: WasmCloudHostConfig
+metadata:
+  labels:
+    app.kubernetes.io/name: operator
+    app.kubernetes.io/managed-by: kustomize
+  name: wasmcloudhostconfig-sample
+spec:
+  version: "1.0.4"
+  lattice: default

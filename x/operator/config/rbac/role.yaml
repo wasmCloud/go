@@ -1,0 +1,85 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - daemonsets
+  - deployments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - daemonsets/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - apps
+  resources:
+  - daemonsets/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - core.oam.dev
+  resources:
+  - applications
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - core.oam.dev
+  resources:
+  - applications/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - core.oam.dev
+  resources:
+  - applications/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - k8s.wasmcloud.dev
+  resources:
+  - wasmcloudhostconfigs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - k8s.wasmcloud.dev
+  resources:
+  - wasmcloudhostconfigs/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - k8s.wasmcloud.dev
+  resources:
+  - wasmcloudhostconfigs/status
+  verbs:
+  - get
+  - patch
+  - update

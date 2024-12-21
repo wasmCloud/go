@@ -1,0 +1,5 @@
+## Append samples of your project ##
+resources:
+- oam_v1beta1_application.yaml
+- k8s_v1alpha1_wasmcloudhostconfig.yaml
+# +kubebuilder:scaffold:manifestskustomizesamples
