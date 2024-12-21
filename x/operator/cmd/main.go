@@ -35,7 +35,9 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
+	k8sv1alpha1 "github.com/wasmCloud/go/x/operator/api/k8s/v1alpha1"
 	coreoamv1beta1 "github.com/wasmCloud/go/x/operator/api/oam/core/v1beta1"
+	k8scontroller "github.com/wasmCloud/go/x/operator/internal/controller/k8s"
 	oamcontroller "github.com/wasmCloud/go/x/operator/internal/controller/oam"
 	// +kubebuilder:scaffold:imports
 )
@@ -49,6 +51,7 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
 	utilruntime.Must(coreoamv1beta1.AddToScheme(scheme))
+	utilruntime.Must(k8sv1alpha1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -124,7 +127,7 @@ func main() {
 		WebhookServer:          webhookServer,
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "5e3b9532.k8s.wasmcloud.dev",
+		LeaderElectionID:       "5e3b9532.wasmcloud.dev",
 		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
 		// when the Manager ends. This requires the binary to immediately end when the
 		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
@@ -147,6 +150,13 @@ func main() {
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Application")
+		os.Exit(1)
+	}
+	if err = (&k8scontroller.WasmCloudHostConfigReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "WasmCloudHostConfig")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder

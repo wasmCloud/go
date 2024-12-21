@@ -30,3 +30,29 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - k8s.wasmcloud.dev
+  resources:
+  - wasmcloudhostconfigs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - k8s.wasmcloud.dev
+  resources:
+  - wasmcloudhostconfigs/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - k8s.wasmcloud.dev
+  resources:
+  - wasmcloudhostconfigs/status
+  verbs:
+  - get
+  - patch
+  - update
