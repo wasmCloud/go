@@ -1859,17 +1859,15 @@ spec:
                 format: int32
                 type: integer
               natsAddress:
-                default: nats.local
+                default: nats://nats.default.svc.cluster.local
                 type: string
               natsClientPort:
                 default: 4222
-                format: int32
                 type: integer
               natsLeafImage:
                 type: string
               natsLeafnodePort:
                 default: 7422
-                format: int32
                 type: integer
               observability:
                 properties:
@@ -2059,7 +2057,9 @@ spec:
           status:
             description: WasmCloudHostConfigStatus defines the observed state of WasmCloudHostConfig.
             properties:
-              appCount:
+              app_count:
+                description: 'NOTE(lxf): This should be ''appCount'', ''app_count''
+                  is coming from the Rust Operator.'
                 format: int32
                 type: integer
               apps:
@@ -2110,8 +2110,9 @@ spec:
                   - type
                   type: object
                 type: array
-            required:
-            - appCount
+              observedGeneration:
+                format: int64
+                type: integer
             type: object
         required:
         - spec

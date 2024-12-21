@@ -106,14 +106,14 @@ type WasmCloudHostConfigSpec struct {
 	//+kubebuilder:default="leaf"
 	LeafNodeDomain string `json:"leafNodeDomain,omitempty"`
 	//+kubebuilder:validation:Optional
-	//+kubebuilder:default="nats.local"
+	//+kubebuilder:default="nats://nats.default.svc.cluster.local"
 	NatsAddress string `json:"natsAddress,omitempty"`
 	//+kubebuilder:validation:Optional
 	//+kubebuilder:default=4222
-	NatsClientPort int32 `json:"natsClientPort,omitempty"`
+	NatsClientPort int `json:"natsClientPort,omitempty"`
 	//+kubebuilder:validation:Optional
 	//+kubebuilder:default=7422
-	NatsLeafnodePort int32 `json:"natsLeafnodePort,omitempty"`
+	NatsLeafnodePort int `json:"natsLeafnodePort,omitempty"`
 	//+kubebuilder:validation:Optional
 	//+kubebuilder:default="default"
 	JetstreamDomain string `json:"jetstreamDomain,omitempty"`
@@ -142,8 +142,13 @@ type WasmCloudHostConfigSpec struct {
 type WasmCloudHostConfigStatus struct {
 	condition.ConditionedStatus `json:",inline"`
 
-	Apps     []ApplicationStatus `json:"apps,omitempty"`
-	AppCount uint32              `json:"appCount"`
+	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
+
+	//+kubebuilder:validation:Optional
+	Apps []ApplicationStatus `json:"apps"`
+	// NOTE(lxf): This should be 'appCount', 'app_count' is coming from the Rust Operator.
+	//+kubebuilder:validation:Optional
+	AppCount uint32 `json:"app_count"`
 }
 
 type ApplicationStatus struct {
@@ -169,6 +174,14 @@ type WasmCloudHostConfig struct {
 
 	//+kubebuilder:validation:Optional
 	Status WasmCloudHostConfigStatus `json:"status,omitempty"`
+}
+
+func (w *WasmCloudHostConfig) SetCondition(c ...condition.Condition) {
+	w.Status.SetConditions(c...)
+}
+
+func (w *WasmCloudHostConfig) GetCondition(ct condition.ConditionType) condition.Condition {
+	return w.Status.GetCondition(ct)
 }
 
 // +kubebuilder:object:root=true

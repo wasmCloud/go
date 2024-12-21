@@ -7,3 +7,4 @@ metadata:
   name: wasmcloudhostconfig-sample
 spec:
   version: "1.0.4"
+  lattice: default

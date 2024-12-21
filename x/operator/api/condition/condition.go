@@ -38,6 +38,7 @@ const (
 
 // Reasons a resource is or is not synced.
 const (
+	ReasonReconcilePending ConditionReason = "ReconcilePending"
 	ReasonReconcileSuccess ConditionReason = "ReconcileSuccess"
 	ReasonReconcileError   ConditionReason = "ReconcileError"
 )
@@ -212,6 +213,16 @@ func Unavailable() Condition {
 		Status:             corev1.ConditionFalse,
 		LastTransitionTime: metav1.Now(),
 		Reason:             ReasonUnavailable,
+	}
+}
+
+// ReconcilePending returns a condition indicating the beginning of a reconciliation.
+func ReconcilePending() Condition {
+	return Condition{
+		Type:               TypeSynced,
+		Status:             corev1.ConditionFalse,
+		LastTransitionTime: metav1.Now(),
+		Reason:             ReasonReconcilePending,
 	}
 }
 
