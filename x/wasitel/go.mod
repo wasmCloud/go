@@ -18,5 +18,5 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	go.bytecodealliance.org v0.4.0 // indirect
 	go.opentelemetry.io/otel/metric v1.32.0 // indirect
-	golang.org/x/sys v0.27.0 // indirect
+	golang.org/x/sys v0.28.0 // indirect
 )
