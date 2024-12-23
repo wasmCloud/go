@@ -1,17 +1,5 @@
 version: 2
 updates:
-  - package-ecosystem: "gomod"
-    directories:
-      - "/component"
-      - "/examples/component/**"
-    schedule:
-      interval: "daily"
-  - package-ecosystem: "gomod"
-    directories:
-      - "/provider"
-      - "/examples/provider/**"
-    schedule:
-      interval: "daily"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
