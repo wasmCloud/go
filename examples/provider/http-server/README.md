@@ -30,7 +30,7 @@ func director(r *http.Request) string {
     return "http-api"
   }
   return "http-ui"
-})
+}
 
 
 transport := wrpchttp.NewIncomingRoundTripper(wasmcloudprovider, wrpchttp.WithDirector(director))
