@@ -2,7 +2,7 @@ module github.com/wasmCloud/go/examples/provider/http-server
 
 go 1.22.7
 
-toolchain go1.23.2
+toolchain go1.23.4
 
 replace go.wasmcloud.dev/provider => ../../../provider
 

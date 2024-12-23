@@ -2,7 +2,7 @@ module test-harness
 
 go 1.23.0
 
-toolchain go1.23.2
+toolchain go1.23.4
 
 require go.bytecodealliance.org v0.4.1
 

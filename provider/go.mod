@@ -2,7 +2,7 @@ module go.wasmcloud.dev/provider
 
 go 1.22.7
 
-toolchain go1.23.2
+toolchain go1.23.4
 
 require (
 	github.com/nats-io/nats.go v1.37.0
