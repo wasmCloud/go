@@ -13,8 +13,8 @@ github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8
 github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3IKzErnv2BNG4W4MAM=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/regclient/regclient v0.7.2 h1:vcldDAwBMLtighYVMeb6qNt5+0hKg3AN2IkCc0JIJNM=
-github.com/regclient/regclient v0.7.2/go.mod h1:QlA7W9/pvmbblOXM4d49JgfuOTwVXcUMKt3bFuOSVIQ=
+github.com/regclient/regclient v0.8.0 h1:xNAMDlADcyMvFAlGXoqDOxlSUBG4mqWBFgjQqVTP8Og=
+github.com/regclient/regclient v0.8.0/go.mod h1:h9+Y6dBvqBkdlrj6EIhbTOv0xUuIFl7CdI1bZvEB42g=
 github.com/samber/lo v1.47.0 h1:z7RynLwP5nbyRscyvcD043DWYoOcYRv3mV8lBeqOCLc=
 github.com/samber/lo v1.47.0/go.mod h1:RmDH9Ct32Qy3gduHQuKJ3gW1fMHAnE/fAzQuf6He5cU=
 github.com/samber/slog-common v0.17.1 h1:jTqqLBgoJshpoxlPSGiypyOanjH6tY+i9bwyYmIbjhI=
