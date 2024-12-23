@@ -1,4 +1,4 @@
-module github.com/wasmCloud/go/x/operator
+module go.wasmcloud.dev/operator
 
 go 1.22.0
 

@@ -7,7 +7,7 @@ layout:
 - go.kubebuilder.io/v4
 multigroup: true
 projectName: operator
-repo: github.com/wasmCloud/go/x/operator
+repo: go.wasmcloud.dev/operator
 resources:
 - api:
     crdVersion: v1
@@ -16,7 +16,7 @@ resources:
   domain: oam.dev
   group: core
   kind: Application
-  path: github.com/wasmCloud/go/x/operator/api/oam/v1beta1
+  path: go.wasmcloud.dev/operator/api/oam/v1beta1
   version: v1beta1
 - api:
     crdVersion: v1
@@ -25,6 +25,6 @@ resources:
   domain: wasmcloud.dev
   group: k8s
   kind: WasmCloudHostConfig
-  path: github.com/wasmCloud/go/x/operator/api/k8s/v1alpha1
+  path: go.wasmcloud.dev/operator/api/k8s/v1alpha1
   version: v1alpha1
 version: "3"

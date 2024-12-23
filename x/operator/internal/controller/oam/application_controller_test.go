@@ -27,7 +27,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	coreoamv1beta1 "github.com/wasmCloud/go/x/operator/api/oam/core/v1beta1"
+	coreoamv1beta1 "go.wasmcloud.dev/operator/api/oam/core/v1beta1"
 )
 
 var _ = Describe("Application Controller", func() {
@@ -50,6 +50,14 @@ var _ = Describe("Application Controller", func() {
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      resourceName,
 						Namespace: "default",
+					},
+					Spec: coreoamv1beta1.ApplicationSpec{
+						Components: []coreoamv1beta1.ApplicationComponent{
+							{
+								Name: "test-component",
+								Type: "test-type",
+							},
+						},
 					},
 					// TODO(user): Specify other spec details if needed.
 				}

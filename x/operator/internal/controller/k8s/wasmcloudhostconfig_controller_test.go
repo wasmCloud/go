@@ -27,7 +27,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	k8sv1alpha1 "github.com/wasmCloud/go/x/operator/api/k8s/v1alpha1"
+	k8sv1alpha1 "go.wasmcloud.dev/operator/api/k8s/v1alpha1"
 )
 
 var _ = Describe("WasmCloudHostConfig Controller", func() {

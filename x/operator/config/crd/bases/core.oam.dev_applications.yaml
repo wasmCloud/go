@@ -98,10 +98,6 @@ spec:
                   - type
                   type: object
                 type: array
-              foo:
-                description: Foo is an example field of Application. Edit application_types.go
-                  to remove/update
-                type: string
               policies:
                 items:
                   properties:

@@ -29,8 +29,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	"github.com/wasmCloud/go/x/operator/api/condition"
-	k8sv1alpha1 "github.com/wasmCloud/go/x/operator/api/k8s/v1alpha1"
+	"go.wasmcloud.dev/operator/api/condition"
+	k8sv1alpha1 "go.wasmcloud.dev/operator/api/k8s/v1alpha1"
 )
 
 // WasmCloudHostConfigReconciler reconciles a WasmCloudHostConfig object

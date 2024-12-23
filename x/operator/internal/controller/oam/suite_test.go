@@ -33,7 +33,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	coreoamv1beta1 "github.com/wasmCloud/go/x/operator/api/oam/core/v1beta1"
+	coreoamv1beta1 "go.wasmcloud.dev/operator/api/oam/core/v1beta1"
 	// +kubebuilder:scaffold:imports
 )
 

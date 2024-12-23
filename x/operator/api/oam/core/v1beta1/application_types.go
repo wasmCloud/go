@@ -17,7 +17,7 @@ limitations under the License.
 package v1beta1
 
 import (
-	"github.com/wasmCloud/go/x/operator/api/condition"
+	"go.wasmcloud.dev/operator/api/condition"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
@@ -81,11 +81,6 @@ type ApplicationPolicy struct {
 
 // ApplicationSpec defines the desired state of Application.
 type ApplicationSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
-	// Foo is an example field of Application. Edit application_types.go to remove/update
-	Foo        string                 `json:"foo,omitempty"`
 	Components []ApplicationComponent `json:"components"`
 	Policies   []ApplicationPolicy    `json:"policies,omitempty"`
 }

@@ -35,10 +35,10 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	k8sv1alpha1 "github.com/wasmCloud/go/x/operator/api/k8s/v1alpha1"
-	coreoamv1beta1 "github.com/wasmCloud/go/x/operator/api/oam/core/v1beta1"
-	k8scontroller "github.com/wasmCloud/go/x/operator/internal/controller/k8s"
-	oamcontroller "github.com/wasmCloud/go/x/operator/internal/controller/oam"
+	k8sv1alpha1 "go.wasmcloud.dev/operator/api/k8s/v1alpha1"
+	coreoamv1beta1 "go.wasmcloud.dev/operator/api/oam/core/v1beta1"
+	k8scontroller "go.wasmcloud.dev/operator/internal/controller/k8s"
+	oamcontroller "go.wasmcloud.dev/operator/internal/controller/oam"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -78,7 +78,10 @@ func main() {
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 
-	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+	ctrl.SetLogger(zap.New(
+		zap.UseFlagOptions(&opts),
+		zap.JSONEncoder(),
+	))
 
 	// if the enable-http2 flag is false (the default), http/2 should be disabled
 	// due to its vulnerabilities. More specifically, disabling http/2 will
