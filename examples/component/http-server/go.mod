@@ -18,7 +18,7 @@ require (
 	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/regclient/regclient v0.7.2 // indirect
+	github.com/regclient/regclient v0.8.0 // indirect
 	github.com/samber/lo v1.47.0 // indirect
 	github.com/samber/slog-common v0.17.1 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
