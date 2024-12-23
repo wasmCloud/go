@@ -42,7 +42,7 @@ jobs:
         with:
           version: ${{ env.GOLANGCI_VERSION }}
           working-directory: ./component
-      - uses: taiki-e/install-action@ed8c79bccf0b1cb1544a358f81684d3acaa5133f # v2.46.11
+      - uses: taiki-e/install-action@8484225d9734e230a8bf38421a4ffec1cc249372 # v2.46.20
         with:
           tool: ${{ format('wasm-tools@{0}', env.WASM_TOOLS_VERSION) }}
 
@@ -103,7 +103,7 @@ jobs:
         with:
           version: ${{ env.GOLANGCI_VERSION }}
           working-directory: "./examples/component/${{ matrix.example }}"
-      - uses: taiki-e/install-action@ed8c79bccf0b1cb1544a358f81684d3acaa5133f # v2.46.11
+      - uses: taiki-e/install-action@8484225d9734e230a8bf38421a4ffec1cc249372 # v2.46.20
         with:
           tool: ${{ format('wash-cli@{0},wasm-tools@{1}', env.WASH_VERSION, env.WASM_TOOLS_VERSION) }}
 
