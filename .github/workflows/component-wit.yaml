@@ -1,4 +1,4 @@
-name: Publish WIT package
+name: Component / WIT
 
 on:
   push:
