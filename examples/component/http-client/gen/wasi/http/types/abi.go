@@ -152,7 +152,7 @@ func lower_ErrorCode(v ErrorCode) (f0 uint32, f1 uint32, f2 uint64, f3 uint32, f
 	case 1: // DNS-error
 		v1, v2, v3, v4, v5 := lower_DNSErrorPayload(*cm.Case[DNSErrorPayload](&v, 1))
 		f1 = (uint32)(v1)
-		f2 = cm.PointerToU64(v2)
+		f2 = (uint64)(cm.PointerToU64(v2))
 		f3 = (uint32)(v3)
 		f4 = (uint32)(v4)
 		f5 = (uint32)(v5)
@@ -161,7 +161,7 @@ func lower_ErrorCode(v ErrorCode) (f0 uint32, f1 uint32, f2 uint64, f3 uint32, f
 		f1 = (uint32)(v1)
 		f2 = (uint64)(v2)
 		f3 = (uint32)(v3)
-		f4 = cm.PointerToU32(v4)
+		f4 = (uint32)(cm.PointerToU32(v4))
 		f5 = (uint32)(v5)
 	case 17: // HTTP-request-body-size
 		v1, v2 := lower_OptionU64(*cm.Case[cm.Option[uint64]](&v, 17))
@@ -175,7 +175,7 @@ func lower_ErrorCode(v ErrorCode) (f0 uint32, f1 uint32, f2 uint64, f3 uint32, f
 		v1, v2, v3, v4, v5, v6 := lower_OptionFieldSizePayload(*cm.Case[cm.Option[FieldSizePayload]](&v, 22))
 		f1 = (uint32)(v1)
 		f2 = (uint64)(v2)
-		f3 = cm.PointerToU32(v3)
+		f3 = (uint32)(cm.PointerToU32(v3))
 		f4 = (uint32)(v4)
 		f5 = (uint32)(v5)
 		f6 = (uint32)(v6)
@@ -186,7 +186,7 @@ func lower_ErrorCode(v ErrorCode) (f0 uint32, f1 uint32, f2 uint64, f3 uint32, f
 	case 24: // HTTP-request-trailer-size
 		v1, v2, v3, v4, v5 := lower_FieldSizePayload(*cm.Case[FieldSizePayload](&v, 24))
 		f1 = (uint32)(v1)
-		f2 = cm.PointerToU64(v2)
+		f2 = (uint64)(cm.PointerToU64(v2))
 		f3 = (uint32)(v3)
 		f4 = (uint32)(v4)
 		f5 = (uint32)(v5)
@@ -197,7 +197,7 @@ func lower_ErrorCode(v ErrorCode) (f0 uint32, f1 uint32, f2 uint64, f3 uint32, f
 	case 27: // HTTP-response-header-size
 		v1, v2, v3, v4, v5 := lower_FieldSizePayload(*cm.Case[FieldSizePayload](&v, 27))
 		f1 = (uint32)(v1)
-		f2 = cm.PointerToU64(v2)
+		f2 = (uint64)(cm.PointerToU64(v2))
 		f3 = (uint32)(v3)
 		f4 = (uint32)(v4)
 		f5 = (uint32)(v5)
@@ -212,24 +212,24 @@ func lower_ErrorCode(v ErrorCode) (f0 uint32, f1 uint32, f2 uint64, f3 uint32, f
 	case 30: // HTTP-response-trailer-size
 		v1, v2, v3, v4, v5 := lower_FieldSizePayload(*cm.Case[FieldSizePayload](&v, 30))
 		f1 = (uint32)(v1)
-		f2 = cm.PointerToU64(v2)
+		f2 = (uint64)(cm.PointerToU64(v2))
 		f3 = (uint32)(v3)
 		f4 = (uint32)(v4)
 		f5 = (uint32)(v5)
 	case 31: // HTTP-response-transfer-coding
 		v1, v2, v3 := lower_OptionString(*cm.Case[cm.Option[string]](&v, 31))
 		f1 = (uint32)(v1)
-		f2 = cm.PointerToU64(v2)
+		f2 = (uint64)(cm.PointerToU64(v2))
 		f3 = (uint32)(v3)
 	case 32: // HTTP-response-content-coding
 		v1, v2, v3 := lower_OptionString(*cm.Case[cm.Option[string]](&v, 32))
 		f1 = (uint32)(v1)
-		f2 = cm.PointerToU64(v2)
+		f2 = (uint64)(cm.PointerToU64(v2))
 		f3 = (uint32)(v3)
 	case 38: // internal-error
 		v1, v2, v3 := lower_OptionString(*cm.Case[cm.Option[string]](&v, 38))
 		f1 = (uint32)(v1)
-		f2 = cm.PointerToU64(v2)
+		f2 = (uint64)(cm.PointerToU64(v2))
 		f3 = (uint32)(v3)
 	}
 	return

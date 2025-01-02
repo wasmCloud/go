@@ -3,7 +3,8 @@ module github.com/wasmCloud/go/examples/component/http-client
 go 1.23.0
 
 require (
-	go.bytecodealliance.org v0.4.1
+	go.bytecodealliance.org v0.5.0
+	go.bytecodealliance.org/cm v0.1.0
 	go.wasmcloud.dev/component v0.0.5
 )
 

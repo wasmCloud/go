@@ -4,7 +4,10 @@ go 1.23.0
 
 toolchain go1.23.4
 
-require go.bytecodealliance.org v0.4.1
+require (
+	go.bytecodealliance.org v0.5.0
+	go.bytecodealliance.org/cm v0.1.0
+)
 
 require (
 	github.com/coreos/go-semver v0.3.1 // indirect
