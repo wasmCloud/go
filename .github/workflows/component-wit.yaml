@@ -15,7 +15,7 @@ jobs:
       contents: write # for softprops/action-gh-release
       packages: write # for publishing the wit to ghcr.io
     steps:
-    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
     - name: Extract tag context
       id: ctx
       run: |
@@ -23,7 +23,7 @@ jobs:
           echo "version=${version}" >> "$GITHUB_OUTPUT"
           echo "tarball=wit-${version}.tar.gz" >> "$GITHUB_OUTPUT"
           echo "version is ${version}"
-    - uses: taiki-e/install-action@acd25891978b4cdaebd139d3efef606d26513b14
+    - uses: taiki-e/install-action@acd25891978b4cdaebd139d3efef606d26513b14 # v2.47.0
       with:
         tool: wash@0.37.0
     - name: Generate and set config
@@ -52,7 +52,7 @@ jobs:
       run: |
         tar -cvzf ${{ steps.ctx.outputs.tarball }} -C ./component wit
     - name: Release
-      uses: softprops/action-gh-release@7b4da11513bf3f43f9999e90eabced41ab8bb048
+      uses: softprops/action-gh-release@7b4da11513bf3f43f9999e90eabced41ab8bb048 # v2.2.0
       with:
         files: ${{ steps.ctx.outputs.tarball }}
         make_latest: "false"
