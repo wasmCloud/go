@@ -25,7 +25,7 @@ jobs:
           echo "version is ${version}"
     - uses: taiki-e/install-action@acd25891978b4cdaebd139d3efef606d26513b14
       with:
-        tool: wash-cli@0.36.1
+        tool: wash@0.37.0
     - name: Generate and set config
       shell: bash
       env:

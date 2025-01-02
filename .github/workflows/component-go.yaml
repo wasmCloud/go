@@ -106,7 +106,7 @@ jobs:
           working-directory: "./examples/component/${{ matrix.example }}"
       - uses: taiki-e/install-action@acd25891978b4cdaebd139d3efef606d26513b14 # v2.47.0
         with:
-          tool: ${{ format('wash-cli@{0},wasm-tools@{1}', env.WASH_VERSION, env.WASM_TOOLS_VERSION) }}
+          tool: ${{ format('wash@{0},wasm-tools@{1}', env.WASH_VERSION, env.WASM_TOOLS_VERSION) }}
 
       - name: Go generate
         run: |
