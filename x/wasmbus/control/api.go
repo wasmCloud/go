@@ -1,6 +1,12 @@
 package control
 
-import "context"
+// https://wasmcloud.com/docs/hosts/lattice-protocols/control-interface
+// https://github.com/wasmCloud/wasmCloud/blob/main/crates/host/src/wasmbus/mod.rs
+
+import (
+	"context"
+	"time"
+)
 
 type APIv1 interface {
 	ProviderAuction(ctx context.Context, req *ProviderAuctionRequest) (*ProviderAuctionResponse, error)
@@ -126,7 +132,7 @@ type HostStopResponse = Response[HostStopResponsePayload]
 
 type ConfigPutRequest struct {
 	Name   string            `json:"-"`
-	Values map[string]string `json:",inline"`
+	Values map[string]string `json:"-"`
 }
 
 func (c *ConfigPutRequest) SetName(name string) {
@@ -161,21 +167,30 @@ type ConfigDeleteResponsePayload struct{}
 
 type ConfigDeleteResponse = Response[ConfigDeleteResponsePayload]
 
-type HostLabelPutRequest map[string]string
+type HostLabelPutRequest struct {
+	HostId string `json:"-"`
+	Key    string `json:"key"`
+	Value  string `json:"value"`
+}
 
 type HostLabelPutResponsePayload struct{}
 
 type HostLabelPutResponse = Response[HostLabelPutResponsePayload]
 
 type HostLabelDeleteRequest struct {
-	Key string `json:"key"`
+	HostId string `json:"-"`
+	Key    string `json:"key"`
+	// NOTE(lxf): This is expected to be sent even if blak. Seems like an API bug.
+	Value string `json:"value"`
 }
 
 type HostLabelDeleteResponsePayload struct{}
 
 type HostLabelDeleteResponse = Response[HostLabelDeleteResponsePayload]
 
-type LinkGetRequest struct{}
+// NOTE(lxf): Despite being a 'Get', this acts as a 'List' operation
+type LinkGetRequest struct {
+}
 
 type LinkGetResponsePayload struct {
 	SourceId      string   `json:"source_id"`
@@ -222,7 +237,9 @@ type ClaimsGetResponsePayload map[string]string
 
 type ClaimsGetResponse = Response[ClaimsGetResponsePayload]
 
-type HostInventoryRequest struct{}
+type HostInventoryRequest struct {
+	HostId string `json:"-"`
+}
 
 type ComponentDescription struct {
 	Id           string            `json:"id"`
@@ -254,7 +271,9 @@ type HostInventoryResponsePayload struct {
 
 type HostInventoryResponse = Response[HostInventoryResponsePayload]
 
-type HostPingRequest struct{}
+type HostPingRequest struct {
+	Wait time.Duration `json:"-"`
+}
 
 type HostPingResponsePayload struct {
 	Id            string            `json:"id"`
@@ -268,4 +287,7 @@ type HostPingResponsePayload struct {
 	UptimeHuman   string            `json:"uptime_human"`
 }
 
-type HostPingResponse = Response[HostPingResponsePayload]
+// NOTE(lxf): Needed cause this is a scatter/gather api.
+type HostPingSingleResponse = Response[HostPingResponsePayload]
+
+type HostPingResponse = Response[[]HostPingResponsePayload]

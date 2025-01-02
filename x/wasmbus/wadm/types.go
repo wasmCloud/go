@@ -63,13 +63,18 @@ const (
 // RawMessage knows how to stash json & yaml
 type RawMessage []byte
 
-func (m RawMessage) MarshalJSON() ([]byte, error) { return m.marshal() }
-func (m RawMessage) MarshalYAML() ([]byte, error) { return m.marshal() }
-
-func (m RawMessage) marshal() ([]byte, error) {
+func (m RawMessage) MarshalJSON() ([]byte, error) {
 	if m == nil {
 		return []byte("null"), nil
 	}
+	return m.marshal()
+}
+
+func (m RawMessage) MarshalYAML() ([]byte, error) {
+	return m.marshal()
+}
+
+func (m RawMessage) marshal() ([]byte, error) {
 	return m, nil
 }
 
@@ -139,56 +144,56 @@ type ModelSummary struct {
 
 type ManifestMetadata struct {
 	Name        string            `json:"name"`
-	Namespace   string            `json:"namespace,omitempty"`
+	Namespace   string            `json:"namespace,omitempty" yaml:"namespace,omitempty"`
 	Annotations map[string]string `json:"annotations"`
 	Labels      map[string]string `json:"labels,omitempty"`
 }
 
 type Policy struct {
-	Name       string            `json:"name"`
-	Type       string            `json:"type"`
-	Properties map[string]string `json:"properties,omitempty"`
+	Name       string            `json:"name" yaml:"name"`
+	Type       string            `json:"type" yaml:"type"`
+	Properties map[string]string `json:"properties,omitempty" yaml:"properties,omitempty"`
 }
 
 type ConfigProperty struct {
-	Name       string            `json:"name"`
-	Properties map[string]string `json:"properties,omitempty"`
+	Name       string            `json:"name" yaml:"name"`
+	Properties map[string]string `json:"properties,omitempty" yaml:"properties,omitempty"`
 }
 
 type SecretSourceProperty struct {
-	Policy  string `json:"policy"`
-	Key     string `json:"key"`
-	Field   string `json:"field,omitempty"`
-	Version string `json:"version,omitempty"`
+	Policy  string `json:"policy"  yaml:"policy"`
+	Key     string `json:"key"    yaml:"key"`
+	Field   string `json:"field,omitempty" yaml:"field,omitempty"`
+	Version string `json:"version,omitempty" yaml:"version,omitempty"`
 }
 
 type SecretProperty struct {
-	Name       string               `json:"name"`
-	Properties SecretSourceProperty `json:"properties"`
+	Name       string               `json:"name" yaml:"name"`
+	Properties SecretSourceProperty `json:"properties" yaml:"properties"`
 }
 
 type SharedApplicationComponentProperties struct {
-	Name      string `json:"name"`
-	Component string `json:"component"`
+	Name      string `json:"name" yaml:"name"`
+	Component string `json:"component" yaml:"component"`
 }
 
 type ComponentProperties struct {
-	Image       string                                `json:"image"`
-	Application *SharedApplicationComponentProperties `json:"application,omitempty"`
-	Id          string                                `json:"id,omitempty"`
-	Config      []ConfigProperty                      `json:"config,omitempty"`
-	Secrets     []SecretProperty                      `json:"secrets,omitempty"`
+	Image       string                                `json:"image" yaml:"image"`
+	Application *SharedApplicationComponentProperties `json:"application,omitempty" yaml:"application,omitempty"`
+	Id          string                                `json:"id,omitempty" yaml:"id,omitempty"`
+	Config      []ConfigProperty                      `json:"config,omitempty" yaml:"config,omitempty"`
+	Secrets     []SecretProperty                      `json:"secrets,omitempty" yaml:"secrets,omitempty"`
 }
 
 type ConfigDefinition struct {
-	Config  []ConfigProperty `json:"config,omitempty"`
-	Secrets []SecretProperty `json:"secrets,omitempty"`
+	Config  []ConfigProperty `json:"config,omitempty" yaml:"config,omitempty"`
+	Secrets []SecretProperty `json:"secrets,omitempty" yaml:"secrets,omitempty"`
 }
 
 type TargetConfigDefinition struct {
-	Name    string           `json:"name"`
-	Config  []ConfigProperty `json:"config,omitempty"`
-	Secrets []SecretProperty `json:"secrets,omitempty"`
+	Name    string           `json:"name" yaml:"name"`
+	Config  []ConfigProperty `json:"config,omitempty" yaml:"config,omitempty"`
+	Secrets []SecretProperty `json:"secrets,omitempty" yaml:"secrets,omitempty"`
 }
 
 type rawTargetConfigDefinition TargetConfigDefinition
@@ -209,35 +214,35 @@ func (t *TargetConfigDefinition) UnmarshalYAML(data []byte) error {
 }
 
 type LinkProperty struct {
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" yaml:"name,omitempty"`
 
-	Namespace  string                  `json:"namespace"`
-	Package    string                  `json:"package"`
-	Interfaces []string                `json:"interfaces"`
-	Source     *ConfigDefinition       `json:"source,omitempty"`
-	Target     *TargetConfigDefinition `json:"target,omitempty"`
+	Namespace  string                  `json:"namespace" yaml:"namespace"`
+	Package    string                  `json:"package" yaml:"package"`
+	Interfaces []string                `json:"interfaces" yaml:"interfaces"`
+	Source     *ConfigDefinition       `json:"source,omitempty" yaml:"source,omitempty"`
+	Target     *TargetConfigDefinition `json:"target,omitempty" yaml:"target,omitempty"`
 }
 
 type Spread struct {
-	Name         string            `json:"name"`
-	Requirements map[string]string `json:"requirements,omitempty"`
-	Weight       *int              `json:"weight,omitempty"`
+	Name         string            `json:"name" yaml:"name"`
+	Requirements map[string]string `json:"requirements,omitempty" yaml:"requirements,omitempty"`
+	Weight       *int              `json:"weight,omitempty" yaml:"weight,omitempty"`
 }
 
 type SpreadScalerProperty struct {
-	Instances int      `json:"instances"`
-	Spread    []Spread `json:"spread,omitempty"`
+	Instances int      `json:"instances" yaml:"instances"`
+	Spread    []Spread `json:"spread,omitempty" yaml:"spread,omitempty"`
 }
 
 type Trait struct {
-	Type         TraitType             `json:"type"`
-	Link         *LinkProperty         `json:"-"`
-	SpreadScaler *SpreadScalerProperty `json:"-"`
+	Type         TraitType             `json:"type"  	 yaml:"type"`
+	Link         *LinkProperty         `json:"-"   	 yaml:"-"`
+	SpreadScaler *SpreadScalerProperty `json:"-"  	 yaml:"-"`
 }
 
 type rawTrait struct {
-	Type       TraitType  `json:"type"`
-	Properties RawMessage `json:"properties,omitempty"`
+	Type       TraitType  `json:"type" yaml:"type"`
+	Properties RawMessage `json:"properties,omitempty" yaml:"properties,omitempty"`
 }
 
 func (t Trait) MarshalYAML() ([]byte, error) {
@@ -305,12 +310,12 @@ type Component struct {
 	Name       string              `json:"name"`
 	Type       ComponentType       `json:"type"`
 	Properties ComponentProperties `json:"properties"`
-	Traits     []Trait             `json:"traits,omitempty"`
+	Traits     []Trait             `json:"traits" yaml:"traits"`
 }
 
 type ManifestSpec struct {
-	Components []Component `json:"components,omitempty"`
-	Policies   []Policy    `json:"policies,omitempty"`
+	Components []Component `json:"components,omitempty" yaml:"components,omitempty"`
+	Policies   []Policy    `json:"policies,omitempty" yaml:"policies,omitempty"`
 }
 
 type Manifest struct {

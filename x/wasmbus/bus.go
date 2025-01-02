@@ -5,6 +5,8 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+
+	"github.com/nats-io/nats.go"
 )
 
 const (
@@ -112,4 +114,8 @@ func NewMessage(subject string) *Message {
 		Header:  make(Header),
 		Subject: subject,
 	}
+}
+
+func NewInbox() string {
+	return nats.NewInbox()
 }

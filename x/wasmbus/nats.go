@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/nats-io/nats-server/v2/server"
 	"github.com/nats-io/nats.go"
 )
 
@@ -40,6 +41,32 @@ func NatsConnect(url string, options ...NatsOption) (*nats.Conn, error) {
 	}
 
 	return nc, nil
+}
+
+func NatsDefaultServerOptions() *server.Options {
+	return &server.Options{
+		ServerName:      "wasmbus",
+		Port:            nats.DefaultPort,
+		JetStream:       true,
+		NoSigs:          true,
+		JetStreamDomain: "default",
+	}
+}
+
+func NatsEmbeddedServer(opts *server.Options, startTimeout time.Duration) (*server.Server, error) {
+	s, err := server.NewServer(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	s.Start()
+
+	if !s.ReadyForConnections(startTimeout) {
+		s.Shutdown()
+		return nil, fmt.Errorf("nats server did not start")
+	}
+
+	return s, nil
 }
 
 // NewNatsBus creates a new NATS bus using the given NATS connection.

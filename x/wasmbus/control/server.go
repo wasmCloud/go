@@ -84,7 +84,7 @@ func (s *Server) Serve() error {
 		req.Name = msg.LastSubjectPart()
 		return nil
 	}
-	if err := s.RegisterHandler(s.subject("config", "delete", "*"), configDelete); err != nil {
+	if err := s.RegisterHandler(s.subject("config", "del", "*"), configDelete); err != nil {
 		return err
 	}
 

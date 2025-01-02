@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"gopkg.in/yaml.v2"
+	yaml "github.com/goccy/go-yaml"
 )
 
 // LatticeRequest encodes the Roundtrip logic for a Bus Request
@@ -74,18 +74,22 @@ func (l *LatticeRequest[T, Y]) Execute(ctx context.Context) (*Y, error) {
 // Encode marshals the payload into a Message.
 // The payload is encoded as json.
 func Encode(subject string, payload any) (*Message, error) {
+	var err error
 	wasmbusMsg := NewMessage(subject)
 	wasmbusMsg.Header.Set("Content-Type", "application/json")
+	wasmbusMsg.Data, err = EncodeMimetype(payload, "application/json")
+	return wasmbusMsg, err
+}
 
-	if payload != nil {
-		var err error
-		wasmbusMsg.Data, err = json.Marshal(payload)
-		if err != nil {
-			return nil, fmt.Errorf("%w: %s", ErrInternal, err)
-		}
+func EncodeMimetype(payload any, mimeType string) ([]byte, error) {
+	switch mimeType {
+	case "application/json", "":
+		return json.Marshal(payload)
+	case "application/yaml":
+		return yaml.Marshal(payload)
+	default:
+		return nil, errors.New("unsupported content type")
 	}
-
-	return wasmbusMsg, nil
 }
 
 // Decode unmarshals the raw response data into the provided struct.
