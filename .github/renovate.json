@@ -28,12 +28,16 @@
       "enabled": true
     },
     {
-      "matchPackageNames": ["go.opentelemetry.io/otel", "go.opentelemetry.io/otel/**"],
-      "groupName": "opentelemetry-go"
-    },
-    {
       "matchPackageNames": ["golang.org/x/**"],
       "groupName": "golang.org/x"
+    },
+    {
+      "matchPackageNames": ["google.golang.org/genproto/googleapis/**"],
+      "groupName": "google.golang.org/genproto"
+    },
+    {
+      "matchPackageNames": ["go.opentelemetry.io/otel", "go.opentelemetry.io/otel/**"],
+      "groupName": "opentelemetry-go"
     }
   ]
 }
