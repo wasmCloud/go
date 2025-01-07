@@ -95,22 +95,30 @@ func testComponent(t *testing.T, c *Client) {
 
 	// NOTE(lxf): it takes time for the component to be ready
 	// and the only way to know is to watch for lattice events.
-	// For now, we'll just sleep for a bit.
-	<-time.After(1 * time.Second)
+	// For now, we'll try in a 10 sec loop :shrug:.
+	t.Run("update", func(t *testing.T) {
+		attempts := 10
+		for i := 0; i < attempts; i++ {
+			<-time.After(1 * time.Second)
+			t.Logf("attempt %d/%d: trying to update component", i, attempts)
 
-	updateReq := &UpdateComponentRequest{
-		HostId:          auctionResp.Response.HostId,
-		ComponentId:     auctionReq.ComponentId,
-		NewComponentRef: auctionReq.ComponentRef,
-		Annotations:     map[string]string{"test": "test"},
-	}
+			updateReq := &UpdateComponentRequest{
+				HostId:          auctionResp.Response.HostId,
+				ComponentId:     auctionReq.ComponentId,
+				NewComponentRef: auctionReq.ComponentRef,
+				Annotations:     map[string]string{"test": "test"},
+			}
 
-	updateResp, err := c.UpdateComponent(context.TODO(), updateReq)
-	if err != nil {
-		t.Fatalf("failed to update: %v", err)
-	}
+			updateResp, err := c.UpdateComponent(context.TODO(), updateReq)
+			if err == nil {
+				if updateResp.Success {
+					t.Logf("attempt %d/%d: update succeeded", i, attempts)
+					return
+				}
+			}
 
-	if !updateResp.Success {
-		t.Fatalf("update failed: %v", updateResp)
-	}
+			t.Logf("attempt %d/%d: failed to update: %v", i, attempts, err)
+		}
+		t.Fatalf("failed to update component after %d attempts", attempts)
+	})
 }
