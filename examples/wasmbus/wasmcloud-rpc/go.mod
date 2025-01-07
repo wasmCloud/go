@@ -7,7 +7,7 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/urfave/cli/v3 v3.0.0-beta1
-	go.wasmcloud.dev/wasmbus v0.1.0
+	go.wasmcloud.dev/x/wasmbus v0.1.0
 )
 
 require (
@@ -39,4 +39,4 @@ require (
 	golang.org/x/time v0.8.0 // indirect
 )
 
-replace go.wasmcloud.dev/wasmbus => ../../../wasmbus
+replace go.wasmcloud.dev/x/wasmbus => ../../../x/wasmbus

@@ -5,12 +5,12 @@ on:
     branches: ["main"]
     paths:
       - ".github/workflows/wasmbus-go.yaml"
-      - "wasmbus/**"
+      - "x/wasmbus/**"
   pull_request:
     branches: ["main"]
     paths:
       - ".github/workflows/wasmbus-go.yaml"
-      - "wasmbus/**"
+      - "x/wasmbus/**"
 
 env:
   GOLANGCI_VERSION: "v1.61"
@@ -33,10 +33,10 @@ jobs:
       - uses: golangci/golangci-lint-action@971e284b6050e8a5849b72094c50ab08da042db8 # v6.1.1
         with:
           version: ${{ env.GOLANGCI_VERSION }}
-          working-directory: wasmbus
+          working-directory: x/wasmbus
 
       - name: Go generate
-        working-directory: wasmbus
+        working-directory: x/wasmbus
         run: |
           go generate ./...
           if ! test -z "$(git status --porcelain)"; then
@@ -57,25 +57,25 @@ jobs:
           go-version-file: "wasmbus/go.mod"
 
       - name: Build
-        working-directory: wasmbus
+        working-directory: x/wasmbus
         run: go build -v ./...
 
         # NOTE(lxf): Tests are split into multiple steps to avoid wash race conditions.
 
       - name: wasmbus
-        working-directory: wasmbus
+        working-directory: x/wasmbus
         run: go test -cover -v -wash-output
 
       - name: wasmbus/control
-        working-directory: wasmbus/control
+        working-directory: x/wasmbus/control
         run: go test -cover -v -wash-output
 
       - name: wasmbus/wadm
-        working-directory: wasmbus/wadm
+        working-directory: x/wasmbus/wadm
         run: go test -cover -v -wash-output
 
       - name: wasmbus/events
-        working-directory: wasmbus/events
+        working-directory: x/wasmbus/events
         run: go test -cover -v -wash-output
 
   examples:

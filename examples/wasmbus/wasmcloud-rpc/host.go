@@ -7,12 +7,12 @@ import (
 	"time"
 
 	"github.com/urfave/cli/v3"
-	"go.wasmcloud.dev/wasmbus/control"
+	"go.wasmcloud.dev/x/wasmbus/control"
 )
 
 func hostCommand() *cli.Command {
 	var targetName string
-	var nameArg = &cli.StringArg{
+	nameArg := &cli.StringArg{
 		Name:        "host",
 		Destination: &targetName,
 		Max:         1,

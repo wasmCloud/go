@@ -6,13 +6,13 @@ import (
 	"strconv"
 
 	"github.com/urfave/cli/v3"
-	"go.wasmcloud.dev/wasmbus"
-	"go.wasmcloud.dev/wasmbus/wadm"
+	"go.wasmcloud.dev/x/wasmbus"
+	"go.wasmcloud.dev/x/wasmbus/wadm"
 )
 
 func wadmCommand() *cli.Command {
 	var targetName string
-	var nameArg = &cli.StringArg{
+	nameArg := &cli.StringArg{
 		Name:        "name",
 		Destination: &targetName,
 		Max:         1,

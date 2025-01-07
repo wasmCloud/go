@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"go.wasmcloud.dev/wasmbus"
+	"go.wasmcloud.dev/x/wasmbus"
 )
 
 type Client struct {
@@ -26,7 +26,6 @@ func NewClient(bus wasmbus.Bus, lattice string) *Client {
 func (c *Client) subject(ids ...string) string {
 	parts := append([]string{wasmbus.PrefixCtlV1, c.lattice}, ids...)
 	return strings.Join(parts, ".")
-
 }
 
 func (c *Client) ScaleComponent(ctx context.Context, req *ScaleComponentRequest) (*ScaleComponentResponse, error) {
@@ -64,6 +63,7 @@ func (c *Client) ProviderStart(ctx context.Context, req *ProviderStartRequest) (
 	wReq := wasmbus.NewLatticeRequest(c.Bus, subject, req, ProviderStartResponse{})
 	return wReq.Execute(ctx)
 }
+
 func (c *Client) ProviderStop(ctx context.Context, req *ProviderStopRequest) (*ProviderStopResponse, error) {
 	subject := c.subject("provider", "stop", req.HostId)
 	wReq := wasmbus.NewLatticeRequest(c.Bus, subject, req, ProviderStopResponse{})

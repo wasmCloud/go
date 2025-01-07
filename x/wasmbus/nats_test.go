@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"go.wasmcloud.dev/wasmbus/wasmbustest"
+	"go.wasmcloud.dev/x/wasmbus/wasmbustest"
 )
 
 func TestNatsConnect(t *testing.T) {
@@ -130,6 +130,7 @@ func TestNatsSubscribe(t *testing.T) {
 		}
 	})
 }
+
 func TestNatsQueueSubscribe(t *testing.T) {
 	defer wasmbustest.MustStartNats(t)()
 	t.Run("success", func(t *testing.T) {

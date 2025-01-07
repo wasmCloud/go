@@ -11,9 +11,9 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
 	"github.com/urfave/cli/v3"
-	"go.wasmcloud.dev/wasmbus"
-	"go.wasmcloud.dev/wasmbus/control"
-	"go.wasmcloud.dev/wasmbus/wadm"
+	"go.wasmcloud.dev/x/wasmbus"
+	"go.wasmcloud.dev/x/wasmbus/control"
+	"go.wasmcloud.dev/x/wasmbus/wadm"
 )
 
 var (

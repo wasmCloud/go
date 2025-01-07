@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/nats-io/nats.go"
-	"go.wasmcloud.dev/wasmbus"
-	"go.wasmcloud.dev/wasmbus/wasmbustest"
+	"go.wasmcloud.dev/x/wasmbus"
+	"go.wasmcloud.dev/x/wasmbus/wasmbustest"
 )
 
 func TestServer(t *testing.T) {

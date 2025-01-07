@@ -1,4 +1,4 @@
-module go.wasmcloud.dev/wasmbus
+module go.wasmcloud.dev/x/wasmbus
 
 go 1.23.3
 

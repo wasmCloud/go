@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"go.wasmcloud.dev/wasmbus/wasmbustest"
+	"go.wasmcloud.dev/x/wasmbus/wasmbustest"
 )
 
 type testMessage struct {
@@ -120,7 +120,7 @@ func TestLatticeRequest(t *testing.T) {
 		}
 		defer func() { _ = sub.Drain() }()
 
-		var errCh = make(chan error, 1)
+		errCh := make(chan error, 1)
 		go sub.Handle(func(msg *Message) {
 			resp := &testMessage{}
 			if err := Decode(msg, resp); err != nil {
@@ -200,7 +200,7 @@ func TestLatticeRequest(t *testing.T) {
 		}
 		defer func() { _ = sub.Drain() }()
 
-		var errCh = make(chan error, 1)
+		errCh := make(chan error, 1)
 		go sub.Handle(func(msg *Message) {
 			resp := &testMessage{}
 			if err := Decode(msg, resp); err != nil {
@@ -246,7 +246,7 @@ func TestLatticeRequest(t *testing.T) {
 		}
 		defer func() { _ = sub.Drain() }()
 
-		var errCh = make(chan error, 1)
+		errCh := make(chan error, 1)
 		go sub.Handle(func(msg *Message) {
 			resp := &testMessage{}
 			if err := Decode(msg, resp); err != nil {

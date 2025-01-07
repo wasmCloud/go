@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/urfave/cli/v3"
-	"go.wasmcloud.dev/wasmbus"
-	"go.wasmcloud.dev/wasmbus/events"
+	"go.wasmcloud.dev/x/wasmbus"
+	"go.wasmcloud.dev/x/wasmbus/events"
 )
 
 func eventCommand() *cli.Command {

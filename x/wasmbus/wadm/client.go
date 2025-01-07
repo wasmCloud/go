@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"go.wasmcloud.dev/wasmbus"
+	"go.wasmcloud.dev/x/wasmbus"
 )
 
 var _ API = (*Client)(nil)
@@ -73,5 +73,4 @@ func (c *Client) ModelList(ctx context.Context, req *ModelListRequest) (*ModelLi
 func (c *Client) subject(ids ...string) string {
 	parts := append([]string{wasmbus.PrefixWadm, c.lattice}, ids...)
 	return strings.Join(parts, ".")
-
 }

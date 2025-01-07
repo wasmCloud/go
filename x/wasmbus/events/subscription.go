@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"go.wasmcloud.dev/wasmbus"
+	"go.wasmcloud.dev/x/wasmbus"
 )
 
 // EventHandler is an interface for handling events and errors.

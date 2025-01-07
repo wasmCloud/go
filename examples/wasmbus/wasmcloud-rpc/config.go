@@ -7,12 +7,12 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/urfave/cli/v3"
-	"go.wasmcloud.dev/wasmbus/control"
+	"go.wasmcloud.dev/x/wasmbus/control"
 )
 
 func configCommand() *cli.Command {
 	var targetName string
-	var nameArg = &cli.StringArg{
+	nameArg := &cli.StringArg{
 		Name:        "name",
 		Destination: &targetName,
 		Max:         1,

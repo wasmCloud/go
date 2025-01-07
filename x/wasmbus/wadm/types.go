@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	yaml "github.com/goccy/go-yaml"
-	"go.wasmcloud.dev/wasmbus"
+	"go.wasmcloud.dev/x/wasmbus"
 )
 
 // API structure

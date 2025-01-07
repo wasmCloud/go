@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"go.wasmcloud.dev/wasmbus"
-	"go.wasmcloud.dev/wasmbus/wasmbustest"
+	"go.wasmcloud.dev/x/wasmbus"
+	"go.wasmcloud.dev/x/wasmbus/wasmbustest"
 )
 
 type errHandler struct {
@@ -19,6 +19,7 @@ func (e errHandler) HandleEvent(ctx context.Context, ev Event) {
 		e.handleEventFunc(ctx, ev)
 	}
 }
+
 func (e errHandler) HandleError(ctx context.Context, msg *wasmbus.Message, err error) {
 	if e.handleErrorFunc != nil {
 		e.handleErrorFunc(ctx, msg, err)
@@ -80,7 +81,6 @@ func TestErrorHandlerSubscription(t *testing.T) {
 	if err := sub.Drain(); err != nil {
 		t.Fatal(err)
 	}
-
 }
 
 func TestEventSubscription(t *testing.T) {

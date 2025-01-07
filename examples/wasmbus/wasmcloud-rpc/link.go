@@ -6,12 +6,12 @@ import (
 	"strings"
 
 	"github.com/urfave/cli/v3"
-	"go.wasmcloud.dev/wasmbus/control"
+	"go.wasmcloud.dev/x/wasmbus/control"
 )
 
 func linkCommand() *cli.Command {
 	var targetName string
-	var nameArg = &cli.StringArg{
+	nameArg := &cli.StringArg{
 		Name:        "name",
 		Destination: &targetName,
 		Max:         1,

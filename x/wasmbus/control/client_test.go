@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"go.wasmcloud.dev/wasmbus"
-	"go.wasmcloud.dev/wasmbus/wasmbustest"
+	"go.wasmcloud.dev/x/wasmbus"
+	"go.wasmcloud.dev/x/wasmbus/wasmbustest"
 )
 
 func TestClient(t *testing.T) {
@@ -18,7 +18,6 @@ func TestClient(t *testing.T) {
 
 	t.Run("component", wrapTest(testComponent, c))
 	t.Run("provider", wrapTest(testProvider, c))
-
 }
 
 func wrapTest(f func(*testing.T, *Client), c *Client) func(*testing.T) {

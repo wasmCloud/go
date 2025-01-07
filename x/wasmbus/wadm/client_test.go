@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	"go.wasmcloud.dev/wasmbus"
-	"go.wasmcloud.dev/wasmbus/wasmbustest"
+	"go.wasmcloud.dev/x/wasmbus"
+	"go.wasmcloud.dev/x/wasmbus/wasmbustest"
 )
 
 var testDataPath = path.Join(".", "testdata")
@@ -116,6 +116,7 @@ func testModelList(t *testing.T, c *Client) {
 		t.Fatalf("want %v, got %v: %v", want, got, resp.Message)
 	}
 }
+
 func testModelGet(t *testing.T, c *Client) {
 	if err := createApp(c, "test-get"); err != nil {
 		t.Fatalf("failed to create app: %v", err)

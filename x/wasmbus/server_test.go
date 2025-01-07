@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"go.wasmcloud.dev/wasmbus/wasmbustest"
+	"go.wasmcloud.dev/x/wasmbus/wasmbustest"
 )
 
 func TestServerRegisterHandler(t *testing.T) {
@@ -117,10 +117,12 @@ func TestServerErrorStream(t *testing.T) {
 	}
 }
 
-type testRequest struct{}
-type testResponse struct {
-	Hello string `json:"hello"`
-}
+type (
+	testRequest  struct{}
+	testResponse struct {
+		Hello string `json:"hello"`
+	}
+)
 
 func TestRequestHandler(t *testing.T) {
 	defer wasmbustest.MustStartNats(t)()
