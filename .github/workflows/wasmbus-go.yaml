@@ -63,16 +63,16 @@ jobs:
 
       - name: wasmbus
         working-directory: wasmbus
-        run: go test -v -wash-output
+        run: go test -cover -v -wash-output
 
       - name: wasmbus/control
         working-directory: wasmbus/control
-        run: go test -v -wash-output
+        run: go test -cover -v -wash-output
 
       - name: wasmbus/wadm
         working-directory: wasmbus/wadm
-        run: go test -v -wash-output
+        run: go test -cover -v -wash-output
 
       - name: wasmbus/events
         working-directory: wasmbus/events
-        run: go test -v -wash-output
+        run: go test -cover -v -wash-output

@@ -235,9 +235,9 @@ type SpreadScalerProperty struct {
 }
 
 type Trait struct {
-	Type         TraitType             `json:"type"  	 yaml:"type"`
-	Link         *LinkProperty         `json:"-"   	 yaml:"-"`
-	SpreadScaler *SpreadScalerProperty `json:"-"  	 yaml:"-"`
+	Type         TraitType             `json:"type" yaml:"type"`
+	Link         *LinkProperty         `json:"-" yaml:"-"`
+	SpreadScaler *SpreadScalerProperty `json:"-" yaml:"-"`
 }
 
 type rawTrait struct {

@@ -50,6 +50,7 @@ func (s *Server) reportError(ctx context.Context, req *Message, err error) {
 	select {
 	// We don't want to block the server if the error stream is full or nobody is listening
 	case s.errorStream <- &ServerError{Context: ctx, Err: err, Request: req}:
+	default:
 	}
 }
 

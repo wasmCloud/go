@@ -19,11 +19,14 @@ func TestServerRegisterHandler(t *testing.T) {
 
 	bus := NewNatsBus(nc)
 	server := NewServer(bus, "test")
-	server.RegisterHandler("test", ServerHandlerFunc(func(ctx context.Context, msg *Message) error {
+	err = server.RegisterHandler("test", ServerHandlerFunc(func(ctx context.Context, msg *Message) error {
 		reply := NewMessage(msg.Reply)
 		reply.Data = []byte("hello")
 		return server.Publish(reply)
 	}))
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	resp, err := server.Request(context.TODO(), NewMessage("test"))
 	if err != nil {
@@ -34,7 +37,7 @@ func TestServerRegisterHandler(t *testing.T) {
 		t.Fatalf("want %q, got %q", want, got)
 	}
 
-	resp, err = server.Request(context.TODO(), NewMessage("error"))
+	_, err = server.Request(context.TODO(), NewMessage("error"))
 	if err == nil {
 		t.Fatal("expected NO_RESPONDERS")
 	}
@@ -51,7 +54,7 @@ func TestServerDrain(t *testing.T) {
 	bus := NewNatsBus(nc)
 	server := NewServer(bus, "test")
 	checkpoint := make(chan bool)
-	server.RegisterHandler("slow", ServerHandlerFunc(func(ctx context.Context, msg *Message) error {
+	_ = server.RegisterHandler("slow", ServerHandlerFunc(func(ctx context.Context, msg *Message) error {
 		close(checkpoint)
 		<-time.After(200 * time.Millisecond)
 		return server.Publish(NewMessage(msg.Reply))
@@ -87,9 +90,9 @@ func TestServerErrorStream(t *testing.T) {
 	server := NewServer(bus, "test")
 	bomb := errors.New("bomb")
 	bombCh := make(chan error, 1)
-	server.RegisterHandler("bomb", ServerHandlerFunc(func(ctx context.Context, msg *Message) error {
+	_ = server.RegisterHandler("bomb", ServerHandlerFunc(func(ctx context.Context, msg *Message) error {
 		reply := NewMessage(msg.Reply)
-		server.Publish(reply)
+		_ = server.Publish(reply)
 		return bomb
 	}))
 
@@ -134,7 +137,7 @@ func TestRequestHandler(t *testing.T) {
 			Hello: "world",
 		}, nil
 	})
-	server.RegisterHandler("test", handler)
+	_ = server.RegisterHandler("test", handler)
 
 	rawResp, err := server.Request(context.TODO(), NewMessage("test"))
 	if err != nil {

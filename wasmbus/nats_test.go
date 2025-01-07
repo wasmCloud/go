@@ -38,7 +38,7 @@ func TestNatsPublish(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		defer sub.Drain()
+		defer func() { _ = sub.Drain() }()
 		received := make(chan bool)
 
 		go sub.Handle(func(msg *Message) {
@@ -92,7 +92,8 @@ func TestNatsSubscribe(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		defer sub.Drain()
+		defer func() { _ = sub.Drain() }()
+
 		received := make(chan bool)
 		go sub.Handle(func(msg *Message) {
 			if msg.Subject == "success" {
@@ -143,7 +144,7 @@ func TestNatsQueueSubscribe(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		defer sub.Drain()
+		defer func() { _ = sub.Drain() }()
 		received := make(chan bool)
 		go sub.Handle(func(msg *Message) {
 			if msg.Subject == "success" {

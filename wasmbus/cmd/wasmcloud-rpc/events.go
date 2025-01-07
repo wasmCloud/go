@@ -55,7 +55,7 @@ func eventCommand() *cli.Command {
 			if err != nil {
 				return err
 			}
-			defer subscription.Drain()
+			defer func() { _ = subscription.Drain() }()
 
 			log.Printf("Listening for events on lattice '%s' with pattern '%s'", lattice, pattern)
 			<-ctx.Done()

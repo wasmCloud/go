@@ -137,7 +137,7 @@ func (c *Client) HostPing(ctx context.Context, req *HostPingRequest) (*HostPingR
 	if err != nil {
 		return nil, err
 	}
-	defer sub.Drain()
+	defer func() { _ = sub.Drain() }()
 
 	resp := &HostPingResponse{
 		Success: true,

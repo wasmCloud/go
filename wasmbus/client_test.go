@@ -118,7 +118,7 @@ func TestLatticeRequest(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		defer sub.Drain()
+		defer func() { _ = sub.Drain() }()
 
 		var errCh = make(chan error, 1)
 		go sub.Handle(func(msg *Message) {
@@ -168,13 +168,13 @@ func TestLatticeRequest(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		defer sub.Drain()
+		defer func() { _ = sub.Drain() }()
 
 		go sub.Handle(func(msg *Message) {
 			respMsg := NewMessage(msg.Reply)
 			respMsg.Header.Set("Content-Type", "bricks")
 			respMsg.Data = []byte("boom")
-			bus.Publish(respMsg)
+			_ = bus.Publish(respMsg)
 		})
 		req := NewLatticeRequest(bus, "test", &testMessage{Name: "request"}, testMessage{})
 		_, err = req.Execute(context.TODO())
@@ -198,7 +198,7 @@ func TestLatticeRequest(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		defer sub.Drain()
+		defer func() { _ = sub.Drain() }()
 
 		var errCh = make(chan error, 1)
 		go sub.Handle(func(msg *Message) {
@@ -211,7 +211,7 @@ func TestLatticeRequest(t *testing.T) {
 				errCh <- errors.New("pre-request failed")
 			}
 			respMsg := NewMessage(msg.Reply)
-			bus.Publish(respMsg)
+			_ = bus.Publish(respMsg)
 		})
 
 		req := NewLatticeRequest(bus, "test", &testMessage{Name: "request"}, testMessage{})
@@ -244,7 +244,7 @@ func TestLatticeRequest(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		defer sub.Drain()
+		defer func() { _ = sub.Drain() }()
 
 		var errCh = make(chan error, 1)
 		go sub.Handle(func(msg *Message) {

@@ -17,12 +17,11 @@ import (
 )
 
 var (
-	titleStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("35"))
-	keyStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
-	valueStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("255"))
-	oddStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("35"))
-	evenStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("83"))
-	borderStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
+	titleStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("35"))
+	keyStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
+	valueStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("255"))
+	oddStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("35"))
+	evenStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("83"))
 )
 
 func renderKv(k, v string) {
