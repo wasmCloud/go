@@ -1,0 +1,119 @@
+name: wasmbus
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - ".github/workflows/wasmbus-go.yaml"
+      - "x/wasmbus/**"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - ".github/workflows/wasmbus-go.yaml"
+      - "x/wasmbus/**"
+
+env:
+  GOLANGCI_VERSION: "v1.61"
+  WASH_VERSION: "0.37.0"
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    # Context: https://github.com/golangci/golangci-lint-action/blob/v6.1.1/README.md#annotations
+    permissions:
+      # Required: allow read access to the content for analysis.
+      contents: read
+      # Optional: allow write access to checks to allow the action to annotate code in the PR.
+      checks: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: golangci/golangci-lint-action@971e284b6050e8a5849b72094c50ab08da042db8 # v6.1.1
+        with:
+          version: ${{ env.GOLANGCI_VERSION }}
+          working-directory: x/wasmbus
+
+      - name: Go generate
+        working-directory: x/wasmbus
+        run: |
+          go generate ./...
+          if ! test -z "$(git status --porcelain)"; then
+            echo "Go generate modified files. Please run go generate and commit the changes."
+            git status
+            exit 1
+          fi
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: taiki-e/install-action@ed8c79bccf0b1cb1544a358f81684d3acaa5133f # v2.46.11
+        with:
+          tool: ${{ format('wash-cli@{0}', env.WASH_VERSION) }}
+      - uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5.2.0
+        with:
+          go-version-file: "x/wasmbus/go.mod"
+
+      - name: Build
+        working-directory: x/wasmbus
+        run: go build -v ./...
+
+        # NOTE(lxf): Tests are split into multiple steps to avoid wash race conditions.
+
+      - name: wasmbus
+        working-directory: x/wasmbus
+        run: go test -cover -v -wash-output
+
+      - name: wasmbus/control
+        working-directory: x/wasmbus/control
+        run: go test -cover -v -wash-output
+
+      - name: wasmbus/wadm
+        working-directory: x/wasmbus/wadm
+        run: go test -cover -v -wash-output
+
+      - name: wasmbus/events
+        working-directory: x/wasmbus/events
+        run: go test -cover -v -wash-output
+
+  examples:
+    # Context: https://github.com/golangci/golangci-lint-action/blob/v6.1.1/README.md#annotations
+    permissions:
+      # Required: allow read access to the content for analysis.
+      contents: read
+      # Optional: allow write access to checks to allow the action to annotate code in the PR.
+      checks: write
+    strategy:
+      matrix:
+        example:
+          - wasmcloud-rpc
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5.2.0
+        with:
+          go-version-file: "./examples/wasmbus/${{ matrix.example }}/go.mod"
+      - uses: golangci/golangci-lint-action@971e284b6050e8a5849b72094c50ab08da042db8 # v6.1.1
+        with:
+          version: ${{ env.GOLANGCI_VERSION }}
+          working-directory: "./examples/wasmbus/${{ matrix.example }}"
+      - uses: taiki-e/install-action@ed8c79bccf0b1cb1544a358f81684d3acaa5133f # v2.46.11
+        with:
+          tool: ${{ format('wash-cli@{0}', env.WASH_VERSION) }}
+
+      - name: Go generate
+        working-directory: "./examples/wasmbus/${{ matrix.example }}"
+        run: |
+          go generate ./...
+          if ! test -z "$(git status --porcelain)"; then
+            echo "Go generate modified files. Please run go generate and commit the changes."
+            git status
+            exit 1
+          fi
+
+      - name: build
+        working-directory: "./examples/wasmbus/${{ matrix.example }}"
+        run: |
+          go build -v
