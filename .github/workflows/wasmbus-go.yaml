@@ -36,6 +36,7 @@ jobs:
           working-directory: wasmbus
 
       - name: Go generate
+        working-directory: wasmbus
         run: |
           go generate ./...
           if ! test -z "$(git status --porcelain)"; then
@@ -103,6 +104,7 @@ jobs:
           tool: ${{ format('wash-cli@{0}', env.WASH_VERSION) }}
 
       - name: Go generate
+        working-directory: "./examples/wasmbus/${{ matrix.example }}"
         run: |
           go generate ./...
           if ! test -z "$(git status --porcelain)"; then
