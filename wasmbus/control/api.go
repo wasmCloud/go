@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+// Lattice Control
+// https://wasmcloud.com/docs/reference/nats#control-interface
 type APIv1 interface {
 	ProviderAuction(ctx context.Context, req *ProviderAuctionRequest) (*ProviderAuctionResponse, error)
 	ComponentAuction(ctx context.Context, req *ComponentAuctionRequest) (*ComponentAuctionResponse, error)
@@ -37,6 +39,8 @@ type APIv1 interface {
 	HostPing(ctx context.Context, req *HostPingRequest) (*HostPingResponse, error)
 }
 
+// Response is a generic response type for the control interface.
+// All API Responses have the same structure.
 type Response[T any] struct {
 	Success  bool   `json:"success"`
 	Message  string `json:"message"`
@@ -44,7 +48,9 @@ type Response[T any] struct {
 }
 
 type ProviderAuctionRequest struct {
-	Constraints map[string]string `json:"constraints,omitempty"`
+	// Constraints are key-value pairs that are used to filter hosts.
+	// Required even if empty (unfortunately).
+	Constraints map[string]string `json:"constraints"`
 	ProviderId  string            `json:"provider_id,omitempty"`
 	ProviderRef string            `json:"provider_ref,omitempty"`
 }
@@ -59,7 +65,9 @@ type ProviderAuctionResponsePayload struct {
 type ProviderAuctionResponse = Response[ProviderAuctionResponsePayload]
 
 type ComponentAuctionRequest struct {
-	Constraints  map[string]string `json:"constraints,omitempty"`
+	// Constraints are key-value pairs that are used to filter hosts.
+	// Required even if empty (unfortunately).
+	Constraints  map[string]string `json:"constraints"`
 	ComponentId  string            `json:"component_id,omitempty"`
 	ComponentRef string            `json:"component_ref,omitempty"`
 }
@@ -89,8 +97,9 @@ type ScaleComponentResponsePayload struct {
 type ScaleComponentResponse = Response[ScaleComponentResponsePayload]
 
 type UpdateComponentRequest struct {
+	HostId string `json:"-"`
+
 	ComponentId     string            `json:"component_id"`
-	HostId          string            `json:"host_id"`
 	NewComponentRef string            `json:"new_component_ref"`
 	Annotations     map[string]string `json:"annotations,omitempty"`
 }
@@ -271,7 +280,10 @@ type HostInventoryResponsePayload struct {
 
 type HostInventoryResponse = Response[HostInventoryResponsePayload]
 
+// HostPingRequest is a special case where the request is not sent to a specific host.
+// This is because the request is a scatter/gather pattern where the response is composed client side.
 type HostPingRequest struct {
+	// Wait is the duration to wait before returning the response.
 	Wait time.Duration `json:"-"`
 }
 
@@ -287,7 +299,7 @@ type HostPingResponsePayload struct {
 	UptimeHuman   string            `json:"uptime_human"`
 }
 
-// NOTE(lxf): Needed cause this is a scatter/gather api.
+// NOTE(lxf): Needed cause this is a scatter/gather api and the response is composed client side.
 type HostPingSingleResponse = Response[HostPingResponsePayload]
 
 type HostPingResponse = Response[[]HostPingResponsePayload]

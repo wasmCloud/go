@@ -7,7 +7,8 @@ import (
 	"go.wasmcloud.dev/wasmbus"
 )
 
-// Event is a parsed event from the bus
+// EventHandler is an interface for handling events and errors.
+// See `DiscardErrorsHandler` for a simple handler implementation that ignores errors.
 type EventHandler interface {
 	HandleEvent(context.Context, Event)
 	HandleError(context.Context, *wasmbus.Message, error)
@@ -16,8 +17,11 @@ type EventHandler interface {
 // DiscardErrorsHandler is a simple handler that discards errors
 type DiscardErrorsHandler func(context.Context, Event)
 
+// HandleError implements the EventHandler interface
 func (h DiscardErrorsHandler) HandleError(context.Context, *wasmbus.Message, error) {}
-func (h DiscardErrorsHandler) HandleEvent(ctx context.Context, ev Event)            { h(ctx, ev) }
+
+// HandleEvent implements the EventHandler interface
+func (h DiscardErrorsHandler) HandleEvent(ctx context.Context, ev Event) { h(ctx, ev) }
 
 // Subscribe creates a subscription to events on the specified lattice and pattern.
 // The pattern is a glob pattern that is matched against the event type. Use `wasmbus.PatternAll` for all events.

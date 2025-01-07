@@ -7,17 +7,19 @@ import (
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 )
 
+// ErrParsingEvent carries encoding errors when parsing an event
 var ErrParsingEvent = fmt.Errorf("error parsing event")
 
+// Event is a typed event that contains both the original CloudEvent and the typed bus event.
+// From CloudEvent, the interesting bits are the event type, time, and source (host-id).
+// The bus event is a typed event that contains the actual event data. Useful in `switch` statements.
 type Event struct {
 	CloudEvent *cloudevents.Event `json:"-"`
 	BusEvent   any                `json:"-"`
 }
 
-type ComponentId string
-
 type ComponentDescription struct {
-	Id           ComponentId       `json:"id"`
+	Id           string            `json:"id"`
 	ImageRef     string            `json:"image_ref"`
 	Name         string            `json:"name"`
 	Annotations  map[string]string `json:"annotations"`
@@ -26,7 +28,7 @@ type ComponentDescription struct {
 }
 
 type CapabilityDescription struct {
-	Id          ComponentId       `json:"id"`
+	Id          string            `json:"id"`
 	ImageRef    string            `json:"image_ref"`
 	Name        string            `json:"name"`
 	Annotations map[string]string `json:"annotations"`
@@ -38,11 +40,11 @@ type HostHeartbeat struct {
 	UptimeSeconds int                     `json:"uptime_seconds"`
 	UptimeHuman   string                  `json:"uptime_human"`
 	Version       string                  `json:"version"`
-	Labels        map[string]string       `json:"labels"`
+	Labels        map[string]string       `json:"labels,omitempty"`
 	FriendlyName  string                  `json:"friendly_name"`
-	Issuer        string                  `json:"issuer"`
-	Components    []ComponentDescription  `json:"components"`
-	Providers     []CapabilityDescription `json:"providers"`
+	Issuer        string                  `json:"issuer,omitempty"`
+	Components    []ComponentDescription  `json:"components,omitempty"`
+	Providers     []CapabilityDescription `json:"providers,omitempty"`
 }
 
 type HealthCheckStatus struct {
@@ -83,35 +85,35 @@ type ComponentScaleFailed struct {
 }
 
 type LinkDefSet struct {
-	Source        ComponentId `json:"source_id"`
-	Target        string      `json:"target"`
-	Name          string      `json:"name"`
-	WitNamespace  string      `json:"wit_namespace"`
-	WitPackage    string      `json:"wit_package"`
-	WitInterfaces []string    `json:"interfaces"`
-	SourceConfig  []string    `json:"source_config"`
-	TargetConfig  []string    `json:"target_config"`
+	Source        string   `json:"source_id"`
+	Target        string   `json:"target"`
+	Name          string   `json:"name"`
+	WitNamespace  string   `json:"wit_namespace"`
+	WitPackage    string   `json:"wit_package"`
+	WitInterfaces []string `json:"interfaces"`
+	SourceConfig  []string `json:"source_config"`
+	TargetConfig  []string `json:"target_config"`
 }
 
 type LinkDefSetFailed struct {
-	Source        ComponentId `json:"source_id"`
-	Target        string      `json:"target"`
-	Name          string      `json:"name"`
-	WitNamespace  string      `json:"wit_namespace"`
-	WitPackage    string      `json:"wit_package"`
-	WitInterfaces []string    `json:"interfaces"`
-	SourceConfig  []string    `json:"source_config"`
-	TargetConfig  []string    `json:"target_config"`
-	Error         string      `json:"error"`
+	Source        string   `json:"source_id"`
+	Target        string   `json:"target"`
+	Name          string   `json:"name"`
+	WitNamespace  string   `json:"wit_namespace"`
+	WitPackage    string   `json:"wit_package"`
+	WitInterfaces []string `json:"interfaces"`
+	SourceConfig  []string `json:"source_config"`
+	TargetConfig  []string `json:"target_config"`
+	Error         string   `json:"error"`
 }
 
 type LinkDefDeleted struct {
-	Source        ComponentId `json:"source_id"`
-	Target        string      `json:"target"`
-	Name          string      `json:"name"`
-	WitNamespace  string      `json:"wit_namespace"`
-	WitPackage    string      `json:"wit_package"`
-	WitInterfaces []string    `json:"interfaces"`
+	Source        string   `json:"source_id"`
+	Target        string   `json:"target"`
+	Name          string   `json:"name"`
+	WitNamespace  string   `json:"wit_namespace"`
+	WitPackage    string   `json:"wit_package"`
+	WitInterfaces []string `json:"interfaces"`
 }
 
 type ProviderStarted struct {
@@ -180,6 +182,7 @@ type HostStopped struct {
 	Reason string            `json:"reason"`
 }
 
+// KnownEvents returns a new instance of the event type for the given event type
 func KnownEvents(typ string) any {
 	switch typ {
 	case "com.wasmcloud.lattice.host_heartbeat":
@@ -221,6 +224,22 @@ func KnownEvents(typ string) any {
 	}
 }
 
+// EncodeEvent creates a new CloudEvent with the given type, source, id, and payload
+func EncodeEvent(eventType string, eventSource string, eventId string, payload any) (Event, error) {
+	ce := cloudevents.NewEvent()
+	ce.SetType(eventType)
+	ce.SetSource(eventSource)
+	ce.SetID(eventId)
+	if err := ce.SetData(cloudevents.ApplicationJSON, payload); err != nil {
+		return Event{}, fmt.Errorf("%w: %s", ErrParsingEvent, err)
+	}
+	return Event{
+		CloudEvent: &ce,
+		BusEvent:   payload,
+	}, nil
+}
+
+// ParseEvent parses a CloudEvent from a byte slice into a typed event
 func ParseEvent(data []byte) (Event, error) {
 	ce := cloudevents.NewEvent()
 	ev := Event{

@@ -13,8 +13,13 @@ import (
 	"github.com/nats-io/nats.go"
 )
 
-// Run tests with '-show-output' flag to see the output of wash commands
-var showOutput = flag.Bool("show-output", false, "show output of wash commands")
+// Run tests with '-wash-output' flag to see the output of wash commands
+var showOutput = flag.Bool("wash-output", false, "show output of wash commands")
+
+const (
+	ValidComponent = "ghcr.io/wasmcloud/components/http-hello-world-rust:0.1.0"
+	ValidProvider  = "ghcr.io/wasmcloud/http-client:0.12.0"
+)
 
 func CheckWadm() error {
 	return Exec("wash", "app", "list")
@@ -70,6 +75,9 @@ func WithWash(t *testing.T) (*nats.Conn, func(*testing.T)) {
 
 	return nc, func(*testing.T) {
 		nc.Close()
+		if *showOutput {
+			_ = Exec("wash", "get", "inventory")
+		}
 		_ = Exec("wash", "down", "--purge-jetstream", "all")
 	}
 }

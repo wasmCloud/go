@@ -13,8 +13,9 @@ type Client struct {
 	lattice string
 }
 
-//var _ APIv1 = (*Client)(nil)
+var _ APIv1 = (*Client)(nil)
 
+// NewClient creates a new control client for a given lattice
 func NewClient(bus wasmbus.Bus, lattice string) *Client {
 	return &Client{
 		Bus:     bus,
