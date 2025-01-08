@@ -4,7 +4,6 @@ go 1.23.3
 
 require (
 	github.com/charmbracelet/lipgloss v1.0.0
-	github.com/google/go-cmp v0.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/urfave/cli/v3 v3.0.0-beta1
 	go.wasmcloud.dev/x/wasmbus v0.1.0
@@ -15,6 +14,7 @@ require (
 	github.com/charmbracelet/x/ansi v0.4.2 // indirect
 	github.com/cloudevents/sdk-go/v2 v2.15.2 // indirect
 	github.com/goccy/go-yaml v1.15.13 // indirect
+	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/uuid v1.1.1 // indirect
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
@@ -34,9 +34,9 @@ require (
 	go.uber.org/atomic v1.4.0 // indirect
 	go.uber.org/multierr v1.1.0 // indirect
 	go.uber.org/zap v1.10.0 // indirect
-	golang.org/x/crypto v0.31.0 // indirect
-	golang.org/x/sys v0.28.0 // indirect
-	golang.org/x/time v0.8.0 // indirect
+	golang.org/x/crypto v0.32.0 // indirect
+	golang.org/x/sys v0.29.0 // indirect
+	golang.org/x/time v0.9.0 // indirect
 )
 
 replace go.wasmcloud.dev/x/wasmbus => ../../../x/wasmbus
