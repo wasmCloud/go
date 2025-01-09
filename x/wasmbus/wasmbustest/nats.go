@@ -1,14 +1,13 @@
 package wasmbustest
 
 import (
-	"testing"
 	"time"
 
 	"github.com/nats-io/nats-server/v2/server"
 	"github.com/nats-io/nats.go"
 )
 
-func MustStartNats(t *testing.T) func() {
+func MustStartNats(t TestingT) func() {
 	t.Helper()
 
 	opts := &server.Options{

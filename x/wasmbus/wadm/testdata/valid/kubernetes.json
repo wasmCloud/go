@@ -1,0 +1,81 @@
+{
+  "kind": "Application",
+  "apiVersion": "core.oam.dev/v1beta1",
+  "metadata": {
+    "name": "rust-hello-world",
+    "namespace": "default",
+    "uid": "8463bb90-0c03-4a1c-b21f-e8446b84184f",
+    "resourceVersion": "551",
+    "generation": 1,
+    "creationTimestamp": "2025-01-07T19:21:56Z",
+    "annotations": {
+      "description": "HTTP hello world demo in Rust, using the WebAssembly Component Model and WebAssembly Interfaces Types (WIT)",
+      "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"core.oam.dev/v1beta1\",\"kind\":\"Application\",\"metadata\":{\"annotations\":{\"description\":\"HTTP hello world demo in Rust, using the WebAssembly Component Model and WebAssembly Interfaces Types (WIT)\",\"wasmcloud.dev/authors\":\"wasmCloud team\",\"wasmcloud.dev/categories\":\"http,http-server,rust,hello-world,example\\n\",\"wasmcloud.dev/homepage\":\"https://github.com/wasmCloud/wasmCloud/tree/main/examples/rust/components/http-hello-world\",\"wasmcloud.dev/readme-md-url\":\"https://github.com/wasmCloud/wasmCloud/blob/main/examples/rust/components/http-hello-world/README.md\",\"wasmcloud.dev/source-url\":\"https://github.com/wasmCloud/wasmCloud/blob/main/examples/rust/components/http-hello-world/wadm.yaml\"},\"name\":\"rust-hello-world\",\"namespace\":\"default\"},\"spec\":{\"components\":[{\"name\":\"http-component\",\"properties\":{\"image\":\"ghcr.io/wasmcloud/components/http-hello-world-rust:0.1.0\"},\"traits\":[{\"properties\":{\"instances\":1},\"type\":\"spreadscaler\"}],\"type\":\"component\"},{\"name\":\"httpserver\",\"properties\":{\"image\":\"ghcr.io/wasmcloud/http-server:0.23.1\"},\"traits\":[{\"properties\":{\"instances\":1},\"type\":\"spreadscaler\"},{\"properties\":{\"interfaces\":[\"incoming-handler\"],\"namespace\":\"wasi\",\"package\":\"http\",\"source_config\":[{\"name\":\"default-http\",\"properties\":{\"address\":\"0.0.0.0:8080\"}}],\"target\":\"http-component\"},\"type\":\"link\"}],\"type\":\"capability\"}]}}\n",
+      "wasmcloud.dev/authors": "wasmCloud team",
+      "wasmcloud.dev/categories": "http,http-server,rust,hello-world,example\n",
+      "wasmcloud.dev/homepage": "https://github.com/wasmCloud/wasmCloud/tree/main/examples/rust/components/http-hello-world",
+      "wasmcloud.dev/readme-md-url": "https://github.com/wasmCloud/wasmCloud/blob/main/examples/rust/components/http-hello-world/README.md",
+      "wasmcloud.dev/source-url": "https://github.com/wasmCloud/wasmCloud/blob/main/examples/rust/components/http-hello-world/wadm.yaml"
+    },
+    "managedFields": [
+      {
+        "manager": "kubectl-client-side-apply",
+        "operation": "Update",
+        "apiVersion": "core.oam.dev/v1beta1",
+        "time": "2025-01-07T19:21:56Z",
+        "fieldsType": "FieldsV1",
+        "fieldsV1": {
+          "f:metadata": {
+            "f:annotations": {
+              ".": {},
+              "f:description": {},
+              "f:kubectl.kubernetes.io/last-applied-configuration": {},
+              "f:wasmcloud.dev/authors": {},
+              "f:wasmcloud.dev/categories": {},
+              "f:wasmcloud.dev/homepage": {},
+              "f:wasmcloud.dev/readme-md-url": {},
+              "f:wasmcloud.dev/source-url": {}
+            }
+          },
+          "f:spec": { ".": {}, "f:components": {} }
+        }
+      }
+    ]
+  },
+  "spec": {
+    "components": [
+      {
+        "name": "http-component",
+        "type": "component",
+        "properties": {
+          "image": "ghcr.io/wasmcloud/components/http-hello-world-rust:0.1.0"
+        },
+        "traits": [{ "type": "spreadscaler", "properties": { "instances": 1 } }]
+      },
+      {
+        "name": "httpserver",
+        "type": "capability",
+        "properties": { "image": "ghcr.io/wasmcloud/http-server:0.23.1" },
+        "traits": [
+          { "type": "spreadscaler", "properties": { "instances": 1 } },
+          {
+            "type": "link",
+            "properties": {
+              "interfaces": ["incoming-handler"],
+              "namespace": "wasi",
+              "package": "http",
+              "source_config": [
+                {
+                  "name": "default-http",
+                  "properties": { "address": "0.0.0.0:8080" }
+                }
+              ],
+              "target": "http-component"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "status": {}
+}

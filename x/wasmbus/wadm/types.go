@@ -198,19 +198,27 @@ type TargetConfigDefinition struct {
 
 type rawTargetConfigDefinition TargetConfigDefinition
 
-func (t *TargetConfigDefinition) UnmarshalYAML(data []byte) error {
+func (t *TargetConfigDefinition) unmarshal(data []byte, fn func([]byte, interface{}) error) error {
 	*t = TargetConfigDefinition{}
-	if err := yaml.Unmarshal(data, &t.Name); err == nil {
+	if err := fn(data, &t.Name); err == nil {
 		return nil
 	}
 
 	rt := &rawTargetConfigDefinition{}
-	if err := yaml.Unmarshal(data, rt); err != nil {
+	if err := fn(data, rt); err != nil {
 		return err
 	}
 	*t = TargetConfigDefinition(*rt)
 
 	return nil
+}
+
+func (t *TargetConfigDefinition) UnmarshalJSON(data []byte) error {
+	return t.unmarshal(data, json.Unmarshal)
+}
+
+func (t *TargetConfigDefinition) UnmarshalYAML(data []byte) error {
+	return t.unmarshal(data, yaml.Unmarshal)
 }
 
 type LinkProperty struct {

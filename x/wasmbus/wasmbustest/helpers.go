@@ -7,7 +7,6 @@ import (
 	"flag"
 	"os"
 	"os/exec"
-	"testing"
 	"time"
 
 	"github.com/nats-io/nats.go"
@@ -20,6 +19,13 @@ const (
 	ValidComponent = "ghcr.io/wasmcloud/components/http-hello-world-rust:0.1.0"
 	ValidProvider  = "ghcr.io/wasmcloud/http-client:0.12.0"
 )
+
+// interface that can be fulfilled by any testing.T implementation ( std, ginkgo, testify )
+type TestingT interface {
+	Helper()
+	Fatalf(string, ...any)
+	Logf(string, ...any)
+}
 
 func CheckWadm() error {
 	return Exec("wash", "app", "list")
@@ -35,14 +41,14 @@ func Exec(bin string, args ...string) error {
 	return cmd.Run()
 }
 
-func WashDeploy(t *testing.T, path string) {
+func WashDeploy(t TestingT, path string) {
 	t.Helper()
 	if err := Exec("wash", "app", "deploy", path); err != nil {
 		t.Fatalf("failed to deploy manifest: %v", err)
 	}
 }
 
-func WithWash(t *testing.T) (*nats.Conn, func(*testing.T)) {
+func WithWash(t TestingT) (*nats.Conn, func(TestingT)) {
 	t.Helper()
 
 	if err := Exec("wash", "up", "-d"); err != nil {
@@ -73,7 +79,7 @@ func WithWash(t *testing.T) (*nats.Conn, func(*testing.T)) {
 		return nil, nil
 	}
 
-	return nc, func(*testing.T) {
+	return nc, func(TestingT) {
 		nc.Close()
 		if *showOutput {
 			_ = Exec("wash", "get", "inventory")
