@@ -3,6 +3,7 @@ module github.com/wasmCloud/go/examples/component/http-keyvalue-crud
 go 1.23.0
 
 require (
+	github.com/julienschmidt/httprouter v1.3.0
 	go.bytecodealliance.org v0.5.0
 	go.bytecodealliance.org/cm v0.1.0
 	go.wasmcloud.dev/component v0.0.5

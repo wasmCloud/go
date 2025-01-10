@@ -1,8 +1,8 @@
-name = "crud"
+name = "http-keyvalue-crud"
 language = "tinygo"
 type = "component"
 version = "0.1.0"
 
 [component]
-wit_world = "hello"
+wit_world = "component"
 wasm_target = "wasm32-wasip2"

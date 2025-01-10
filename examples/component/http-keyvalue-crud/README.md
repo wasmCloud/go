@@ -44,19 +44,19 @@ The user provides keys as query strings and values as JSON payloads, with the ap
 To **Create** (or **Update**) a value:
 
 ```shell
-curl -X POST 'localhost:8000/api/v1/crud?key' -d '{"foo": "bar", "woo": "hoo"}'
+curl -X POST 'localhost:8000/post?key' -d '{"foo": "bar", "woo": "hoo"}'
 ```
 
 To **Read** a value:
 
 ```shell
-curl 'localhost:8000/api/v1/crud?key'
+curl 'localhost:8000/get?key'
 ```
 
 To **Destroy** a value:
 
 ```shell
-curl -X DELETE 'localhost:8000/api/v1/crud?key'
+curl -X DELETE 'localhost:8000/delete?key'
 ```
 
 Read through the comments in `main.go` for step-by-step explanation of how the example works.

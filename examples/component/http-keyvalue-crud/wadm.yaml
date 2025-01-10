@@ -38,7 +38,7 @@ spec:
   - name: crud
     type: component
     properties:
-      image: file://./build/crud_s.wasm
+      image: file://./build/http-keyvalue-crud_s.wasm
       id: crud
     traits:
     - type: spreadscaler
