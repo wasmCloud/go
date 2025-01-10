@@ -14,7 +14,7 @@ require (
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/minio/highwayhash v1.0.3 // indirect
-	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742 // indirect
 	github.com/nats-io/jwt/v2 v2.7.3 // indirect
 	github.com/nats-io/nkeys v0.4.9 // indirect
