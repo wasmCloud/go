@@ -8,7 +8,7 @@ replace go.wasmcloud.dev/provider => ../../../provider
 
 require (
 	github.com/nats-io/nats.go v1.38.0
-	github.com/testcontainers/testcontainers-go v0.34.0
+	github.com/testcontainers/testcontainers-go v0.35.0
 	go.opentelemetry.io/otel v1.33.0
 	go.opentelemetry.io/otel/trace v1.33.0
 	go.wasmcloud.dev/provider v0.0.0-20240124183610-1a92f8d04935
