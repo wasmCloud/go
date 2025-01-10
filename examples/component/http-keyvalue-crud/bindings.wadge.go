@@ -5,7 +5,7 @@
 package main
 
 import (
-	crud__gen__wasi__keyvalue__store "crud/gen/wasi/keyvalue/store"
+	github_com__wasmCloud__go__examples__component__http___keyvalue___crud__gen__wasi__keyvalue__store "github.com/wasmCloud/go/examples/component/http-keyvalue-crud/gen/wasi/keyvalue/store"
 	go_bytecodealliance_org__cm "go.bytecodealliance.org/cm"
 	go_wasmcloud_dev__component__gen__wasi__clocks__monotonic___clock "go.wasmcloud.dev/component/gen/wasi/clocks/monotonic-clock"
 	go_wasmcloud_dev__component__gen__wasi__http__outgoing___handler "go.wasmcloud.dev/component/gen/wasi/http/outgoing-handler"
@@ -1985,8 +1985,8 @@ func wasmimport_OutputStreamResourceDrop(self0 uint32) {
 	return
 }
 
-//go:linkname wasmimport_BucketDelete crud/gen/wasi/keyvalue/store.wasmimport_BucketDelete
-func wasmimport_BucketDelete(self0 uint32, key0 *uint8, key1 uint32, result *go_bytecodealliance_org__cm.Result[crud__gen__wasi__keyvalue__store.Error, struct{}, crud__gen__wasi__keyvalue__store.Error]) {
+//go:linkname wasmimport_BucketDelete github.com/wasmCloud/go/examples/component/http-keyvalue-crud/gen/wasi/keyvalue/store.wasmimport_BucketDelete
+func wasmimport_BucketDelete(self0 uint32, key0 *uint8, key1 uint32, result *go_bytecodealliance_org__cm.Result[github_com__wasmCloud__go__examples__component__http___keyvalue___crud__gen__wasi__keyvalue__store.Error, struct{}, github_com__wasmCloud__go__examples__component__http___keyvalue___crud__gen__wasi__keyvalue__store.Error]) {
 	var __p runtime.Pinner
 	defer __p.Unpin()
 	if __err := wadge.WithCurrentInstance(func(__instance *wadge.Instance) error {
@@ -2013,8 +2013,8 @@ func wasmimport_BucketDelete(self0 uint32, key0 *uint8, key1 uint32, result *go_
 	return
 }
 
-//go:linkname wasmimport_BucketExists crud/gen/wasi/keyvalue/store.wasmimport_BucketExists
-func wasmimport_BucketExists(self0 uint32, key0 *uint8, key1 uint32, result *go_bytecodealliance_org__cm.Result[crud__gen__wasi__keyvalue__store.ErrorShape, bool, crud__gen__wasi__keyvalue__store.Error]) {
+//go:linkname wasmimport_BucketExists github.com/wasmCloud/go/examples/component/http-keyvalue-crud/gen/wasi/keyvalue/store.wasmimport_BucketExists
+func wasmimport_BucketExists(self0 uint32, key0 *uint8, key1 uint32, result *go_bytecodealliance_org__cm.Result[github_com__wasmCloud__go__examples__component__http___keyvalue___crud__gen__wasi__keyvalue__store.ErrorShape, bool, github_com__wasmCloud__go__examples__component__http___keyvalue___crud__gen__wasi__keyvalue__store.Error]) {
 	var __p runtime.Pinner
 	defer __p.Unpin()
 	if __err := wadge.WithCurrentInstance(func(__instance *wadge.Instance) error {
@@ -2041,8 +2041,8 @@ func wasmimport_BucketExists(self0 uint32, key0 *uint8, key1 uint32, result *go_
 	return
 }
 
-//go:linkname wasmimport_BucketGet crud/gen/wasi/keyvalue/store.wasmimport_BucketGet
-func wasmimport_BucketGet(self0 uint32, key0 *uint8, key1 uint32, result *go_bytecodealliance_org__cm.Result[crud__gen__wasi__keyvalue__store.OptionListU8Shape, go_bytecodealliance_org__cm.Option[go_bytecodealliance_org__cm.List[uint8]], crud__gen__wasi__keyvalue__store.Error]) {
+//go:linkname wasmimport_BucketGet github.com/wasmCloud/go/examples/component/http-keyvalue-crud/gen/wasi/keyvalue/store.wasmimport_BucketGet
+func wasmimport_BucketGet(self0 uint32, key0 *uint8, key1 uint32, result *go_bytecodealliance_org__cm.Result[github_com__wasmCloud__go__examples__component__http___keyvalue___crud__gen__wasi__keyvalue__store.OptionListU8Shape, go_bytecodealliance_org__cm.Option[go_bytecodealliance_org__cm.List[uint8]], github_com__wasmCloud__go__examples__component__http___keyvalue___crud__gen__wasi__keyvalue__store.Error]) {
 	var __p runtime.Pinner
 	defer __p.Unpin()
 	if __err := wadge.WithCurrentInstance(func(__instance *wadge.Instance) error {
@@ -2069,8 +2069,8 @@ func wasmimport_BucketGet(self0 uint32, key0 *uint8, key1 uint32, result *go_byt
 	return
 }
 
-//go:linkname wasmimport_BucketListKeys crud/gen/wasi/keyvalue/store.wasmimport_BucketListKeys
-func wasmimport_BucketListKeys(self0 uint32, cursor0 uint32, cursor1 uint64, result *go_bytecodealliance_org__cm.Result[crud__gen__wasi__keyvalue__store.KeyResponseShape, crud__gen__wasi__keyvalue__store.KeyResponse, crud__gen__wasi__keyvalue__store.Error]) {
+//go:linkname wasmimport_BucketListKeys github.com/wasmCloud/go/examples/component/http-keyvalue-crud/gen/wasi/keyvalue/store.wasmimport_BucketListKeys
+func wasmimport_BucketListKeys(self0 uint32, cursor0 uint32, cursor1 uint64, result *go_bytecodealliance_org__cm.Result[github_com__wasmCloud__go__examples__component__http___keyvalue___crud__gen__wasi__keyvalue__store.KeyResponseShape, github_com__wasmCloud__go__examples__component__http___keyvalue___crud__gen__wasi__keyvalue__store.KeyResponse, github_com__wasmCloud__go__examples__component__http___keyvalue___crud__gen__wasi__keyvalue__store.Error]) {
 	var __p runtime.Pinner
 	defer __p.Unpin()
 	if __err := wadge.WithCurrentInstance(func(__instance *wadge.Instance) error {
@@ -2097,8 +2097,8 @@ func wasmimport_BucketListKeys(self0 uint32, cursor0 uint32, cursor1 uint64, res
 	return
 }
 
-//go:linkname wasmimport_BucketSet crud/gen/wasi/keyvalue/store.wasmimport_BucketSet
-func wasmimport_BucketSet(self0 uint32, key0 *uint8, key1 uint32, value0 *uint8, value1 uint32, result *go_bytecodealliance_org__cm.Result[crud__gen__wasi__keyvalue__store.Error, struct{}, crud__gen__wasi__keyvalue__store.Error]) {
+//go:linkname wasmimport_BucketSet github.com/wasmCloud/go/examples/component/http-keyvalue-crud/gen/wasi/keyvalue/store.wasmimport_BucketSet
+func wasmimport_BucketSet(self0 uint32, key0 *uint8, key1 uint32, value0 *uint8, value1 uint32, result *go_bytecodealliance_org__cm.Result[github_com__wasmCloud__go__examples__component__http___keyvalue___crud__gen__wasi__keyvalue__store.Error, struct{}, github_com__wasmCloud__go__examples__component__http___keyvalue___crud__gen__wasi__keyvalue__store.Error]) {
 	var __p runtime.Pinner
 	defer __p.Unpin()
 	if __err := wadge.WithCurrentInstance(func(__instance *wadge.Instance) error {
@@ -2133,7 +2133,7 @@ func wasmimport_BucketSet(self0 uint32, key0 *uint8, key1 uint32, value0 *uint8,
 	return
 }
 
-//go:linkname wasmimport_BucketResourceDrop crud/gen/wasi/keyvalue/store.wasmimport_BucketResourceDrop
+//go:linkname wasmimport_BucketResourceDrop github.com/wasmCloud/go/examples/component/http-keyvalue-crud/gen/wasi/keyvalue/store.wasmimport_BucketResourceDrop
 func wasmimport_BucketResourceDrop(self0 uint32) {
 	var __p runtime.Pinner
 	defer __p.Unpin()
@@ -2149,8 +2149,8 @@ func wasmimport_BucketResourceDrop(self0 uint32) {
 	return
 }
 
-//go:linkname wasmimport_Open crud/gen/wasi/keyvalue/store.wasmimport_Open
-func wasmimport_Open(identifier0 *uint8, identifier1 uint32, result *go_bytecodealliance_org__cm.Result[crud__gen__wasi__keyvalue__store.ErrorShape, crud__gen__wasi__keyvalue__store.Bucket, crud__gen__wasi__keyvalue__store.Error]) {
+//go:linkname wasmimport_Open github.com/wasmCloud/go/examples/component/http-keyvalue-crud/gen/wasi/keyvalue/store.wasmimport_Open
+func wasmimport_Open(identifier0 *uint8, identifier1 uint32, result *go_bytecodealliance_org__cm.Result[github_com__wasmCloud__go__examples__component__http___keyvalue___crud__gen__wasi__keyvalue__store.ErrorShape, github_com__wasmCloud__go__examples__component__http___keyvalue___crud__gen__wasi__keyvalue__store.Bucket, github_com__wasmCloud__go__examples__component__http___keyvalue___crud__gen__wasi__keyvalue__store.Error]) {
 	var __p runtime.Pinner
 	defer __p.Unpin()
 	if __err := wadge.WithCurrentInstance(func(__instance *wadge.Instance) error {

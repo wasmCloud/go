@@ -1,47 +1,59 @@
 apiVersion: core.oam.dev/v1beta1
 kind: Application
 metadata:
-  name: "crud"
+  name: "http-keyvalue-crud"
   annotations:
-    description: "HTTP hello world demo in Golang (TinyGo), using the WebAssembly Component Model and WebAssembly Interfaces Types (WIT)"
+    description: "HTTP and keyvalue CRUD example"
     wasmcloud.dev/authors: wasmCloud team
-    wasmcloud.dev/source-url: https://github.com/wasmCloud/wasmCloud/blob/main/examples/golang/components/http-hello-world/wadm.yaml
-    wasmcloud.dev/readme-md-url: https://github.com/wasmCloud/wasmCloud/blob/main/examples/golang/components/http-hello-world/README.md
-    wasmcloud.dev/homepage: https://github.com/wasmCloud/wasmCloud/tree/main/examples/golang/components/http-hello-world
+    wasmcloud.dev/source-url: https://github.com/wasmCloud/go/blob/main/examples/components/http-keyvalue-crud/wadm.yaml
+    wasmcloud.dev/readme-md-url: https://github.com/wasmCloud/go/blob/main/examples/components/http-keyvalue-crud/README.md
+    wasmcloud.dev/homepage: https://github.com/wasmCloud/go/blob/main/examples/components/http-keyvalue-crud
     wasmcloud.dev/categories: |
       http,outgoing-http,http-server,tinygo,golang,example
 spec:
   components:
-    - name: http-component
-      type: component
+  - name: keyvalue-nats
+    type: capability
+    properties:
+      image: ghcr.io/wasmcloud/keyvalue-nats:0.3.1
+    traits: []
+  - name: http-server
+    type: capability
+    properties:
+      image: ghcr.io/wasmcloud/http-server:0.24.0
+    traits:
+    - type: link
       properties:
-        image: "file://./build/crud_s.wasm"
-      traits:
-        # Govern the spread/scheduling of the component
-        - type: spreadscaler
-          properties:
-            instances: 1
-
-    # Add a capability provider that enables HTTP access
-    - name: httpserver
-      type: capability
+        namespace: wasi
+        package: http
+        interfaces:
+        - incoming-handler
+        source:
+          config:
+          - name: wasi-http-config
+            properties:
+              address: 127.0.0.1:8000
+        target:
+          name: crud
+  - name: crud
+    type: component
+    properties:
+      image: file://./build/crud_s.wasm
+      id: crud
+    traits:
+    - type: spreadscaler
       properties:
-        image: ghcr.io/wasmcloud/http-server:0.23.2
-      traits:
-        # Link the httpserver to the component, and configure the HTTP server
-        # to listen on port 8000 for incoming requests
-        #
-        # Since the HTTP server calls the `http-component` component, we establish
-        # a unidirectional link from this `httpserver` provider (the "source")
-        # to the `http-component` component (the "target"), so the server can invoke
-        # the component to handle a request.
-        - type: link
-          properties:
-            target: http-component
-            namespace: wasi
-            package: http
-            interfaces: [incoming-handler]
-            source_config:
-              - name: default-http
-                properties:
-                  address: 0.0.0.0:8000
+        instances: 100
+    - type: link
+      properties:
+        namespace: wasi
+        package: keyvalue
+        interfaces:
+        - store
+        target:
+          name: keyvalue-nats
+          config:
+          - name: wasi-keyvalue-config
+            properties:
+              bucket: wasmcloud
+              enable_bucket_auto_create: 'true'
