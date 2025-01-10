@@ -8,11 +8,23 @@ Before starting, ensure that you have the following installed in addition to the
 
 - [`tinygo`](https://tinygo.org/getting-started/install/) for compiling Go (always use the latest version)
 - [`wasm-tools`](https://github.com/bytecodealliance/wasm-tools#installation) for Go bindings
-- [`wash`](https://wasmcloud.com/docs/installation) for building and running the components and wasmCloud environment
+- [wasmCloud Shell (`wash`)](https://wasmcloud.com/docs/installation) for building and running the components and wasmCloud environment
 
 ## 👟 Quickstart
 
-To run this example, clone the repo and run `wash dev` from this directory:
+To run this example, clone the [wasmCloud/go repository](https://github.com/wasmcloud/go): 
+
+```shell
+git clone https://github.com/wasmCloud/go.git
+```
+
+Change directory to `examples/component/http-keyvalue-crud`:
+
+```shell
+cd examples/component/http-keyvalue-crud
+```
+
+Run `wash dev` to start a local development loop:
 
 ```shell
 wash dev
