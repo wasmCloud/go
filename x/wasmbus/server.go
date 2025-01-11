@@ -160,18 +160,24 @@ func (s *RequestHandler[T, Y]) HandleMessage(ctx context.Context, msg *Message) 
 	return nil
 }
 
+// TypedHandler is a higher-level abstraction that can be used to register handlers for specific types.
+// It uses a `TypeExtractor` function to extract the type from the message.
+// Usefull when you want to handle different types of messages with different handlers based on a json field inside the message.
 type TypedHandler struct {
 	extractor TypeExtractor
 	handlers  map[string]AnyServerHandler
 	lock      sync.Mutex
 }
 
+// TypeExtractor is a function that extracts a type name from a message.
 type TypeExtractor func(ctx context.Context, msg *Message) (string, error)
 
+// NewTypedHandler returns a new typed handler instance.
 func NewTypedHandler(extractor TypeExtractor) *TypedHandler {
 	return &TypedHandler{extractor: extractor, handlers: make(map[string]AnyServerHandler)}
 }
 
+// HandleMessage implements the `AnyServerHandler` interface.
 func (h *TypedHandler) HandleMessage(ctx context.Context, msg *Message) error {
 	if h.extractor == nil {
 		return fmt.Errorf("%w: no type extractor", ErrOperation)
@@ -193,6 +199,8 @@ func (h *TypedHandler) HandleMessage(ctx context.Context, msg *Message) error {
 	return handler.HandleMessage(ctx, msg)
 }
 
+// RegisterType registers a handler for a given type.
+// The handler will be called when a message with the given type is received, after the type is extracted by the `TypeExtractor`.
 func (h *TypedHandler) RegisterType(kind string, handler AnyServerHandler) error {
 	h.lock.Lock()
 	defer h.lock.Unlock()
