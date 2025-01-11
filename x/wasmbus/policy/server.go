@@ -10,9 +10,8 @@ import (
 
 type Server struct {
 	*wasmbus.Server
-	subject  string
-	api      API
-	handlers map[string]wasmbus.AnyServerHandler
+	subject string
+	api     API
 }
 
 func NewServer(bus wasmbus.Bus, subject string, api API) *Server {
