@@ -18,7 +18,7 @@ func TestServerRegisterHandler(t *testing.T) {
 	defer nc.Close()
 
 	bus := NewNatsBus(nc)
-	server := NewServer(bus, "test")
+	server := NewServer(bus)
 	err = server.RegisterHandler("test", ServerHandlerFunc(func(ctx context.Context, msg *Message) error {
 		reply := NewMessage(msg.Reply)
 		reply.Data = []byte("hello")
@@ -52,7 +52,7 @@ func TestServerDrain(t *testing.T) {
 	defer nc.Close()
 
 	bus := NewNatsBus(nc)
-	server := NewServer(bus, "test")
+	server := NewServer(bus)
 	checkpoint := make(chan bool)
 	_ = server.RegisterHandler("slow", ServerHandlerFunc(func(ctx context.Context, msg *Message) error {
 		close(checkpoint)
@@ -87,7 +87,7 @@ func TestServerErrorStream(t *testing.T) {
 	defer nc.Close()
 
 	bus := NewNatsBus(nc)
-	server := NewServer(bus, "test")
+	server := NewServer(bus)
 	bomb := errors.New("bomb")
 	bombCh := make(chan error, 1)
 	_ = server.RegisterHandler("bomb", ServerHandlerFunc(func(ctx context.Context, msg *Message) error {
@@ -133,7 +133,7 @@ func TestRequestHandler(t *testing.T) {
 	defer nc.Close()
 
 	bus := NewNatsBus(nc)
-	server := NewServer(bus, "test")
+	server := NewServer(bus)
 	handler := NewRequestHandler(testRequest{}, testResponse{}, func(ctx context.Context, req *testRequest) (*testResponse, error) {
 		return &testResponse{
 			Hello: "world",

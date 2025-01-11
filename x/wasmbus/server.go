@@ -18,9 +18,6 @@ type ServerError struct {
 // See `AnyServerHandler` for more information.
 type Server struct {
 	Bus
-	// Lattice is an informative field containing the lattice name.
-	// It is NOT used when manipulating subjects.
-	Lattice string
 	// ContextFunc is a function that returns a new context for each message.
 	// Defaults to `context.Background`.
 	ContextFunc func() context.Context
@@ -31,10 +28,9 @@ type Server struct {
 }
 
 // NewServer returns a new server instance.
-func NewServer(bus Bus, lattice string) *Server {
+func NewServer(bus Bus) *Server {
 	return &Server{
 		Bus:         bus,
-		Lattice:     lattice,
 		ContextFunc: func() context.Context { return context.Background() },
 		errorStream: make(chan *ServerError),
 	}
@@ -160,6 +156,52 @@ func (s *RequestHandler[T, Y]) HandleMessage(ctx context.Context, msg *Message) 
 	if err := msg.Bus().Publish(rawResp); err != nil {
 		return fmt.Errorf("%w: %s", ErrTransport, err)
 	}
+
+	return nil
+}
+
+type TypedHandler struct {
+	extractor TypeExtractor
+	handlers  map[string]AnyServerHandler
+	lock      sync.Mutex
+}
+
+type TypeExtractor func(ctx context.Context, msg *Message) (string, error)
+
+func NewTypedHandler(extractor TypeExtractor) *TypedHandler {
+	return &TypedHandler{extractor: extractor, handlers: make(map[string]AnyServerHandler)}
+}
+
+func (h *TypedHandler) HandleMessage(ctx context.Context, msg *Message) error {
+	if h.extractor == nil {
+		return fmt.Errorf("%w: no type extractor", ErrOperation)
+	}
+
+	kind, err := h.extractor(ctx, msg)
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrOperation, err)
+	}
+
+	h.lock.Lock()
+	handler, ok := h.handlers[kind]
+	h.lock.Unlock()
+
+	if !ok {
+		return fmt.Errorf("%w: no handler for type %s", ErrOperation, kind)
+	}
+
+	return handler.HandleMessage(ctx, msg)
+}
+
+func (h *TypedHandler) RegisterType(kind string, handler AnyServerHandler) error {
+	h.lock.Lock()
+	defer h.lock.Unlock()
+
+	if _, ok := h.handlers[kind]; ok {
+		return fmt.Errorf("%w: handler for type %s already registered", ErrOperation, kind)
+	}
+
+	h.handlers[kind] = handler
 
 	return nil
 }

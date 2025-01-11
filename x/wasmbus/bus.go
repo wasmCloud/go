@@ -22,6 +22,8 @@ const (
 	PrefixEvents = "wasmbus.evt"
 	// PrefixControl is the prefix for Lattice RPC.
 	PrefixCtlV1 = "wasmbus.ctl.v1"
+
+	PrefixConfig = "wasmbus.cfg"
 )
 
 var (
