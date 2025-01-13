@@ -1,0 +1,74 @@
+apiVersion: core.oam.dev/v1beta1
+kind: Application
+metadata:
+  name: http-keyvalue-bus
+  annotations:
+    description: 'wasmCloud Quickstart plus wasmcloud:bus'
+spec:
+  components:
+  - name: keyvalue-nats
+    type: capability
+    properties:
+      image: ghcr.io/wasmcloud/keyvalue-nats:0.3.1
+    traits: []
+  - name: keyvalue-redis
+    type: capability
+    properties:
+      image: ghcr.io/wasmcloud/keyvalue-redis:0.28.2
+  - name: http-component
+    type: component
+    properties:
+      image: file://./build/http-keyvalue-bus_s.wasm
+      id: http-component
+    traits:
+    - type: spreadscaler
+      properties:
+        instances: 100
+    # The link to keyvalue-nats is the first unnamed link and therefore default.
+    - type: link
+      properties:
+        namespace: wasi
+        package: keyvalue
+        interfaces:
+        - store
+        - atomics
+        target:
+          name: keyvalue-nats
+          config:
+          - name: wasi-keyvalue-config
+            properties:
+              bucket: wasmcloud
+              enable_bucket_auto_create: 'true'
+    # The link to keyvalue-redis is named 'redis' and can be selected via wasmcloud:bus.
+    - type: link
+      properties:
+        name: redis
+        namespace: wasi
+        package: keyvalue
+        interfaces:
+        - store
+        - atomics
+        target:
+          name: keyvalue-redis
+          config:
+          - name: redis-url
+            properties:
+              url: redis://127.0.0.1:6379
+  - name: http-server
+    type: capability
+    properties:
+      image: ghcr.io/wasmcloud/http-server:0.24.0
+    traits:
+    - type: link
+      properties:
+        namespace: wasi
+        package: http
+        interfaces:
+        - incoming-handler
+        source:
+          config:
+          - name: wasi-http-config
+            properties:
+              address: 127.0.0.1:8000
+        target:
+          name: http-component
