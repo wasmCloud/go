@@ -5,8 +5,10 @@ go 1.23.3
 require (
 	github.com/cloudevents/sdk-go/v2 v2.15.2
 	github.com/goccy/go-yaml v1.15.13
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/nats-io/nats-server/v2 v2.10.24
 	github.com/nats-io/nats.go v1.38.0
+	github.com/nats-io/nkeys v0.4.9
 )
 
 require (
@@ -17,7 +19,6 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/nats-io/jwt/v2 v2.7.3 // indirect
-	github.com/nats-io/nkeys v0.4.9 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/stretchr/testify v1.10.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect

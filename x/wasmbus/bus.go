@@ -24,6 +24,8 @@ const (
 	PrefixCtlV1 = "wasmbus.ctl.v1"
 
 	PrefixConfig = "wasmbus.cfg"
+
+	PrefixSecrets = "wasmcloud.secrets"
 )
 
 var (

@@ -117,15 +117,34 @@ func NewRequestHandler[T any, Y any](req T, resp Y, handler func(context.Context
 type RequestHandler[T any, Y any] struct {
 	Request     T
 	Response    Y
+	Decode      func(context.Context, *T, *Message) (context.Context, error)
+	Encode      func(context.Context, string, *Y) (*Message, error)
 	PreRequest  func(context.Context, *T, *Message) error
 	PostRequest func(context.Context, *Y, *Message) error
 	Handler     func(context.Context, *T) (*Y, error)
 }
 
+func (s *RequestHandler[T, Y]) decode(ctx context.Context, req *T, msg *Message) (context.Context, error) {
+	if s.Decode != nil {
+		return s.Decode(ctx, req, msg)
+	}
+	return ctx, Decode(msg, req)
+}
+
+func (s *RequestHandler[T, Y]) encode(ctx context.Context, subject string, resp *Y) (*Message, error) {
+	if s.Encode != nil {
+		return s.Encode(ctx, subject, resp)
+	}
+	return Encode(subject, resp)
+}
+
 // HandleMessage implements the `AnyServerHandler` interface.
 func (s *RequestHandler[T, Y]) HandleMessage(ctx context.Context, msg *Message) error {
+	var err error
+
 	req := s.Request
-	err := Decode(msg, &req)
+
+	ctx, err = s.decode(ctx, &req, msg)
 	if err != nil {
 		return fmt.Errorf("%w: %s", ErrDecode, err)
 	}
@@ -141,7 +160,7 @@ func (s *RequestHandler[T, Y]) HandleMessage(ctx context.Context, msg *Message) 
 		return fmt.Errorf("%w: %s", ErrOperation, err)
 	}
 
-	rawResp, err := Encode(msg.Reply, resp)
+	rawResp, err := s.encode(ctx, msg.Reply, resp)
 	if err != nil {
 		return fmt.Errorf("%w: %s", ErrEncode, err)
 	}
