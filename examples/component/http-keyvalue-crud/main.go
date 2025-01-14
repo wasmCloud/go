@@ -68,7 +68,7 @@ func postHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Opens the keyvalue bucket.
 	kvStore := store.Open("default")
 	if err := kvStore.Err(); err != nil {
-		w.Write([]byte("Error: " + err.String()))
+		errResponseJSON(w, http.StatusInternalServerError, err.String())
 		return
 	}
 
@@ -80,13 +80,13 @@ func postHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 	// Sets the value for the key in the current bucket and handles any errors.
 	kvSet := store.Bucket.Set(*kvStore.OK(), key, valueList)
-	if err := kvSet.Err(); err != nil {
-		w.Write([]byte("Error: " + err.String()))
+	if kvSet.IsErr() {
+		errResponseJSON(w, http.StatusBadRequest, kvSet.Err().String())
 		return
-	} else {
-		// Confirms that the key has been set.
-		fmt.Fprintf(w, "Set %s to %s\n", key, value)
 	}
+	// Confirms that the key has been set.
+	fmt.Fprintf(w, "Set %s to %s\n", key, value)
+
 }
 
 func getHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -97,28 +97,30 @@ func getHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Opens the keyvalue bucket.
 	kvStore := store.Open("default")
 	if err := kvStore.Err(); err != nil {
-		w.Write([]byte("Error: " + err.String()))
+		errResponseJSON(w, http.StatusInternalServerError, err.String())
 		return
 	}
 
 	// Gets the value for the defined key.
 	kvGet, kvGetErr, kvGetIsErr := store.Bucket.Get(*kvStore.OK(), key).Result()
-	if err := kvGetErr; kvGetIsErr {
-		w.Write([]byte("Error: " + err.String()))
+
+	// Returns and reports that key does not exist if no value is found.
+	if kvGet.Value().Len() == 0 {
+		errResponseJSON(w, http.StatusBadRequest, fmt.Sprintf("%s does not exist", key))
 		return
-	} else if kvGet.Value().Len() == 0 {
-
-		// Reports that key does not exist if no value is found.
-		fmt.Fprintf(w, "%s does not exist\n", key)
-
-	} else {
-
-		// Uses cm.LiftString to convert the byte value into a string, taking the data and len as arguments.
-		kvGetValue := cm.LiftString[string](kvGet.Value().Data(), kvGet.Value().Len())
-
-		// Returns key and value.
-		fmt.Fprintf(w, "Got %s value: %s\n", key, kvGetValue)
 	}
+	// Handles get errors other than non-existent key
+	if kvGetIsErr {
+		errResponseJSON(w, http.StatusBadRequest, kvGetErr.String())
+		return
+	}
+
+	// Uses cm.LiftString to convert the byte value into a string, taking the data and len as arguments.
+	kvGetValue := cm.LiftString[string](kvGet.Value().Data(), kvGet.Value().Len())
+
+	// Returns key and value.
+	fmt.Fprintf(w, "Got %s value: %s\n", key, kvGetValue)
+
 }
 
 func deleteHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -129,18 +131,24 @@ func deleteHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params)
 	// Opens the keyvalue bucket.
 	kvStore := store.Open("default")
 	if err := kvStore.Err(); err != nil {
-		w.Write([]byte("Error: " + err.String()))
+		errResponseJSON(w, http.StatusInternalServerError, err.String())
 		return
 	}
-
+	// Returns and reports that key does not exist if no value is found.
+	kvGet, _, _ := store.Bucket.Get(*kvStore.OK(), key).Result()
+	if kvGet.Value().Len() == 0 {
+		errResponseJSON(w, http.StatusBadRequest, fmt.Sprintf("%s does not exist", key))
+		return
+	}
 	// Deletes the entry for the provided key.
 	kvDel := store.Bucket.Delete(*kvStore.OK(), key)
-	if err := kvDel.Err(); err != nil {
-		w.Write([]byte("Error: " + err.String()))
+
+	if kvDel.IsErr() {
+		errResponseJSON(w, http.StatusBadRequest, kvDel.Err().String())
 		return
-	} else {
-		fmt.Fprintf(w, "Deleted %s\n", key)
 	}
+	fmt.Fprintf(w, "Deleted %s\n", key)
+
 }
 
 // JSON validation handling.
