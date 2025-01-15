@@ -32,7 +32,7 @@ type CheckResponse struct {
 }
 
 func init() {
-	// Establishes the routes and methods for our keyvalue operations.
+	// Establishes the routes and methods for our key-value operations.
 	router := httprouter.New()
 	router.GET("/", indexHandler)
 	router.POST("/crud/:key", postHandler)
@@ -42,7 +42,7 @@ func init() {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprintf(w, "GET, POST, or DELETE to /crud/<key> (with JSON payload for POSTs)\n")
+	fmt.Fprintln(w, `{"message":"GET, POST, or DELETE to /crud/<key> (with JSON payload for POSTs)"}`)
 }
 
 func postHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -84,8 +84,11 @@ func postHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		errResponseJSON(w, http.StatusBadRequest, kvSet.Err().String())
 		return
 	}
-	// Confirms that the key has been set.
-	fmt.Fprintf(w, "Set %s to %s\n", key, value)
+
+	// Confirms set, returning key and value in JSON body.
+	kvSetMessage := fmt.Sprintf("Set %s", key)
+	kvSetResponse := fmt.Sprintf(`{"message":"%s", "value":"%s"}`, kvSetMessage, value)
+	fmt.Fprintln(w, kvSetResponse)
 
 }
 
@@ -116,10 +119,12 @@ func getHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	}
 
 	// Uses cm.LiftString to convert the byte value into a string, taking the data and len as arguments.
-	kvGetValue := cm.LiftString[string](kvGet.Value().Data(), kvGet.Value().Len())
+	kvGetJSON := cm.LiftString[string](kvGet.Value().Data(), kvGet.Value().Len())
 
-	// Returns key and value.
-	fmt.Fprintf(w, "Got %s value: %s\n", key, kvGetValue)
+	// Returns key and value in JSON body.
+	kvGetMessage := fmt.Sprintf("Got %s", key)
+	kvGetResponse := fmt.Sprintf(`{"message":"%s", "value":"%s"}`, kvGetMessage, kvGetJSON)
+	fmt.Fprintln(w, kvGetResponse)
 
 }
 
@@ -147,7 +152,10 @@ func deleteHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params)
 		errResponseJSON(w, http.StatusBadRequest, kvDel.Err().String())
 		return
 	}
-	fmt.Fprintf(w, "Deleted %s\n", key)
+	// Confirms delete in JSON body.
+	kvDelMessage := fmt.Sprintf("Deleted %s", key)
+	kvDelResponse := fmt.Sprintf(`{"message":"%s"}`, kvDelMessage)
+	fmt.Fprintln(w, kvDelResponse)
 
 }
 

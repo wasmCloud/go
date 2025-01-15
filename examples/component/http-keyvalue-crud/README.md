@@ -47,7 +47,7 @@ To **Create** (or **Update**) a value:
 curl -X POST localhost:8000/crud/key -d '{"foo": "bar", "woo": "hoo"}'
 ```
 ```text
-Set key to {"foo": "bar", "woo": "hoo"}
+{"message":"Set key", "value":"{"foo": "bar", "woo": "hoo"}"}
 ```
 
 To **Read** a value:
@@ -56,7 +56,7 @@ To **Read** a value:
 curl localhost:8000/crud/key
 ```
 ```text
-Got key value: {"foo": "bar", "woo": "hoo"}
+{"message":"Got key", "value":"{"foo": "bar", "woo": "hoo"}"}
 ```
 
 To **Destroy** a value:
@@ -65,7 +65,7 @@ To **Destroy** a value:
 curl -X DELETE localhost:8000/crud/key
 ```
 ```
-Deleted key
+{"message":"Deleted key"}
 ```
 
 Read through the comments in `main.go` for step-by-step explanation of how the example works.
