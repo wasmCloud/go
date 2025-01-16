@@ -1,0 +1,59 @@
+apiVersion: core.oam.dev/v1beta1
+kind: Application
+metadata:
+  name: "http-keyvalue-crud"
+  annotations:
+    description: "HTTP and keyvalue CRUD example"
+    wasmcloud.dev/authors: wasmCloud team
+    wasmcloud.dev/source-url: https://github.com/wasmCloud/go/blob/main/examples/components/http-keyvalue-crud/wadm.yaml
+    wasmcloud.dev/readme-md-url: https://github.com/wasmCloud/go/blob/main/examples/components/http-keyvalue-crud/README.md
+    wasmcloud.dev/homepage: https://github.com/wasmCloud/go/blob/main/examples/components/http-keyvalue-crud
+    wasmcloud.dev/categories: |
+      http,outgoing-http,http-server,tinygo,golang,example
+spec:
+  components:
+  - name: keyvalue-nats
+    type: capability
+    properties:
+      image: ghcr.io/wasmcloud/keyvalue-nats:0.3.1
+    traits: []
+  - name: http-server
+    type: capability
+    properties:
+      image: ghcr.io/wasmcloud/http-server:0.24.0
+    traits:
+    - type: link
+      properties:
+        namespace: wasi
+        package: http
+        interfaces:
+        - incoming-handler
+        source:
+          config:
+          - name: wasi-http-config
+            properties:
+              address: 127.0.0.1:8000
+        target:
+          name: crud
+  - name: crud
+    type: component
+    properties:
+      image: file://./build/http-keyvalue-crud_s.wasm
+      id: crud
+    traits:
+    - type: spreadscaler
+      properties:
+        instances: 100
+    - type: link
+      properties:
+        namespace: wasi
+        package: keyvalue
+        interfaces:
+        - store
+        target:
+          name: keyvalue-nats
+          config:
+          - name: wasi-keyvalue-config
+            properties:
+              bucket: wasmcloud
+              enable_bucket_auto_create: 'true'
