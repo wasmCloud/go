@@ -9,17 +9,15 @@ import (
 
 type Server struct {
 	*wasmbus.Server
-	Lattice  string
-	api      API
-	handlers map[string]wasmbus.AnyServerHandler
+	Lattice string
+	api     API
 }
 
 func NewServer(bus wasmbus.Bus, lattice string, api API) *Server {
 	return &Server{
-		Server:   wasmbus.NewServer(bus, lattice),
-		Lattice:  lattice,
-		api:      api,
-		handlers: make(map[string]wasmbus.AnyServerHandler),
+		Server:  wasmbus.NewServer(bus),
+		Lattice: lattice,
+		api:     api,
 	}
 }
 

@@ -18,9 +18,6 @@ type ServerError struct {
 // See `AnyServerHandler` for more information.
 type Server struct {
 	Bus
-	// Lattice is an informative field containing the lattice name.
-	// It is NOT used when manipulating subjects.
-	Lattice string
 	// ContextFunc is a function that returns a new context for each message.
 	// Defaults to `context.Background`.
 	ContextFunc func() context.Context
@@ -31,10 +28,9 @@ type Server struct {
 }
 
 // NewServer returns a new server instance.
-func NewServer(bus Bus, lattice string) *Server {
+func NewServer(bus Bus) *Server {
 	return &Server{
 		Bus:         bus,
-		Lattice:     lattice,
 		ContextFunc: func() context.Context { return context.Background() },
 		errorStream: make(chan *ServerError),
 	}
@@ -121,15 +117,34 @@ func NewRequestHandler[T any, Y any](req T, resp Y, handler func(context.Context
 type RequestHandler[T any, Y any] struct {
 	Request     T
 	Response    Y
+	Decode      func(context.Context, *T, *Message) (context.Context, error)
+	Encode      func(context.Context, string, *Y) (*Message, error)
 	PreRequest  func(context.Context, *T, *Message) error
 	PostRequest func(context.Context, *Y, *Message) error
 	Handler     func(context.Context, *T) (*Y, error)
 }
 
+func (s *RequestHandler[T, Y]) decode(ctx context.Context, req *T, msg *Message) (context.Context, error) {
+	if s.Decode != nil {
+		return s.Decode(ctx, req, msg)
+	}
+	return ctx, Decode(msg, req)
+}
+
+func (s *RequestHandler[T, Y]) encode(ctx context.Context, subject string, resp *Y) (*Message, error) {
+	if s.Encode != nil {
+		return s.Encode(ctx, subject, resp)
+	}
+	return Encode(subject, resp)
+}
+
 // HandleMessage implements the `AnyServerHandler` interface.
 func (s *RequestHandler[T, Y]) HandleMessage(ctx context.Context, msg *Message) error {
+	var err error
+
 	req := s.Request
-	err := Decode(msg, &req)
+
+	ctx, err = s.decode(ctx, &req, msg)
 	if err != nil {
 		return fmt.Errorf("%w: %s", ErrDecode, err)
 	}
@@ -145,7 +160,7 @@ func (s *RequestHandler[T, Y]) HandleMessage(ctx context.Context, msg *Message) 
 		return fmt.Errorf("%w: %s", ErrOperation, err)
 	}
 
-	rawResp, err := Encode(msg.Reply, resp)
+	rawResp, err := s.encode(ctx, msg.Reply, resp)
 	if err != nil {
 		return fmt.Errorf("%w: %s", ErrEncode, err)
 	}
@@ -160,6 +175,60 @@ func (s *RequestHandler[T, Y]) HandleMessage(ctx context.Context, msg *Message) 
 	if err := msg.Bus().Publish(rawResp); err != nil {
 		return fmt.Errorf("%w: %s", ErrTransport, err)
 	}
+
+	return nil
+}
+
+// TypedHandler is a higher-level abstraction that can be used to register handlers for specific types.
+// It uses a `TypeExtractor` function to extract the type from the message.
+// Usefull when you want to handle different types of messages with different handlers based on a json field inside the message.
+type TypedHandler struct {
+	extractor TypeExtractor
+	handlers  map[string]AnyServerHandler
+	lock      sync.Mutex
+}
+
+// TypeExtractor is a function that extracts a type name from a message.
+type TypeExtractor func(ctx context.Context, msg *Message) (string, error)
+
+// NewTypedHandler returns a new typed handler instance.
+func NewTypedHandler(extractor TypeExtractor) *TypedHandler {
+	return &TypedHandler{extractor: extractor, handlers: make(map[string]AnyServerHandler)}
+}
+
+// HandleMessage implements the `AnyServerHandler` interface.
+func (h *TypedHandler) HandleMessage(ctx context.Context, msg *Message) error {
+	if h.extractor == nil {
+		return fmt.Errorf("%w: no type extractor", ErrOperation)
+	}
+
+	kind, err := h.extractor(ctx, msg)
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrOperation, err)
+	}
+
+	h.lock.Lock()
+	handler, ok := h.handlers[kind]
+	h.lock.Unlock()
+
+	if !ok {
+		return fmt.Errorf("%w: no handler for type %s", ErrOperation, kind)
+	}
+
+	return handler.HandleMessage(ctx, msg)
+}
+
+// RegisterType registers a handler for a given type.
+// The handler will be called when a message with the given type is received, after the type is extracted by the `TypeExtractor`.
+func (h *TypedHandler) RegisterType(kind string, handler AnyServerHandler) error {
+	h.lock.Lock()
+	defer h.lock.Unlock()
+
+	if _, ok := h.handlers[kind]; ok {
+		return fmt.Errorf("%w: handler for type %s already registered", ErrOperation, kind)
+	}
+
+	h.handlers[kind] = handler
 
 	return nil
 }

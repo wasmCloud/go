@@ -78,6 +78,18 @@ jobs:
         working-directory: x/wasmbus/events
         run: go test -cover -v -wash-output
 
+      - name: wasmbus/policy
+        working-directory: x/wasmbus/policy
+        run: go test -cover -v -wash-output
+
+      - name: wasmbus/config
+        working-directory: x/wasmbus/config
+        run: go test -cover -v -wash-output
+
+      - name: wasmbus/secrets
+        working-directory: x/wasmbus/secrets
+        run: go test -cover -v -wash-output
+
   examples:
     # Context: https://github.com/golangci/golangci-lint-action/blob/v6.1.1/README.md#annotations
     permissions:
