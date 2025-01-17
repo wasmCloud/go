@@ -18,11 +18,11 @@ cd examples/provider/keyvalue-inmemory
 
 In addition to the standard elements of a Go project, the example directory includes the following files and directories:
 
-- `/bindings`: Directory for Go bindings of [interfaces](https://wasmcloud.com/docs/concepts/interfaces)
-- `/wit`: Directory for WebAssembly Interface Type (WIT) packages that define interfaces
-- `wasmcloud.toml`: Configuration file for a wasmCloud application
+- `/bindings`: An auto-generated directory for Go bindings of [interfaces](https://wasmcloud.com/docs/concepts/interfaces). Users typically will not need to interact directly with the contents of this directory.
+- `/wit`: Directory for WebAssembly Interface Type (WIT) packages that define interfaces.
+- `wasmcloud.toml`: Configuration file for a wasmCloud application.
 
-The example includes a shell script to simplify running the Go project:
+The example includes a shell script that simulates what the host does to run the provider, enabling you to test the provider without running a host.
 
 ```shell
 ./run.sh
@@ -37,22 +37,13 @@ echo $host_data | base64 | go run ./
 
 ## 🛠️ Build the provider
 
-The example includes a shell script to simplify the build process:
+Build the provider:
 
 ```shell
-./build.sh
+wash build
 ```
 
-You can also perform each step manually:
-
-```shell
-go generate ./...
-go build ./
-wash par create --vendor wasmcloud --name "KeyValue Go" --binary ./keyvalue-inmemory --compress
-rm keyvalue-inmemory
-```
-
-The build process will generate a `.par.gz` archive file.
+The build process will generate a `.par.gz` archive file in a new `/build` directory.
 
 ## 🩻 Internals
 

@@ -1,4 +1,4 @@
-# wasmCloud HTTP Server Provider
+# HTTP Server Provider
 
 This [capability provider example](https://github.com/wasmCloud/go/tree/main/examples/provider/http-server) imports the `wasi:http/incoming-handler` interface and demonstrates how to forward HTTP requests to components that export the same interface, enabling components to accept incoming HTTP(s) requests.
 
@@ -23,10 +23,10 @@ cd examples/provider/http-server
 
 In addition to the standard elements of a Go project, the example directory includes the following files and directories:
 
-- `/bindings`: Directory for Go bindings of [interfaces](https://wasmcloud.com/docs/concepts/interfaces)
-- `/wit`: Directory for WebAssembly Interface Type (WIT) packages that define interfaces
-- `wadm.yaml`: Declarative application manifest
-- `wasmcloud.toml`: Configuration file for a wasmCloud application
+- `/bindings`: An auto-generated directory for Go bindings of [interfaces](https://wasmcloud.com/docs/concepts/interfaces). Users typically will not need to interact directly with the contents of this directory.
+- `/wit`: Directory for WebAssembly Interface Type (WIT) packages that define interfaces.
+- `wadm.yaml`: Declarative application manifest.
+- `wasmcloud.toml`: Configuration file for a wasmCloud application.
 
 ### Build the provider
 
