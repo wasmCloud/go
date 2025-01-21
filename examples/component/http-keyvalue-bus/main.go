@@ -24,88 +24,48 @@ import (
 )
 
 func init() {
-	// Establishes the routes for Redis and NATS operations.
+	// Establishes the routes for the application.
 	router := httprouter.New()
-	router.HandlerFunc(http.MethodGet, "/", indexHandler)
-	router.HandlerFunc(http.MethodGet, "/redis", redisHandler)
-	router.HandlerFunc(http.MethodGet, "/nats", natsHandler)
+	router.GET("/", indexHandler)
+	router.GET("/:kv/:name", kvHandler)
 	wasihttp.Handle(router)
 }
 
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Make a request to the /redis or /nats endpoint with a name as a query string\n")
+func indexHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	fmt.Fprintf(w, "Make a request to /redis/<name> or /nats/<name>\n")
 }
 
-func natsHandler(w http.ResponseWriter, r *http.Request) {
-	logger := wasilog.ContextLogger("natsHandler")
-	name := "World"
-	if len(r.FormValue("name")) > 0 {
-		name = r.FormValue("name")
-	}
+func kvHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	logger := wasilog.ContextLogger("kvHandler")
 
-	// We use the wasmcloud:bus/lattice interface (included among our component-go imports)
-	// to set the interface(s) for which we want to select a link -- in this case,
-	// wasi:keyvalue/store and wasi:keyvalue/atomics. For each, we convert the specification
-	// to a slice and then the cm.List type required by SetLinkName below.
-
-	storeInterface := lattice.NewCallTargetInterface("wasi", "keyvalue", "store")
-	storeInterfaceSlice := []lattice.CallTargetInterface{storeInterface}
-	storeInterfaceList := cm.ToList(storeInterfaceSlice)
-
-	atomicsInterface := lattice.NewCallTargetInterface("wasi", "keyvalue", "atomics")
-	atomicsInterfaceSlice := []lattice.CallTargetInterface{atomicsInterface}
-	atomicsInterfaceList := cm.ToList(atomicsInterfaceSlice)
-
-	// Here we set the operative link for the wasi:keyvalue/store and
-	// wasi:keyvalue/atomics interfaces to the named link 'default'.
-	// Since we don't give the NATS link a name in the manifest, its name is 'default' and
-	// the application will default to using it the first time we make a call to keyvalue:store
-	// or keyvalue:atomics. We reset the link for every call, however, in case the link has
-	// previously been set to Redis.
-
-	lattice.SetLinkName("default", storeInterfaceList)
-	lattice.SetLinkName("default", atomicsInterfaceList)
-
-	logger.Info("Greeting", "name", name)
-	kvStore := store.Open("default")
-	if err := kvStore.Err(); err != nil {
-		w.Write([]byte("Error: " + err.String()))
+	// Return if the kv parameter doesn't specify one of our KV providers.
+	if (ps.ByName("kv") != "redis") && (ps.ByName("kv") != "nats") {
+		fmt.Fprintf(w, "Make a request to /redis/<name> or /nats/<name>\n")
 		return
 	}
-	value := atomics.Increment(*kvStore.OK(), name, 1)
-	if err := value.Err(); err != nil {
-		w.Write([]byte("Error: " + err.String()))
-		return
-	}
-	fmt.Fprintf(w, "Hello x%d, %s!\n", *value.OK(), name)
-}
 
-func redisHandler(w http.ResponseWriter, r *http.Request) {
-	logger := wasilog.ContextLogger("redisHandler")
-	name := "World"
-	if len(r.FormValue("name")) > 0 {
-		name = r.FormValue("name")
+	// Since we don't give the NATS link a name in the manifest, its name is 'default' and the application would default
+	// to using it the first time we made a call to keyvalue:store or keyvalue:atomics. We reset the link for every call,
+	// however, in case the link has previously been set to Redis.
+
+	kv := "default"
+	if ps.ByName("kv") == "redis" {
+		kv = "redis"
 	}
-	// Our manifest includes a named link called 'redis'. We can use the
-	// wasmcloud:bus/lattice interface (included among our component-go imports)
-	// to set the interface(s) for which we want to select a link -- in this
-	// case, wasi:keyvalue/store and wasi:keyvalue/atomics. For each, we convert
-	// the specification to a slice and then the cm.List type required by
-	// SetLinkName below.
+
+	// We use the wasmcloud:bus/lattice interface (included among our component-go imports) to set the interface(s) for which
+	// we want to select a link -- in this case, wasi:keyvalue/store and wasi:keyvalue/atomics. We place the interfaces in a
+	// slice and then convert the slice to the cm.List type required by SetLinkName below.
 
 	storeInterface := lattice.NewCallTargetInterface("wasi", "keyvalue", "store")
-	storeInterfaceSlice := []lattice.CallTargetInterface{storeInterface}
-	storeInterfaceList := cm.ToList(storeInterfaceSlice)
-
 	atomicsInterface := lattice.NewCallTargetInterface("wasi", "keyvalue", "atomics")
-	atomicsInterfaceSlice := []lattice.CallTargetInterface{atomicsInterface}
-	atomicsInterfaceList := cm.ToList(atomicsInterfaceSlice)
+	InterfacesList := cm.ToList([]lattice.CallTargetInterface{storeInterface, atomicsInterface})
 
-	// Here we set the operative link for the wasi:keyvalue/store and
-	// wasi:keyvalue/atomics interfaces to the named link 'redis'.
+	// Here we set the active link for the wasi:keyvalue/store and wasi:keyvalue/atomics interfaces to the value of kv.
+	lattice.SetLinkName(kv, InterfacesList)
 
-	lattice.SetLinkName("redis", storeInterfaceList)
-	lattice.SetLinkName("redis", atomicsInterfaceList)
+	// Set name value.
+	name := ps.ByName("name")
 
 	logger.Info("Greeting", "name", name)
 	kvStore := store.Open("default")

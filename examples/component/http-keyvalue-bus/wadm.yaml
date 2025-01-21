@@ -6,7 +6,7 @@ metadata:
     description: 'wasmCloud Quickstart plus wasmcloud:bus'
 spec:
   components:
-  - name: keyvalue-nats
+  - name: nats-kv
     type: capability
     properties:
       image: ghcr.io/wasmcloud/keyvalue-nats:0.3.1
@@ -21,39 +21,39 @@ spec:
       image: file://./build/http-keyvalue-bus_s.wasm
       id: http-component
     traits:
-    - type: spreadscaler
-      properties:
-        instances: 100
-    # The link to keyvalue-nats is the first unnamed link and therefore default.
-    - type: link
-      properties:
-        namespace: wasi
-        package: keyvalue
-        interfaces:
-        - store
-        - atomics
-        target:
-          name: keyvalue-nats
-          config:
-          - name: wasi-keyvalue-config
-            properties:
-              bucket: wasmcloud
-              enable_bucket_auto_create: 'true'
+      # Govern the spread/scheduling of the component
+      - type: spreadscaler
+        properties:
+          instances: 1
+      # Link the component to the local NATS server
+      - type: link
+        properties:
+          # NOTE: The following is an example of how to configure the NATS Kv capability provider, for an individual component
+          target:
+            name: nats-kv
+            config:
+              - name: wasmcloud
+                properties:
+                  bucket: "wasmcloud"
+                  enable_bucket_auto_create: 'true'
+          namespace: wasi
+          package: keyvalue
+          interfaces: [store, atomics]
     # The link to keyvalue-redis is named 'redis' and can be selected via wasmcloud:bus.
-    - type: link
-      properties:
-        name: redis
-        namespace: wasi
-        package: keyvalue
-        interfaces:
-        - store
-        - atomics
-        target:
-          name: keyvalue-redis
-          config:
-          - name: redis-url
-            properties:
-              url: redis://127.0.0.1:6379
+      - type: link
+        properties:
+          name: redis
+          namespace: wasi
+          package: keyvalue
+          interfaces:
+          - store
+          - atomics
+          target:
+            name: keyvalue-redis
+            config:
+            - name: redis-url
+              properties:
+                url: redis://127.0.0.1:6379
   - name: http-server
     type: capability
     properties:

@@ -1,4 +1,4 @@
-# 🚌 Key-Value Counter with wasmCloud Bus
+# Key-Value Counter with wasmCloud Bus 🚌
 
 [This example](https://github.com/wasmCloud/go/tree/main/examples/component/http-keyvalue-bus) demonstrates how to use the `wasmcloud:bus` interface. 
 
@@ -17,7 +17,7 @@ Before starting, ensure that you have the following installed in addition to the
 - [wasmCloud Shell (`wash`)](https://wasmcloud.com/docs/installation) for building and running the components and wasmCloud environment
 - A local Redis server running either [via the CLI](https://redis.io/docs/getting-started/) or Docker (`docker run -d --name redis -p 6379:6379 redis`)
 
-## 👟 Quickstart
+## 👟 Run the example
 
 To run this example, clone the [wasmCloud/go repository](https://github.com/wasmcloud/go): 
 
@@ -53,13 +53,13 @@ wash app deploy wadm.yaml
 
 **Note**: Since this example uses a more complex manifest with multiple providers for the same capability, we recommend deploying manually rather than using `wash dev`.
 
-The user can make a request to either the `/nats` or `/redis` endpoint with a name appended as a query string:
+The user can make a request to either the `/nats` or `/redis` endpoint with a name appended:
 
 ```shell
-curl 'localhost:8000/nats?name=Alice'
+curl localhost:8000/nats/Alice
 ```
 ```shell
-curl 'localhost:8000/redis?name=Alice'
+curl localhost:8000/redis/Alice
 ```
 
 Try making multiple requests with the same name to each endpoint and watch how the count increments in each key-value store.
