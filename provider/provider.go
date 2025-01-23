@@ -166,8 +166,6 @@ func NewWithHostDataSource(source io.Reader, options ...ProviderHandler) (*Wasmc
 		return nil, err
 	}
 
-	// Connect to NATS
-
 	logger.Debug("host config", "config", hostData)
 
 	var hostXkey nkeys.KeyPair
