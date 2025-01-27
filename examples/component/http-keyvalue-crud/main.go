@@ -1,4 +1,4 @@
-//go:generate go run go.bytecodealliance.org/cmd/wit-bindgen-go generate --world hello --out gen ./wit
+//go:generate go run go.bytecodealliance.org/cmd/wit-bindgen-go generate --world component --out gen ./wit
 package main
 
 import (
@@ -167,5 +167,5 @@ func errResponseJSON(w http.ResponseWriter, code int, message string) {
 }
 
 // Since we don't run this program like a CLI, the `main` function is empty. Instead,
-// we call the `handleRequest` function when an HTTP request is received.
+// we call handler functions when an HTTP request is received.
 func main() {}
