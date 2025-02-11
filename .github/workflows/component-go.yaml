@@ -38,11 +38,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: golangci/golangci-lint-action@ec5d18412c0aeab7936cb16880d708ba2a64e1ae # v6.2.0
+      - uses: golangci/golangci-lint-action@2e788936b09dd82dc280e845628a40d2ba6b204c # v6.3.1
         with:
           version: ${{ env.GOLANGCI_VERSION }}
           working-directory: ./component
-      - uses: taiki-e/install-action@a7adeb15af2926b0ac7478ad165047cd2d8ba350 # v2.47.18
+      - uses: taiki-e/install-action@5bc300ae6202155e070ca83afb334e8aac18c49c # v2.48.6
         with:
           tool: ${{ format('wasm-tools@{0}', env.WASM_TOOLS_VERSION) }}
 
@@ -59,7 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5.2.0
+      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
         with:
           go-version-file: "./component/go.mod"
       - uses: acifani/setup-tinygo@b2ba42b249c7d3efdfe94166ec0f48b3191404f7 # v2.0.0
@@ -94,17 +94,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5.2.0
+      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
         with:
           go-version-file: "./examples/component/${{ matrix.example }}/go.mod"
       - uses: acifani/setup-tinygo@b2ba42b249c7d3efdfe94166ec0f48b3191404f7 # v2.0.0
         with:
           tinygo-version: ${{ matrix.tinygo-version }}
-      - uses: golangci/golangci-lint-action@ec5d18412c0aeab7936cb16880d708ba2a64e1ae # v6.2.0
+      - uses: golangci/golangci-lint-action@2e788936b09dd82dc280e845628a40d2ba6b204c # v6.3.1
         with:
           version: ${{ env.GOLANGCI_VERSION }}
           working-directory: "./examples/component/${{ matrix.example }}"
-      - uses: taiki-e/install-action@a7adeb15af2926b0ac7478ad165047cd2d8ba350 # v2.47.18
+      - uses: taiki-e/install-action@5bc300ae6202155e070ca83afb334e8aac18c49c # v2.48.6
         with:
           tool: ${{ format('wash@{0},wasm-tools@{1}', env.WASH_VERSION, env.WASM_TOOLS_VERSION) }}
 
