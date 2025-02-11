@@ -153,7 +153,13 @@ func NewWithHostDataSource(source io.Reader, options ...ProviderHandler) (*Wasmc
 	}
 
 	// Connect to NATS
-	nc, err := nats.Connect(hostData.LatticeRPCURL)
+	var nc *nats.Conn
+	var natsOpts []nats.Option
+	if hostData.LatticeRPCUserSeed != "" && hostData.LatticeRPCUserJWT != "" {
+		natsOpts = append(natsOpts, nats.UserJWTAndSeed(hostData.LatticeRPCUserJWT, hostData.LatticeRPCUserSeed))
+		logger.Debug("connecting to nats with userJWTAndSeed")
+	}
+	nc, err = nats.Connect(hostData.LatticeRPCURL, natsOpts...)
 	if err != nil {
 		return nil, err
 	}
