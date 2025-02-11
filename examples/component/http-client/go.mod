@@ -1,6 +1,6 @@
 module github.com/wasmCloud/go/examples/component/http-client
 
-go 1.23.0
+go 1.24
 
 require (
 	go.bytecodealliance.org v0.5.0
@@ -20,6 +20,8 @@ require (
 	golang.org/x/mod v0.22.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
 )
+
+tool go.bytecodealliance.org/cmd/wit-bindgen-go
 
 // NOTE(lxf): Remove this line if running outside of wasmCloud/go repository
 replace go.wasmcloud.dev/component => ../../../component
