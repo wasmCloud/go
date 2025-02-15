@@ -1,4 +1,4 @@
-//go:generate go run go.wasmcloud.dev/wadge/cmd/wadge-bindgen-go
+//go:generate go tool wadge-bindgen-go
 
 package main
 
@@ -47,7 +47,7 @@ func TestIncomingHandler(t *testing.T) {
 		}
 		defer resp.Body.Close()
 
-		if want, got := []byte("Hello from Go!\n"), buf; !bytes.Equal(want, got) {
+		if want, got := []byte("{\"message\":\"GET, POST, or DELETE to /crud/<key> (with JSON payload for POSTs)\"}\n"), buf; !bytes.Equal(want, got) {
 			t.Fatalf("unexpected response body: want %q, got %q", want, got)
 		}
 	})
