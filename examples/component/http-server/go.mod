@@ -1,6 +1,6 @@
 module github.com/wasmCloud/go/examples/component/http-server
 
-go 1.23.0
+go 1.24
 
 require (
 	github.com/stretchr/testify v1.10.0
@@ -35,3 +35,8 @@ require (
 
 // NOTE(lxf): Remove this line if running outside of wasmCloud/go repository
 replace go.wasmcloud.dev/component => ../../../component
+
+tool (
+	go.bytecodealliance.org/cmd/wit-bindgen-go
+	go.wasmcloud.dev/wadge/cmd/wadge-bindgen-go
+)

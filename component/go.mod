@@ -1,6 +1,6 @@
 module go.wasmcloud.dev/component
 
-go 1.23.0
+go 1.24
 
 require (
 	github.com/samber/slog-common v0.18.1
@@ -22,3 +22,5 @@ require (
 	golang.org/x/sys v0.29.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 )
+
+tool go.bytecodealliance.org/cmd/wit-bindgen-go
