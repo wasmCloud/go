@@ -3,13 +3,15 @@ run:
   modules-download-mode: readonly
 
 output:
-  uniq-by-line: false
   show-stats: true
   sort-results: true
   sort-order:
     - linter
     - severity
     - file
+
+issues:
+  uniq-by-line: false
 
 linters:
   enable:
