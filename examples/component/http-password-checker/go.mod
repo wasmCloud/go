@@ -1,6 +1,6 @@
 module http-password-checker
 
-go 1.23.0
+go 1.24
 
 require (
 	github.com/stretchr/testify v1.10.0
@@ -28,4 +28,9 @@ require (
 	golang.org/x/sys v0.29.0 // indirect
 	golang.org/x/tools v0.29.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+)
+
+tool (
+	go.bytecodealliance.org/cmd/wit-bindgen-go
+	go.wasmcloud.dev/wadge/cmd/wadge-bindgen-go
 )
