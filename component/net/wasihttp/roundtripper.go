@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"runtime"
 	"time"
 
 	"go.bytecodealliance.org/cm"
@@ -116,7 +117,10 @@ func (r *Transport) RoundTrip(incomingRequest *http.Request) (*http.Response, er
 	futureResponse := handleResp.OK()
 
 	// wait until resp is returned
-	futureResponse.Subscribe().Block()
+	futurePollable := futureResponse.Subscribe()
+	for !futurePollable.Ready() {
+		runtime.Gosched()
+	}
 
 	pollableOption := futureResponse.Get()
 	if pollableOption.None() {

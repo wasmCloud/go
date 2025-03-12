@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"runtime"
 	"sync"
 
 	"go.bytecodealliance.org/cm"
@@ -87,7 +88,9 @@ func (r *inputStreamReader) parseTrailers() {
 
 func (r *inputStreamReader) Read(p []byte) (n int, err error) {
 	pollable := r.stream.Subscribe()
-	pollable.Block()
+	for !pollable.Ready() {
+		runtime.Gosched()
+	}
 	pollable.ResourceDrop()
 
 	readResult := r.stream.Read(uint64(len(p)))
