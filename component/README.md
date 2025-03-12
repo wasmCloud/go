@@ -9,20 +9,21 @@ Writing a wasmCloud Capability Provider? Check out the [Go Provider SDK](https:/
 # Setup
 
 Requires:
-* [`tinygo`](https://tinygo.org/getting-started/install/) 0.33.0 or above.
-* [`wasm-tools`](https://github.com/bytecodealliance/wasm-tools?tab=readme-ov-file#installation) 1.220.0 or above.
+
+- [`tinygo`](https://tinygo.org/getting-started/install/) 0.33.0 or above.
+- [`wasm-tools`](https://github.com/bytecodealliance/wasm-tools?tab=readme-ov-file#installation) 1.220.0 or above.
 
 Import `go.wasmcloud.dev/component` in your Go module.
 
 ```bash
-go get go.wasmcloud.dev/component@v0.0.5
+go get go.wasmcloud.dev/component@v0.0.6
 ```
 
 Import the SDK WIT. In `wit/deps.toml`:
 
 ```toml
 
-wasmcloud-component = "https://github.com/wasmCloud/component-sdk-go/archive/v0.0.5.tar.gz"
+wasmcloud-component = "https://github.com/wasmCloud/component-sdk-go/archive/v0.0.6.tar.gz"
 
 ```
 
