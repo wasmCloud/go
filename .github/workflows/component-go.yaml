@@ -18,7 +18,7 @@ env:
   TINYGO_VERSION: "0.36.0"
   GOLANGCI_VERSION: "v1.64.2"
   WASH_VERSION: "0.37.0"
-  WASM_TOOLS_VERSION: "1.220.0"
+  WASM_TOOLS_VERSION: "1.225.0"
 
 permissions:
   contents: read
