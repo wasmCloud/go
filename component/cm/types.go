@@ -13,6 +13,7 @@ type (
 	List[T any]                                                                       bcm.List[T]
 	Option[T any]                                                                     bcm.Option[T]
 	Rep                                                                               bcm.Rep
+	Resource                                                                          bcm.Resource
 	Result[Shape, Ok, Err any]                                                        bcm.Result[Shape, Ok, Err]
 	Tuple[T0, T1 any]                                                                 bcm.Tuple[T0, T1]
 	Tuple3[T0, T1, T2 any]                                                            bcm.Tuple3[T0, T1, T2]
