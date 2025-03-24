@@ -41,7 +41,7 @@ jobs:
       - uses: taiki-e/install-action@f87f9990b09867202953bff9aa0c80e23ee16bb7 # v2.49.18
         with:
           tool: ${{ format('wash@{0},wasm-tools@{1},wrpc@{2}', env.WASH_VERSION, env.WASM_TOOLS_VERSION, env.WRPC_VERSION) }}
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5.4.0
         with:
           go-version-file: "templates/provider/${{ matrix.template-name }}/go.mod"
       - name: wash new
@@ -79,7 +79,7 @@ jobs:
       - uses: taiki-e/install-action@f87f9990b09867202953bff9aa0c80e23ee16bb7 # v2.49.18
         with:
           tool: ${{ format('wash@{0},wasm-tools@{1}', env.WASH_VERSION, env.WASM_TOOLS_VERSION) }}
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5.4.0
         with:
           go-version-file: "templates/component/${{ matrix.template-name }}/go.mod"
       - uses: acifani/setup-tinygo@b2ba42b249c7d3efdfe94166ec0f48b3191404f7 # v2.0.0
