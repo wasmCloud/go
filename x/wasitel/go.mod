@@ -1,6 +1,6 @@
 module go.wasmcloud.dev/x/wasitel
 
-go 1.23.2
+go 1.24
 
 require (
 	go.opentelemetry.io/otel v1.34.0

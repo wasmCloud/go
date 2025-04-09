@@ -1,6 +1,6 @@
 module go.wasmcloud.dev/x/wasmbus
 
-go 1.23.3
+go 1.24
 
 require (
 	github.com/cloudevents/sdk-go/v2 v2.16.0
