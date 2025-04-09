@@ -4,7 +4,7 @@ go 1.23.3
 
 require (
 	github.com/cloudevents/sdk-go/v2 v2.15.2
-	github.com/goccy/go-yaml v1.15.23
+	github.com/goccy/go-yaml v1.16.0
 	github.com/nats-io/nats-server/v2 v2.10.26
 	github.com/nats-io/nats.go v1.40.1
 )
