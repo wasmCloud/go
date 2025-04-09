@@ -15,7 +15,7 @@ on:
       - 'examples/provider/**'
 
 env:
-  GOLANGCI_VERSION: "v1.61"
+  GOLANGCI_VERSION: "v1.64.2"
 
 permissions:
   contents: read

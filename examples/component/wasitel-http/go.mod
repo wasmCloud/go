@@ -34,3 +34,6 @@ require (
 )
 
 tool go.bytecodealliance.org/cmd/wit-bindgen-go
+
+// NOTE(lxf): Remove this line if running outside of wasmCloud/go repository
+replace go.wasmcloud.dev/component => ../../../component
