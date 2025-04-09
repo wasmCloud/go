@@ -4,18 +4,18 @@ on:
   push:
     branches: ["main"]
     paths:
-      - '.github/workflows/component-go.yaml'
-      - 'component/**'
-      - 'examples/component/**'
+      - ".github/workflows/component-go.yaml"
+      - "component/**"
+      - "examples/component/**"
   pull_request:
     branches: ["main"]
     paths:
-      - '.github/workflows/component-go.yaml'
-      - 'component/**'
-      - 'examples/component/**'
+      - ".github/workflows/component-go.yaml"
+      - "component/**"
+      - "examples/component/**"
 
 env:
-  TINYGO_VERSION: "0.36.0"
+  TINYGO_VERSION: "0.37.0"
   GOLANGCI_VERSION: "v1.64.2"
   WASH_VERSION: "0.37.0"
   WASM_TOOLS_VERSION: "1.225.0"
