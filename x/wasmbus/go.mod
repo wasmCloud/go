@@ -6,7 +6,7 @@ require (
 	github.com/cloudevents/sdk-go/v2 v2.16.0
 	github.com/goccy/go-yaml v1.16.0
 	github.com/nats-io/nats-server/v2 v2.11.1
-	github.com/nats-io/nats.go v1.40.1
+	github.com/nats-io/nats.go v1.41.1
 )
 
 require (
