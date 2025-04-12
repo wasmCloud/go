@@ -5,7 +5,7 @@ go 1.24
 require (
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/joho/godotenv v1.5.1
-	github.com/urfave/cli/v3 v3.0.0-beta1
+	github.com/urfave/cli/v3 v3.1.1
 	go.wasmcloud.dev/x/wasmbus v0.1.0
 )
 
