@@ -5,7 +5,7 @@ go 1.24
 toolchain go1.24.2
 
 require (
-	github.com/nats-io/nats.go v1.40.1
+	github.com/nats-io/nats.go v1.41.1
 	github.com/nats-io/nkeys v0.4.10
 	go.opentelemetry.io/otel v1.34.0
 	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc v0.10.0
