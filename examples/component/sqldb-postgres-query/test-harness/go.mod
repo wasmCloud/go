@@ -6,7 +6,7 @@ toolchain go1.24.2
 
 require (
 	go.bytecodealliance.org v0.5.0
-	go.bytecodealliance.org/cm v0.1.0
+	go.bytecodealliance.org/cm v0.2.2
 )
 
 require (

@@ -5,7 +5,7 @@ go 1.24
 require (
 	github.com/julienschmidt/httprouter v1.3.0
 	go.bytecodealliance.org v0.5.0
-	go.bytecodealliance.org/cm v0.1.0
+	go.bytecodealliance.org/cm v0.2.2
 	go.wasmcloud.dev/component v0.0.6
 	go.wasmcloud.dev/wadge v0.7.0
 )

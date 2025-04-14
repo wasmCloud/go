@@ -3,8 +3,7 @@ module github.com/wasmCloud/go/examples/component/http-client
 go 1.24
 
 require (
-	go.bytecodealliance.org v0.5.0
-	go.bytecodealliance.org/cm v0.1.0
+	go.bytecodealliance.org/cm v0.2.2
 	go.wasmcloud.dev/component v0.0.6
 )
 
@@ -17,6 +16,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/ulikunitz/xz v0.5.12 // indirect
 	github.com/urfave/cli/v3 v3.0.0-beta1 // indirect
+	go.bytecodealliance.org v0.5.0 // indirect
 	golang.org/x/mod v0.22.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
 )
