@@ -7,7 +7,7 @@ toolchain go1.24.2
 replace go.wasmcloud.dev/provider => ../../../provider
 
 require (
-	github.com/nats-io/nats.go v1.41.1
+	github.com/nats-io/nats.go v1.41.2
 	github.com/testcontainers/testcontainers-go v0.36.0
 	go.opentelemetry.io/otel v1.35.0
 	go.opentelemetry.io/otel/trace v1.35.0
