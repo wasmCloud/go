@@ -1,0 +1,8 @@
+name = "wasitel-metrics"
+language = "tinygo"
+type = "component"
+version = "0.1.0"
+
+[component]
+wit_world = "metrics"
+wasm_target = "wasm32-wasi-preview2"
