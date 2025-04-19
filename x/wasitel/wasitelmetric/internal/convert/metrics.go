@@ -85,12 +85,19 @@ func Sum[N int64 | float64](s metricdata.Sum[N]) *types.Sum {
 func DataPoints[N int64 | float64](pts []metricdata.DataPoint[N]) []*types.NumberDataPoint {
 	out := make([]*types.NumberDataPoint, len(pts))
 	for i, pt := range pts {
-		out[i] = &types.NumberDataPoint{
+		dp := &types.NumberDataPoint{
 			Attributes:        AttrIter(pt.Attributes.Iter()),
 			StartTimeUnixNano: uint64(pt.StartTime.UnixNano()),
 			TimeUnixNano:      uint64(pt.Time.UnixNano()),
 			Exemplars:         Exemplars(pt.Exemplars),
 		}
+		switch v := any(pt.Value).(type) {
+		case int64:
+			dp.AsInt = (*types.NumberDataPoint_AsInt)(&v)
+		case float64:
+			dp.AsDouble = (*types.NumberDataPoint_AsDouble)(&v)
+		}
+		out[i] = dp
 	}
 	return out
 }
