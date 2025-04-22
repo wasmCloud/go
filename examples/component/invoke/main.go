@@ -1,4 +1,4 @@
-//go:generate go tool wit-bindgen-go generate --world example --out gen ./wit
+//go:generate go tool wit-bindgen --cm go.bytecodealliance.org/cm --world example --out gen ./wit
 
 package main
 
