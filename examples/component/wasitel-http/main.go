@@ -1,4 +1,4 @@
-//go:generate go tool wit-bindgen-go generate --world example --out gen ./wit
+//go:generate go tool wit-bindgen --world example --out gen ./wit
 
 package main
 
@@ -24,12 +24,8 @@ func init() {
 }
 
 func echoHandler(w http.ResponseWriter, r *http.Request) {
-	if err := setupOTelSDK(); err != nil {
-		http.Error(w, "failed setting up otel", http.StatusInternalServerError)
-		return
-	}
-
 	ctx := r.Context()
+	setupOTelSDK()
 	_, span := tracer.Start(ctx, serviceName)
 	defer span.End()
 
