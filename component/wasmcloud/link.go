@@ -1,6 +1,6 @@
 package wasmcloud
 
-import "go.wasmcloud.dev/component/internal/gen/wasmcloud/bus/lattice"
+import "go.wasmcloud.dev/component/gen/wasmcloud/bus/lattice"
 
 const DefaultLinkName = "default"
 

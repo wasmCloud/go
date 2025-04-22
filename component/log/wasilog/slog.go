@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	slogcommon "github.com/samber/slog-common"
-	"go.wasmcloud.dev/component/internal/gen/wasi/logging/logging"
+	"go.wasmcloud.dev/component/gen/wasi/logging/logging"
 )
 
 // DefaultLogger is the default implementation that adapts the [wasi:logging] interface to a [slog.Handler].

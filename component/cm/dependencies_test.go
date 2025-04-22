@@ -20,7 +20,8 @@ func TestDependencies(t *testing.T) {
 	}
 
 	got := strings.TrimSpace(stdout.String())
-	const want = "[structs unsafe]" // Should not include "encoding/json"
+	// 	const want = "[structs unsafe]" // Should not include "encoding/json"
+	const want = "[encoding/json structs unsafe]" // NOTE(lxf):wasmcloud vendored
 	if got != want {
 		t.Errorf("Expected dependencies %s, got %s", want, got)
 	}

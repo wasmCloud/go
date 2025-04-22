@@ -9,8 +9,8 @@ import (
 	"sync"
 
 	"go.wasmcloud.dev/component/cm"
-	"go.wasmcloud.dev/component/internal/gen/wasi/http/types"
-	"go.wasmcloud.dev/component/internal/gen/wasi/io/streams"
+	"go.wasmcloud.dev/component/gen/wasi/http/types"
+	"go.wasmcloud.dev/component/gen/wasi/io/streams"
 )
 
 // BodyConsumer interface is implemented by [types.IncomingRequest] and [types.IncomingResponse].
