@@ -41,6 +41,6 @@ require (
 replace go.wasmcloud.dev/component => ../../../component
 
 tool (
-	go.bytecodealliance.org/cmd/wit-bindgen-go
+	go.wasmcloud.dev/component/wit-bindgen
 	go.wasmcloud.dev/wadge/cmd/wadge-bindgen-go
 )
