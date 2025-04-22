@@ -7,10 +7,10 @@ import (
 	"runtime"
 	"time"
 
-	"go.bytecodealliance.org/cm"
-	monotonicclock "go.wasmcloud.dev/component/gen/wasi/clocks/monotonic-clock"
-	outgoinghandler "go.wasmcloud.dev/component/gen/wasi/http/outgoing-handler"
-	"go.wasmcloud.dev/component/gen/wasi/http/types"
+	"go.wasmcloud.dev/component/cm"
+	monotonicclock "go.wasmcloud.dev/component/internal/gen/wasi/clocks/monotonic-clock"
+	outgoinghandler "go.wasmcloud.dev/component/internal/gen/wasi/http/outgoing-handler"
+	"go.wasmcloud.dev/component/internal/gen/wasi/http/types"
 )
 
 // Transport implements [http.RoundTripper] for [wasi:http].

@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"sync"
 
-	"go.bytecodealliance.org/cm"
-	"go.wasmcloud.dev/component/gen/wasi/http/types"
-	"go.wasmcloud.dev/component/gen/wasi/io/streams"
+	"go.wasmcloud.dev/component/cm"
+	"go.wasmcloud.dev/component/internal/gen/wasi/http/types"
+	"go.wasmcloud.dev/component/internal/gen/wasi/io/streams"
 )
 
 var _ http.ResponseWriter = (*ResponseOutparamWriter)(nil)

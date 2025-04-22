@@ -3,8 +3,8 @@ package wasmcloud
 import (
 	"fmt"
 
-	"go.wasmcloud.dev/component/gen/wasmcloud/secrets/reveal"
-	"go.wasmcloud.dev/component/gen/wasmcloud/secrets/store"
+	"go.wasmcloud.dev/component/internal/gen/wasmcloud/secrets/reveal"
+	"go.wasmcloud.dev/component/internal/gen/wasmcloud/secrets/store"
 )
 
 // SecretGetAndReveal attempts to access a secret identified by the provided key

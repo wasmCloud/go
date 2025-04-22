@@ -1,6 +1,6 @@
 package wasmcloud
 
-import "go.wasmcloud.dev/component/gen/wasi/config/runtime"
+import "go.wasmcloud.dev/component/internal/gen/wasi/config/runtime"
 
 // GetConfigOrDefault tries to get a configuration value by provided key using
 // [wasi:config/store.get] and falling back to the provided defaultValue if a

@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"os"
 
-	"go.bytecodealliance.org/cm"
-	incominghandler "go.wasmcloud.dev/component/gen/wasi/http/incoming-handler"
-	"go.wasmcloud.dev/component/gen/wasi/http/types"
+	"go.wasmcloud.dev/component/cm"
+	incominghandler "go.wasmcloud.dev/component/internal/gen/wasi/http/incoming-handler"
+	"go.wasmcloud.dev/component/internal/gen/wasi/http/types"
 )
 
 // handler is the function that will be called by the http server.
