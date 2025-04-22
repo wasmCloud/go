@@ -35,14 +35,14 @@ func (self *ConfigError) IO() *string {
 	return cm.Case[string](self, 1)
 }
 
-var stringsConfigError = [2]string{
+var _ConfigErrorStrings = [2]string{
 	"upstream",
 	"io",
 }
 
 // String implements [fmt.Stringer], returning the variant case name of v.
 func (v ConfigError) String() string {
-	return stringsConfigError[v.Tag()]
+	return _ConfigErrorStrings[v.Tag()]
 }
 
 // Get represents the imported function "get".
