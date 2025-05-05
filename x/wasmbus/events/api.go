@@ -19,7 +19,7 @@ type Event struct {
 }
 
 type ComponentDescription struct {
-	Id           string            `json:"id"`
+	ID           string            `json:"id"`
 	ImageRef     string            `json:"image_ref"`
 	Name         string            `json:"name"`
 	Annotations  map[string]string `json:"annotations"`
@@ -28,7 +28,7 @@ type ComponentDescription struct {
 }
 
 type CapabilityDescription struct {
-	Id          string            `json:"id"`
+	ID          string            `json:"id"`
 	ImageRef    string            `json:"image_ref"`
 	Name        string            `json:"name"`
 	Annotations map[string]string `json:"annotations"`
@@ -36,7 +36,7 @@ type CapabilityDescription struct {
 }
 
 type HostHeartbeat struct {
-	HostId        string                  `json:"host_id"`
+	HostID        string                  `json:"host_id"`
 	UptimeSeconds int                     `json:"uptime_seconds"`
 	UptimeHuman   string                  `json:"uptime_human"`
 	Version       string                  `json:"version"`
@@ -48,8 +48,8 @@ type HostHeartbeat struct {
 }
 
 type HealthCheckStatus struct {
-	HostId     string `json:"host_id"`
-	ProviderId string `json:"provider_id"`
+	HostID     string `json:"host_id"`
+	ProviderID string `json:"provider_id"`
 }
 type ComponentClaims struct {
 	CallAlias      string   `json:"call_alias"`
@@ -63,21 +63,21 @@ type ComponentClaims struct {
 }
 
 type ComponentScaled struct {
-	HostId       string            `json:"host_id"`
+	HostID       string            `json:"host_id"`
 	Annotations  map[string]string `json:"annotations"`
 	ImageRef     string            `json:"image_ref"`
 	MaxInstances int               `json:"max_instances"`
-	ComponentId  string            `json:"component_id"`
+	ComponentID  string            `json:"component_id"`
 	Claims       ComponentClaims   `json:"claims"`
 	PublicKey    string            `json:"public_key"`
 }
 
 type ComponentScaleFailed struct {
-	HostId       string            `json:"host_id"`
+	HostID       string            `json:"host_id"`
 	Annotations  map[string]string `json:"annotations"`
 	ImageRef     string            `json:"image_ref"`
 	MaxInstances int               `json:"max_instances"`
-	ComponentId  string            `json:"component_id"`
+	ComponentID  string            `json:"component_id"`
 	Claims       ComponentClaims   `json:"claims"`
 	PublicKey    string            `json:"public_key"`
 
@@ -117,40 +117,40 @@ type LinkDefDeleted struct {
 }
 
 type ProviderStarted struct {
-	HostId      string            `json:"host_id"`
+	HostID      string            `json:"host_id"`
 	ImageRef    string            `json:"image_ref"`
-	ProviderId  string            `json:"provider_id"`
+	ProviderID  string            `json:"provider_id"`
 	Annotations map[string]string `json:"annotations"`
 	Claims      ComponentClaims   `json:"claims"`
 }
 
 type ProviderStartFailed struct {
 	// missing from the original code
-	HostId      string            `json:"host_id"`
+	HostID      string            `json:"host_id"`
 	ImageRef    string            `json:"image_ref"`
 	Annotations map[string]string `json:"annotations"`
 	Claims      ComponentClaims   `json:"claims"`
 
-	ProviderId  string `json:"provider_id"`
+	ProviderID  string `json:"provider_id"`
 	ProviderRef string `json:"provider_ref"`
 	Error       string `json:"error"`
 }
 
 type ProviderStopped struct {
-	HostId      string            `json:"host_id"`
-	ProviderId  string            `json:"provider_id"`
+	HostID      string            `json:"host_id"`
+	ProviderID  string            `json:"provider_id"`
 	Annotations map[string]string `json:"annotations"`
 	Reason      string            `json:"reason"`
 }
 
 type HealthCheckPassed struct {
-	HostId     string `json:"host_id"`
-	ProviderId string `json:"provider_id"`
+	HostID     string `json:"host_id"`
+	ProviderID string `json:"provider_id"`
 }
 
 type HealthCheckFailed struct {
-	HostId     string `json:"host_id"`
-	ProviderId string `json:"provider_id"`
+	HostID     string `json:"host_id"`
+	ProviderID string `json:"provider_id"`
 }
 
 type ConfigSet struct {
@@ -162,13 +162,13 @@ type ConfigDeleted struct {
 }
 
 type LabelsChanged struct {
-	HostId string            `json:"host_id"`
+	HostID string            `json:"host_id"`
 	Labels map[string]string `json:"labels"`
 }
 
 type HostStarted struct {
 	// missing from the original code
-	HostId string `json:"host_id"`
+	HostID string `json:"host_id"`
 
 	Labels        map[string]string `json:"labels"`
 	FriendlyName  string            `json:"friendly_name"`
@@ -177,7 +177,7 @@ type HostStarted struct {
 }
 
 type HostStopped struct {
-	HostId string            `json:"host_id"`
+	HostID string            `json:"host_id"`
 	Labels map[string]string `json:"labels"`
 	Reason string            `json:"reason"`
 }
@@ -225,11 +225,11 @@ func KnownEvents(typ string) any {
 }
 
 // EncodeEvent creates a new CloudEvent with the given type, source, id, and payload
-func EncodeEvent(eventType string, eventSource string, eventId string, payload any) (Event, error) {
+func EncodeEvent(eventType string, eventSource string, eventID string, payload any) (Event, error) {
 	ce := cloudevents.NewEvent()
 	ce.SetType(eventType)
 	ce.SetSource(eventSource)
-	ce.SetID(eventId)
+	ce.SetID(eventID)
 	if err := ce.SetData(cloudevents.ApplicationJSON, payload); err != nil {
 		return Event{}, fmt.Errorf("%w: %s", ErrParsingEvent, err)
 	}

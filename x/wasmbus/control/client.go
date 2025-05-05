@@ -29,7 +29,7 @@ func (c *Client) subject(ids ...string) string {
 }
 
 func (c *Client) ScaleComponent(ctx context.Context, req *ScaleComponentRequest) (*ScaleComponentResponse, error) {
-	subject := c.subject("component", "scale", req.HostId)
+	subject := c.subject("component", "scale", req.HostID)
 	wReq := wasmbus.NewLatticeRequest(c.Bus, subject, req, ScaleComponentResponse{})
 	return wReq.Execute(ctx)
 }
@@ -53,25 +53,25 @@ func (c *Client) ComponentAuction(ctx context.Context, req *ComponentAuctionRequ
 }
 
 func (c *Client) UpdateComponent(ctx context.Context, req *UpdateComponentRequest) (*UpdateComponentResponse, error) {
-	subject := c.subject("component", "update", req.HostId)
+	subject := c.subject("component", "update", req.HostID)
 	wReq := wasmbus.NewLatticeRequest(c.Bus, subject, req, UpdateComponentResponse{})
 	return wReq.Execute(ctx)
 }
 
 func (c *Client) ProviderStart(ctx context.Context, req *ProviderStartRequest) (*ProviderStartResponse, error) {
-	subject := c.subject("provider", "start", req.HostId)
+	subject := c.subject("provider", "start", req.HostID)
 	wReq := wasmbus.NewLatticeRequest(c.Bus, subject, req, ProviderStartResponse{})
 	return wReq.Execute(ctx)
 }
 
 func (c *Client) ProviderStop(ctx context.Context, req *ProviderStopRequest) (*ProviderStopResponse, error) {
-	subject := c.subject("provider", "stop", req.HostId)
+	subject := c.subject("provider", "stop", req.HostID)
 	wReq := wasmbus.NewLatticeRequest(c.Bus, subject, req, ProviderStopResponse{})
 	return wReq.Execute(ctx)
 }
 
 func (c *Client) HostStop(ctx context.Context, req *HostStopRequest) (*HostStopResponse, error) {
-	subject := c.subject("host", "stop", req.HostId)
+	subject := c.subject("host", "stop", req.HostID)
 	wReq := wasmbus.NewLatticeRequest(c.Bus, subject, req, HostStopResponse{})
 	return wReq.Execute(ctx)
 }
@@ -89,13 +89,13 @@ func (c *Client) ConfigDelete(ctx context.Context, req *ConfigDeleteRequest) (*C
 }
 
 func (c *Client) HostLabelPut(ctx context.Context, req *HostLabelPutRequest) (*HostLabelPutResponse, error) {
-	subject := c.subject("label", "put", req.HostId)
+	subject := c.subject("label", "put", req.HostID)
 	wReq := wasmbus.NewLatticeRequest(c.Bus, subject, req, HostLabelPutResponse{})
 	return wReq.Execute(ctx)
 }
 
 func (c *Client) HostLabelDelete(ctx context.Context, req *HostLabelDeleteRequest) (*HostLabelDeleteResponse, error) {
-	subject := c.subject("label", "del", req.HostId)
+	subject := c.subject("label", "del", req.HostID)
 	wReq := wasmbus.NewLatticeRequest(c.Bus, subject, req, HostLabelDeleteResponse{})
 	return wReq.Execute(ctx)
 }
@@ -125,13 +125,13 @@ func (c *Client) ClaimsGet(ctx context.Context, req *ClaimsGetRequest) (*ClaimsG
 }
 
 func (c *Client) HostInventory(ctx context.Context, req *HostInventoryRequest) (*HostInventoryResponse, error) {
-	subject := c.subject("host", "get", req.HostId)
+	subject := c.subject("host", "get", req.HostID)
 	wReq := wasmbus.NewLatticeRequest(c.Bus, subject, req, HostInventoryResponse{})
 	return wReq.Execute(ctx)
 }
 
 // NOTE(lxf): Why scatter/gather pattern? Why not just send a message to each host?
-func (c *Client) HostPing(ctx context.Context, req *HostPingRequest) (*HostPingResponse, error) {
+func (c *Client) HostPing(_ context.Context, req *HostPingRequest) (*HostPingResponse, error) {
 	reply := wasmbus.NewInbox()
 	sub, err := c.Subscribe(reply, 10)
 	if err != nil {

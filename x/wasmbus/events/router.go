@@ -46,7 +46,7 @@ func (r *Router) RemoveRoute(identifier string) {
 
 // HandleEvent implements the EventHandler interface
 func (r *Router) HandleEvent(ctx context.Context, event Event) {
-	r.routes.Range(func(key any, value any) bool {
+	r.routes.Range(func(_ any, value any) bool {
 		handler := value.(EventHandler)
 		handler.HandleEvent(ctx, event)
 		return true
