@@ -13,6 +13,7 @@ linters:
     - mirror
     - misspell
     - revive
+    - staticcheck
     - thelper
     - usestdlibvars
   settings:
