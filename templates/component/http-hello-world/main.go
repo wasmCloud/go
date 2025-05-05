@@ -13,6 +13,7 @@ func init() {
 	wasihttp.HandleFunc(handleRequest)
 }
 
+//nolint:revive
 func handleRequest(w http.ResponseWriter, r *http.Request) {
 	_, _ = fmt.Fprintf(w, "Hello from Go!\n")
 }
