@@ -14,7 +14,7 @@ import (
 	wrpcnats "wrpc.io/go/nats"
 )
 
-func TestHttpSchemeToWrpc(t *testing.T) {
+func TestHTTPSchemeToWrpc(t *testing.T) {
 	tt := map[string]wasitypes.SchemeDiscriminant{
 		"http":              wasitypes.SchemeHttp,
 		"https":             wasitypes.SchemeHttps,
@@ -23,14 +23,14 @@ func TestHttpSchemeToWrpc(t *testing.T) {
 
 	for stdMethod, wasiMethod := range tt {
 		t.Run(stdMethod, func(t *testing.T) {
-			if want, got := wasiMethod, HttpSchemeToWrpc(stdMethod).Discriminant(); got != want {
+			if want, got := wasiMethod, HTTPSchemeToWrpc(stdMethod).Discriminant(); got != want {
 				t.Errorf("want %v, got %v", want, got)
 			}
 		})
 	}
 }
 
-func TestHttpMethodToWrpc(t *testing.T) {
+func TestHTTPMethodToWrpc(t *testing.T) {
 	tt := map[string]wasitypes.MethodDiscriminant{
 		http.MethodGet:     wasitypes.MethodGet,
 		http.MethodHead:    wasitypes.MethodHead,
@@ -45,14 +45,14 @@ func TestHttpMethodToWrpc(t *testing.T) {
 
 	for stdMethod, wasiMethod := range tt {
 		t.Run(stdMethod, func(t *testing.T) {
-			if want, got := wasiMethod, HttpMethodToWrpc(stdMethod).Discriminant(); got != want {
+			if want, got := wasiMethod, HTTPMethodToWrpc(stdMethod).Discriminant(); got != want {
 				t.Errorf("want %v, got %v", want, got)
 			}
 		})
 	}
 }
 
-func TestHttpHeaderToWrpc(t *testing.T) {
+func TestHTTPHeaderToWrpc(t *testing.T) {
 	tt := map[string]http.Header{
 		"blank": {},
 		"single": {
@@ -66,7 +66,7 @@ func TestHttpHeaderToWrpc(t *testing.T) {
 
 	for name, headers := range tt {
 		t.Run(name, func(t *testing.T) {
-			wheaders := HttpHeaderToWrpc(headers)
+			wheaders := HTTPHeaderToWrpc(headers)
 			if want := len(headers); len(wheaders) != want {
 				t.Errorf("want %v, got %v", want, len(wheaders))
 			}
@@ -95,7 +95,7 @@ type fakeReceiver struct {
 }
 
 func (f fakeReceiver) Receive() ([]*wrpc.Tuple2[string, [][]uint8], error) {
-	return HttpHeaderToWrpc(f.headers), nil
+	return HTTPHeaderToWrpc(f.headers), nil
 }
 
 func (fakeReceiver) Close() error {
@@ -162,7 +162,7 @@ func TestRoundtrip(t *testing.T) {
 
 		resp := wrpctypes.Response{
 			Status:   http.StatusOK,
-			Headers:  HttpHeaderToWrpc(http.Header{"X-Custom": []string{"x-value"}}),
+			Headers:  HTTPHeaderToWrpc(http.Header{"X-Custom": []string{"x-value"}}),
 			Body:     io.NopCloser(bytes.NewReader([]byte(respBody))),
 			Trailers: fakeReceiver{headers: http.Header{}},
 		}

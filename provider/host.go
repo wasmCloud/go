@@ -44,14 +44,14 @@ const (
 
 	// https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/#otel_exporter_otlp_endpoint
 	OtelExporterGrpcEndpoint = "http://localhost:4317"
-	OtelExporterHttpEndpoint = "http://localhost:4318"
+	OtelExporterHTTPEndpoint = "http://localhost:4318"
 
 	// https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/#otel_exporter_otlp_traces_endpoint
-	OtelExporterHttpTracesPath = "/v1/traces"
+	OtelExporterHTTPTracesPath = "/v1/traces"
 	// https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/#otel_exporter_otlp_metrics_endpoint
-	OtelExporterHttpMetricsPath = "/v1/metrics"
+	OtelExporterHTTPMetricsPath = "/v1/metrics"
 	// https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/#otel_exporter_otlp_logs_endpoint
-	OtelExporterHttpLogsPath = "/v1/logs"
+	OtelExporterHTTPLogsPath = "/v1/logs"
 )
 
 // OtelProtocol returns the configured OpenTelemetry protocol if one is provided,
@@ -72,7 +72,7 @@ func (config *OtelConfig) TracesURL() string {
 		return config.TracesEndpoint
 	}
 
-	return config.resolveSignalUrl(traces)
+	return config.resolveSignalURL(traces)
 }
 
 // MetricsURL returns the configured MetricsEndpoint as-is if one is provided,
@@ -83,7 +83,7 @@ func (config *OtelConfig) MetricsURL() string {
 		return config.MetricsEndpoint
 	}
 
-	return config.resolveSignalUrl(metrics)
+	return config.resolveSignalURL(metrics)
 }
 
 // LogsURL returns the configured LogsEndpoint as-is if one is provided,
@@ -94,7 +94,7 @@ func (config *OtelConfig) LogsURL() string {
 		return config.LogsEndpoint
 	}
 
-	return config.resolveSignalUrl(logs)
+	return config.resolveSignalURL(logs)
 }
 
 // TracesEnabled returns whether emitting traces has been enabled.
@@ -112,7 +112,7 @@ func (config *OtelConfig) LogsEnabled() bool {
 	return config.EnableObservability || config.EnableLogs
 }
 
-func (config *OtelConfig) resolveSignalUrl(signal otelSignal) string {
+func (config *OtelConfig) resolveSignalURL(signal otelSignal) string {
 	endpoint := config.defaultEndpoint()
 	if config.ObservabilityEndpoint != "" {
 		endpoint = config.ObservabilityEndpoint
@@ -127,7 +127,7 @@ func (config *OtelConfig) defaultEndpoint() string {
 		return OtelExporterGrpcEndpoint
 	}
 
-	return OtelExporterHttpEndpoint
+	return OtelExporterHTTPEndpoint
 }
 
 func (config *OtelConfig) defaultSignalPath(signal otelSignal) string {
@@ -138,11 +138,11 @@ func (config *OtelConfig) defaultSignalPath(signal otelSignal) string {
 
 	switch signal {
 	case traces:
-		return OtelExporterHttpTracesPath
+		return OtelExporterHTTPTracesPath
 	case metrics:
-		return OtelExporterHttpMetricsPath
+		return OtelExporterHTTPMetricsPath
 	case logs:
-		return OtelExporterHttpLogsPath
+		return OtelExporterHTTPLogsPath
 	}
 	return ""
 }

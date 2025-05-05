@@ -27,7 +27,7 @@ const (
 )
 
 type WasmcloudProvider struct {
-	Id string
+	ID string
 
 	context context.Context
 	cancel  context.CancelFunc
@@ -221,7 +221,7 @@ func NewWithHostDataSource(source io.Reader, options ...ProviderHandler) (*Wasmc
 
 	ctx, cancel := context.WithCancel(context.Background())
 	provider := &WasmcloudProvider{
-		Id:        hostData.ProviderKey,
+		ID:        hostData.ProviderKey,
 		Logger:    logger,
 		RPCClient: wrpc,
 		Topics:    LatticeTopics(hostData, providerXkey),
@@ -290,6 +290,7 @@ func (wp *WasmcloudProvider) NatsConnection() *nats.Conn {
 	return wp.natsConnection
 }
 
+//nolint:revive
 func (wp *WasmcloudProvider) OutgoingRpcClient(target string) *wrpcnats.Client {
 	return wrpcnats.NewClient(wp.natsConnection, wrpcnats.WithPrefix(fmt.Sprintf("%s.%s", wp.hostData.LatticeRPCPrefix, target)))
 }
@@ -313,9 +314,9 @@ func (wp *WasmcloudProvider) Start() error {
 		return err
 	}
 
-	wp.Logger.Info("provider started", "id", wp.Id)
+	wp.Logger.Info("provider started", "id", wp.ID)
 	<-wp.context.Done()
-	wp.Logger.Info("provider exiting", "id", wp.Id)
+	wp.Logger.Info("provider exiting", "id", wp.ID)
 	return nil
 }
 
@@ -345,7 +346,7 @@ func (wp *WasmcloudProvider) Shutdown() error {
 
 func (wp *WasmcloudProvider) subToNats() error {
 	// ------------------ Subscribe to Health topic --------------------
-	health, err := wp.natsConnection.Subscribe(wp.Topics.LATTICE_HEALTH,
+	health, err := wp.natsConnection.Subscribe(wp.Topics.LatticeHealth,
 		func(m *nats.Msg) {
 			msg := wp.healthMsgFunc()
 			hc := HealthCheckResponse{
@@ -365,14 +366,14 @@ func (wp *WasmcloudProvider) subToNats() error {
 			}
 		})
 	if err != nil {
-		wp.Logger.Error("LATTICE_HEALTH", slog.Any("error", err))
+		wp.Logger.Error("LatticeHealth", slog.Any("error", err))
 		return err
 	}
 
-	wp.natsSubscriptions[wp.Topics.LATTICE_HEALTH] = health
+	wp.natsSubscriptions[wp.Topics.LatticeHealth] = health
 
 	// ------------------ Subscribe to Delete link topic --------------
-	linkDel, err := wp.natsConnection.Subscribe(wp.Topics.LATTICE_LINK_DEL,
+	linkDel, err := wp.natsConnection.Subscribe(wp.Topics.LatticeLinkDel,
 		func(m *nats.Msg) {
 			link := InterfaceLinkDefinition{}
 			err := json.Unmarshal(m.Data, &link)
@@ -393,10 +394,10 @@ func (wp *WasmcloudProvider) subToNats() error {
 		return err
 	}
 
-	wp.natsSubscriptions[wp.Topics.LATTICE_LINK_DEL] = linkDel
+	wp.natsSubscriptions[wp.Topics.LatticeLinkDel] = linkDel
 
 	// ------------------ Subscribe to New link topic --------------
-	linkPut, err := wp.natsConnection.Subscribe(wp.Topics.LATTICE_LINK_PUT,
+	linkPut, err := wp.natsConnection.Subscribe(wp.Topics.LatticeLinkPut,
 		func(m *nats.Msg) {
 			link := linkWithEncryptedSecrets{}
 			err := json.Unmarshal(m.Data, &link)
@@ -422,10 +423,10 @@ func (wp *WasmcloudProvider) subToNats() error {
 		return err
 	}
 
-	wp.natsSubscriptions[wp.Topics.LATTICE_LINK_PUT] = linkPut
+	wp.natsSubscriptions[wp.Topics.LatticeLinkPut] = linkPut
 
 	// ------------------ Subscribe to Shutdown topic ------------------
-	shutdown, err := wp.natsConnection.Subscribe(wp.Topics.LATTICE_SHUTDOWN,
+	shutdown, err := wp.natsConnection.Subscribe(wp.Topics.LatticeShutdown,
 		func(m *nats.Msg) {
 			err := wp.shutdownFunc()
 			if err != nil {
@@ -447,11 +448,11 @@ func (wp *WasmcloudProvider) subToNats() error {
 			wp.cancel()
 		})
 	if err != nil {
-		wp.Logger.Error("LATTICE_SHUTDOWN", slog.Any("error", err))
+		wp.Logger.Error("LatticeShutdown", slog.Any("error", err))
 		return err
 	}
 
-	wp.natsSubscriptions[wp.Topics.LATTICE_SHUTDOWN] = shutdown
+	wp.natsSubscriptions[wp.Topics.LatticeShutdown] = shutdown
 	return nil
 }
 
@@ -506,14 +507,14 @@ func (wp *WasmcloudProvider) putLink(l InterfaceLinkDefinition) error {
 
 	wp.lock.Lock()
 	defer wp.lock.Unlock()
-	if l.SourceID == wp.Id {
+	if l.SourceID == wp.ID {
 		err := wp.putSourceLinkFunc(l)
 		if err != nil {
 			return err
 		}
 
 		wp.sourceLinks[l.Target] = l
-	} else if l.Target == wp.Id {
+	} else if l.Target == wp.ID {
 		err := wp.putTargetLinkFunc(l)
 		if err != nil {
 			return err
@@ -534,9 +535,9 @@ func (wp *WasmcloudProvider) updateProviderLinkMap(l InterfaceLinkDefinition) er
 	}
 	wp.lock.Lock()
 	defer wp.lock.Unlock()
-	if l.SourceID == wp.Id {
+	if l.SourceID == wp.ID {
 		wp.sourceLinks[l.Target] = l
-	} else if l.Target == wp.Id {
+	} else if l.Target == wp.ID {
 		wp.targetLinks[l.SourceID] = l
 	} else {
 		wp.Logger.Info("received link that isn't for this provider, ignoring", "link", l)
@@ -547,14 +548,14 @@ func (wp *WasmcloudProvider) updateProviderLinkMap(l InterfaceLinkDefinition) er
 func (wp *WasmcloudProvider) deleteLink(l InterfaceLinkDefinition) error {
 	wp.lock.Lock()
 	defer wp.lock.Unlock()
-	if l.SourceID == wp.Id {
+	if l.SourceID == wp.ID {
 		err := wp.delSourceLinkFunc(l)
 		if err != nil {
 			return err
 		}
 
 		delete(wp.sourceLinks, l.Target)
-	} else if l.Target == wp.Id {
+	} else if l.Target == wp.ID {
 		err := wp.delTargetLinkFunc(l)
 		if err != nil {
 			return err
@@ -568,14 +569,14 @@ func (wp *WasmcloudProvider) deleteLink(l InterfaceLinkDefinition) error {
 	return nil
 }
 
-func (wp *WasmcloudProvider) isLinked(sourceId string, target string) bool {
+func (wp *WasmcloudProvider) isLinked(sourceID string, target string) bool {
 	wp.lock.Lock()
 	defer wp.lock.Unlock()
-	if sourceId == wp.Id {
+	if sourceID == wp.ID {
 		_, exists := wp.sourceLinks[target]
 		return exists
-	} else if target == wp.Id {
-		_, exists := wp.targetLinks[sourceId]
+	} else if target == wp.ID {
+		_, exists := wp.targetLinks[sourceID]
 		return exists
 	}
 	return false
