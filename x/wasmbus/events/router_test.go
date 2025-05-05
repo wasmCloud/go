@@ -38,7 +38,7 @@ func TestRouter(t *testing.T) {
 
 		// Publish an event
 		hbEv, err := EncodeEvent("com.wasmcloud.lattice.host_heartbeat", "test", "test", HostHeartbeat{
-			HostId: "my-host-name",
+			HostID: "my-host-name",
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -60,7 +60,7 @@ func TestRouter(t *testing.T) {
 			t.Fatal("expected event, got none")
 		}
 
-		if want, got := "my-host-name", ev.HostId; want != got {
+		if want, got := "my-host-name", ev.HostID; want != got {
 			t.Fatalf("want %q, got %q", want, got)
 		}
 
@@ -88,7 +88,7 @@ func TestRouter(t *testing.T) {
 
 		// Publish an event
 		hbEv, err := EncodeEvent("com.wasmcloud.lattice.host_heartbeat", "test", "test", HostHeartbeat{
-			HostId: "my-host-name",
+			HostID: "my-host-name",
 		})
 		if err != nil {
 			t.Fatal(err)

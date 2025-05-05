@@ -51,14 +51,14 @@ type ProviderAuctionRequest struct {
 	// Constraints are key-value pairs that are used to filter hosts.
 	// Required even if empty (unfortunately).
 	Constraints map[string]string `json:"constraints"`
-	ProviderId  string            `json:"provider_id,omitempty"`
+	ProviderID  string            `json:"provider_id,omitempty"`
 	ProviderRef string            `json:"provider_ref,omitempty"`
 }
 
 type ProviderAuctionResponsePayload struct {
-	HostId      string            `json:"host_id"`
+	HostID      string            `json:"host_id"`
 	Constraints map[string]string `json:"constraints,omitempty"`
-	ProviderId  string            `json:"provider_id,omitempty"`
+	ProviderID  string            `json:"provider_id,omitempty"`
 	ProviderRef string            `json:"provider_ref,omitempty"`
 }
 
@@ -68,50 +68,48 @@ type ComponentAuctionRequest struct {
 	// Constraints are key-value pairs that are used to filter hosts.
 	// Required even if empty (unfortunately).
 	Constraints  map[string]string `json:"constraints"`
-	ComponentId  string            `json:"component_id,omitempty"`
+	ComponentID  string            `json:"component_id,omitempty"`
 	ComponentRef string            `json:"component_ref,omitempty"`
 }
 
 type ComponentAuctionResponsePayload struct {
-	HostId       string            `json:"host_id"`
+	HostID       string            `json:"host_id"`
 	Constraints  map[string]string `json:"constraints,omitempty"`
-	ComponentId  string            `json:"component_id,omitempty"`
+	ComponentID  string            `json:"component_id,omitempty"`
 	ComponentRef string            `json:"component_ref,omitempty"`
 }
 
 type ComponentAuctionResponse = Response[ComponentAuctionResponsePayload]
 
 type ScaleComponentRequest struct {
-	ComponentId  string            `json:"component_id"`
+	ComponentID  string            `json:"component_id"`
 	ComponentRef string            `json:"component_ref"`
 	Annotations  map[string]string `json:"annotations,omitempty"`
 	Count        int               `json:"count"`
-	HostId       string            `json:"host_id"`
+	HostID       string            `json:"host_id"`
 	Config       []string          `json:"config,omitempty"`
 	AllowUpdate  bool              `json:"allow_update,omitempty"`
 }
 
-type ScaleComponentResponsePayload struct {
-}
+type ScaleComponentResponsePayload struct{}
 
 type ScaleComponentResponse = Response[ScaleComponentResponsePayload]
 
 type UpdateComponentRequest struct {
-	HostId string `json:"-"`
+	HostID string `json:"-"`
 
-	ComponentId     string            `json:"component_id"`
+	ComponentID     string            `json:"component_id"`
 	NewComponentRef string            `json:"new_component_ref"`
 	Annotations     map[string]string `json:"annotations,omitempty"`
 }
 
-type UpdateComponentResponsePayload struct {
-}
+type UpdateComponentResponsePayload struct{}
 
 type UpdateComponentResponse = Response[UpdateComponentResponsePayload]
 
 type ProviderStartRequest struct {
-	HostId      string            `json:"host_id"`
-	ProviderId  string            `json:"provider_id"`
+	HostID      string            `json:"host_id"`
+	ProviderID  string            `json:"provider_id"`
 	ProviderRef string            `json:"provider_ref"`
 	Annotations map[string]string `json:"annotations,omitempty"`
 	Config      []string          `json:"config,omitempty"`
@@ -122,8 +120,8 @@ type ProviderStartResponsePayload struct{}
 type ProviderStartResponse = Response[ProviderStartResponsePayload]
 
 type ProviderStopRequest struct {
-	HostId     string `json:"host_id"`
-	ProviderId string `json:"provider_id"`
+	HostID     string `json:"host_id"`
+	ProviderID string `json:"provider_id"`
 }
 
 type ProviderStopResponsePayload struct{}
@@ -131,7 +129,7 @@ type ProviderStopResponsePayload struct{}
 type ProviderStopResponse = Response[ProviderStopResponsePayload]
 
 type HostStopRequest struct {
-	HostId  string `json:"host_id"`
+	HostID  string `json:"host_id"`
 	Timeout int    `json:"timeout,omitempty"`
 }
 
@@ -177,7 +175,7 @@ type ConfigDeleteResponsePayload struct{}
 type ConfigDeleteResponse = Response[ConfigDeleteResponsePayload]
 
 type HostLabelPutRequest struct {
-	HostId string `json:"-"`
+	HostID string `json:"-"`
 	Key    string `json:"key"`
 	Value  string `json:"value"`
 }
@@ -187,7 +185,7 @@ type HostLabelPutResponsePayload struct{}
 type HostLabelPutResponse = Response[HostLabelPutResponsePayload]
 
 type HostLabelDeleteRequest struct {
-	HostId string `json:"-"`
+	HostID string `json:"-"`
 	Key    string `json:"key"`
 	// NOTE(lxf): This is expected to be sent even if blak. Seems like an API bug.
 	Value string `json:"value"`
@@ -198,11 +196,10 @@ type HostLabelDeleteResponsePayload struct{}
 type HostLabelDeleteResponse = Response[HostLabelDeleteResponsePayload]
 
 // NOTE(lxf): Despite being a 'Get', this acts as a 'List' operation
-type LinkGetRequest struct {
-}
+type LinkGetRequest struct{}
 
 type LinkGetResponsePayload struct {
-	SourceId      string   `json:"source_id"`
+	SourceID      string   `json:"source_id"`
 	Target        string   `json:"target"`
 	Name          string   `json:"name"`
 	WitNamespace  string   `json:"wit_namespace"`
@@ -215,7 +212,7 @@ type LinkGetResponsePayload struct {
 type LinkGetResponse = Response[[]LinkGetResponsePayload]
 
 type LinkPutRequest struct {
-	SourceId      string   `json:"source_id"`
+	SourceID      string   `json:"source_id"`
 	Target        string   `json:"target"`
 	Name          string   `json:"name"`
 	WitNamespace  string   `json:"wit_namespace"`
@@ -230,7 +227,7 @@ type LinkPutResponsePayload struct{}
 type LinkPutResponse = Response[LinkPutResponsePayload]
 
 type LinkDeleteRequest struct {
-	SourceId     string `json:"source_id"`
+	SourceID     string `json:"source_id"`
 	Name         string `json:"name"`
 	WitNamespace string `json:"wit_namespace"`
 	WitPackage   string `json:"wit_package"`
@@ -247,11 +244,11 @@ type ClaimsGetResponsePayload map[string]string
 type ClaimsGetResponse = Response[ClaimsGetResponsePayload]
 
 type HostInventoryRequest struct {
-	HostId string `json:"-"`
+	HostID string `json:"-"`
 }
 
 type ComponentDescription struct {
-	Id           string            `json:"id"`
+	ID           string            `json:"id"`
 	ImageRef     string            `json:"image_ref"`
 	Name         string            `json:"name"`
 	Annotations  map[string]string `json:"annotations"`
@@ -260,7 +257,7 @@ type ComponentDescription struct {
 }
 
 type ProviderDescription struct {
-	Id          string            `json:"id"`
+	ID          string            `json:"id"`
 	ImageRef    string            `json:"image_ref"`
 	Name        string            `json:"name"`
 	Annotations map[string]string `json:"annotations"`
@@ -270,7 +267,7 @@ type ProviderDescription struct {
 type HostInventoryResponsePayload struct {
 	Components    []ComponentDescription `json:"components"`
 	Providers     []ProviderDescription  `json:"providers"`
-	HostId        string                 `json:"host_id"`
+	HostID        string                 `json:"host_id"`
 	FriendlyName  string                 `json:"friendly_name"`
 	Labels        map[string]string      `json:"labels"`
 	Version       string                 `json:"version"`
@@ -288,12 +285,12 @@ type HostPingRequest struct {
 }
 
 type HostPingResponsePayload struct {
-	Id            string            `json:"id"`
+	ID            string            `json:"id"`
 	Labels        map[string]string `json:"labels"`
 	FriendlyName  string            `json:"friendly_name"`
 	Version       string            `json:"version"`
 	Lattice       string            `json:"lattice"`
-	RpcHost       string            `json:"rpc_host"`
+	RPCHost       string            `json:"rpc_host"`
 	CtlHost       string            `json:"ctl_host"`
 	UptimeSeconds int               `json:"uptime_seconds"`
 	UptimeHuman   string            `json:"uptime_human"`

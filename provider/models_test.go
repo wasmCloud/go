@@ -16,37 +16,37 @@ func TestLatticeTopics(t *testing.T) {
 	wasmCloudOneDotZero := HostData{ProviderKey: "providerfoo", LatticeRPCPrefix: "lattice123", ProviderXKeyPrivateKey: RedactedString(""), HostXKeyPublicKey: ""}
 	OneDotZeroTopics := LatticeTopics(wasmCloudOneDotZero, xkey)
 
-	// Test LATTICE_LINK_GET
+	// Test LatticeLinkGet
 	expectedLinkGet := "wasmbus.rpc.lattice123.providerfoo.linkdefs.get"
-	if OneDotZeroTopics.LATTICE_LINK_GET != expectedLinkGet {
-		t.Errorf("Expected LATTICE_LINK_GET to be %q, got %q", expectedLinkGet, OneDotZeroTopics.LATTICE_LINK_GET)
+	if OneDotZeroTopics.LatticeLinkGet != expectedLinkGet {
+		t.Errorf("Expected LatticeLinkGet to be %q, got %q", expectedLinkGet, OneDotZeroTopics.LatticeLinkGet)
 	}
 
-	// Test LATTICE_LINK_DEL
+	// Test LatticeLinkDel
 	expectedLinkDel := "wasmbus.rpc.lattice123.providerfoo.linkdefs.del"
-	if OneDotZeroTopics.LATTICE_LINK_DEL != expectedLinkDel {
-		t.Errorf("Expected LATTICE_LINK_DEL to be %q, got %q", expectedLinkDel, OneDotZeroTopics.LATTICE_LINK_DEL)
+	if OneDotZeroTopics.LatticeLinkDel != expectedLinkDel {
+		t.Errorf("Expected LatticeLinkDel to be %q, got %q", expectedLinkDel, OneDotZeroTopics.LatticeLinkDel)
 	}
 
-	// Test LATTICE_LINK_PUT
+	// Test LatticeLinkPut
 	expectedLinkPut := "wasmbus.rpc.lattice123.providerfoo.linkdefs.put"
-	if OneDotZeroTopics.LATTICE_LINK_PUT != expectedLinkPut {
-		t.Errorf("Expected LATTICE_LINK_PUT to be %q, got %q", expectedLinkPut, OneDotZeroTopics.LATTICE_LINK_PUT)
+	if OneDotZeroTopics.LatticeLinkPut != expectedLinkPut {
+		t.Errorf("Expected LatticeLinkPut to be %q, got %q", expectedLinkPut, OneDotZeroTopics.LatticeLinkPut)
 	}
 
-	// Test LATTICE_SHUTDOWN
+	// Test LatticeShutdown
 	expectedShutdown := "wasmbus.rpc.lattice123.providerfoo.default.shutdown"
-	if OneDotZeroTopics.LATTICE_SHUTDOWN != expectedShutdown {
-		t.Errorf("Expected LATTICE_SHUTDOWN to be %q, got %q", expectedShutdown, OneDotZeroTopics.LATTICE_SHUTDOWN)
+	if OneDotZeroTopics.LatticeShutdown != expectedShutdown {
+		t.Errorf("Expected LatticeShutdown to be %q, got %q", expectedShutdown, OneDotZeroTopics.LatticeShutdown)
 	}
 
-	// Test LATTICE_HEALTH
+	// Test LatticeHealth
 	expectedHealth := "wasmbus.rpc.lattice123.providerfoo.health"
-	if OneDotZeroTopics.LATTICE_HEALTH != expectedHealth {
-		t.Errorf("Expected LATTICE_HEALTH to be %q, got %q", expectedHealth, OneDotZeroTopics.LATTICE_HEALTH)
+	if OneDotZeroTopics.LatticeHealth != expectedHealth {
+		t.Errorf("Expected LatticeHealth to be %q, got %q", expectedHealth, OneDotZeroTopics.LatticeHealth)
 	}
 
-	// Test secrets / wasmCloud 1.1 and later topics. All are the same as 1.0 except LATTICE_LINK_PUT
+	// Test secrets / wasmCloud 1.1 and later topics. All are the same as 1.0 except LatticeLinkPut
 	xkeyPublicKey, err := xkey.PublicKey()
 	if err != nil {
 		t.Errorf("Expected err to be nil, got: %v", err)
@@ -58,32 +58,32 @@ func TestLatticeTopics(t *testing.T) {
 	wasmCloudOneDotOne := HostData{ProviderKey: "providerfoo", LatticeRPCPrefix: "lattice123", ProviderXKeyPrivateKey: RedactedString(string(xkeyPrivateKey)), HostXKeyPublicKey: xkeyPublicKey}
 	OneDotOneTopics := LatticeTopics(wasmCloudOneDotOne, xkey)
 
-	// Test LATTICE_LINK_GET
-	if OneDotOneTopics.LATTICE_LINK_GET != expectedLinkGet {
-		t.Errorf("Expected LATTICE_LINK_GET to be %q, got %q", expectedLinkGet, OneDotOneTopics.LATTICE_LINK_GET)
+	// Test LatticeLinkGet
+	if OneDotOneTopics.LatticeLinkGet != expectedLinkGet {
+		t.Errorf("Expected LatticeLinkGet to be %q, got %q", expectedLinkGet, OneDotOneTopics.LatticeLinkGet)
 	}
 
-	// Test LATTICE_LINK_DEL
-	if OneDotOneTopics.LATTICE_LINK_DEL != expectedLinkDel {
-		t.Errorf("Expected LATTICE_LINK_DEL to be %q, got %q", expectedLinkDel, OneDotOneTopics.LATTICE_LINK_DEL)
+	// Test LatticeLinkDel
+	if OneDotOneTopics.LatticeLinkDel != expectedLinkDel {
+		t.Errorf("Expected LatticeLinkDel to be %q, got %q", expectedLinkDel, OneDotOneTopics.LatticeLinkDel)
 	}
 
-	// Test LATTICE_LINK_PUT
+	// Test LatticeLinkPut
 	if err != nil {
 		t.Errorf("Expected err to be nil, got: %v", err)
 	}
 	expectedLinkPut = fmt.Sprintf("wasmbus.rpc.lattice123.%s.linkdefs.put", xkeyPublicKey)
-	if OneDotOneTopics.LATTICE_LINK_PUT != expectedLinkPut {
-		t.Errorf("Expected LATTICE_LINK_PUT to be %q, got %q", expectedLinkPut, OneDotOneTopics.LATTICE_LINK_PUT)
+	if OneDotOneTopics.LatticeLinkPut != expectedLinkPut {
+		t.Errorf("Expected LatticeLinkPut to be %q, got %q", expectedLinkPut, OneDotOneTopics.LatticeLinkPut)
 	}
 
-	// Test LATTICE_SHUTDOWN
-	if OneDotOneTopics.LATTICE_SHUTDOWN != expectedShutdown {
-		t.Errorf("Expected LATTICE_SHUTDOWN to be %q, got %q", expectedShutdown, OneDotOneTopics.LATTICE_SHUTDOWN)
+	// Test LatticeShutdown
+	if OneDotOneTopics.LatticeShutdown != expectedShutdown {
+		t.Errorf("Expected LatticeShutdown to be %q, got %q", expectedShutdown, OneDotOneTopics.LatticeShutdown)
 	}
 
-	// Test LATTICE_HEALTH
-	if OneDotOneTopics.LATTICE_HEALTH != expectedHealth {
-		t.Errorf("Expected LATTICE_HEALTH to be %q, got %q", expectedHealth, OneDotOneTopics.LATTICE_HEALTH)
+	// Test LatticeHealth
+	if OneDotOneTopics.LatticeHealth != expectedHealth {
+		t.Errorf("Expected LatticeHealth to be %q, got %q", expectedHealth, OneDotOneTopics.LatticeHealth)
 	}
 }

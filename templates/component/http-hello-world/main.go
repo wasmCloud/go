@@ -13,8 +13,9 @@ func init() {
 	wasihttp.HandleFunc(handleRequest)
 }
 
+//nolint:revive
 func handleRequest(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello from Go!\n")
+	_, _ = fmt.Fprintf(w, "Hello from Go!\n")
 }
 
 // Since we don't run this program like a CLI, the `main` function is empty. Instead,

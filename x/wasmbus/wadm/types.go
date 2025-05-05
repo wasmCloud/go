@@ -53,7 +53,7 @@ const (
 	PutResultCreated    string = "created"
 	PutResultNewVersion string = "newversion"
 
-	DefaultManifestApiVersion string = "core.oam.dev/v1beta1"
+	DefaultManifestAPIVersion string = "core.oam.dev/v1beta1"
 	DefaultManifestKind       string = "Manifest"
 
 	// LatestVersion is a constant that represents the latest version of a model
@@ -120,7 +120,7 @@ type StatusInfo struct {
 }
 
 type ScalerStatus struct {
-	Id     string     `json:"id"`
+	ID     string     `json:"id"`
 	Kind   string     `json:"kind"`
 	Name   string     `json:"name"`
 	Status StatusInfo `json:"status"`
@@ -180,7 +180,7 @@ type SharedApplicationComponentProperties struct {
 type ComponentProperties struct {
 	Image       string                                `json:"image" yaml:"image"`
 	Application *SharedApplicationComponentProperties `json:"application,omitempty" yaml:"application,omitempty"`
-	Id          string                                `json:"id,omitempty" yaml:"id,omitempty"`
+	ID          string                                `json:"id,omitempty" yaml:"id,omitempty"`
 	Config      []ConfigProperty                      `json:"config,omitempty" yaml:"config,omitempty"`
 	Secrets     []SecretProperty                      `json:"secrets,omitempty" yaml:"secrets,omitempty"`
 }
@@ -327,7 +327,7 @@ type ManifestSpec struct {
 }
 
 type Manifest struct {
-	ApiVersion string           `json:"apiVersion"`
+	APIVersion string           `json:"apiVersion"`
 	Kind       string           `json:"kind"`
 	Metadata   ManifestMetadata `json:"metadata"`
 	Spec       ManifestSpec     `json:"spec"`
@@ -347,7 +347,7 @@ func (m *Manifest) Validate() []error {
 	// no duplicate component names, check 'id' field too
 	componentNames := make(map[string]bool)
 	for _, c := range m.Spec.Components {
-		id := c.Properties.Id
+		id := c.Properties.ID
 		if id == "" {
 			id = c.Name
 		}

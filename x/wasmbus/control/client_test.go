@@ -28,7 +28,7 @@ func wrapTest(f func(*testing.T, *Client), c *Client) func(*testing.T) {
 
 func testProvider(t *testing.T, c *Client) {
 	req := &ProviderAuctionRequest{
-		ProviderId:  "test-provider",
+		ProviderID:  "test-provider",
 		ProviderRef: wasmbustest.ValidProvider,
 		Constraints: make(map[string]string),
 	}
@@ -42,13 +42,13 @@ func testProvider(t *testing.T, c *Client) {
 		t.Fatalf("auction failed: %v", resp)
 	}
 
-	if resp.Response.HostId == "" {
+	if resp.Response.HostID == "" {
 		t.Fatalf("host id is empty")
 	}
 
 	reqStart := &ProviderStartRequest{
-		HostId:      resp.Response.HostId,
-		ProviderId:  req.ProviderId,
+		HostID:      resp.Response.HostID,
+		ProviderID:  req.ProviderID,
 		ProviderRef: req.ProviderRef,
 	}
 
@@ -66,7 +66,7 @@ func testComponent(t *testing.T, c *Client) {
 	// we first need an auction to find the host id
 
 	auctionReq := &ComponentAuctionRequest{
-		ComponentId:  "test-component",
+		ComponentID:  "test-component",
 		ComponentRef: wasmbustest.ValidComponent,
 		Constraints:  make(map[string]string),
 	}
@@ -77,8 +77,8 @@ func testComponent(t *testing.T, c *Client) {
 	}
 
 	scaleReq := &ScaleComponentRequest{
-		HostId:       auctionResp.Response.HostId,
-		ComponentId:  auctionReq.ComponentId,
+		HostID:       auctionResp.Response.HostID,
+		ComponentID:  auctionReq.ComponentID,
 		ComponentRef: auctionReq.ComponentRef,
 		Count:        1,
 	}
@@ -102,8 +102,8 @@ func testComponent(t *testing.T, c *Client) {
 			t.Logf("attempt %d/%d: trying to update component", i, attempts)
 
 			updateReq := &UpdateComponentRequest{
-				HostId:          auctionResp.Response.HostId,
-				ComponentId:     auctionReq.ComponentId,
+				HostID:          auctionResp.Response.HostID,
+				ComponentID:     auctionReq.ComponentID,
 				NewComponentRef: auctionReq.ComponentRef,
 				Annotations:     map[string]string{"test": "test"},
 			}

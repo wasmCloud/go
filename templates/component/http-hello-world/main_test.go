@@ -45,7 +45,9 @@ func TestIncomingHandler(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to read HTTP response body: %s", err)
 		}
-		defer resp.Body.Close()
+		defer func() {
+			_ = resp.Body.Close()
+		}()
 
 		if want, got := []byte("Hello from Go!\n"), buf; !bytes.Equal(want, got) {
 			t.Fatalf("unexpected response body: want %q, got %q", want, got)

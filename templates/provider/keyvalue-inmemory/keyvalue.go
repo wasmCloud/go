@@ -4,6 +4,9 @@ package main
 import (
 	"context"
 	"sync"
+
+	// Comment is required here to insert space between std packages and the
+	// project specific packages, so that formatting doesn't mess the spacing up.
 	"{{ project-name }}/bindings/exports/wrpc/keyvalue/store"
 
 	"go.opentelemetry.io/otel/trace"

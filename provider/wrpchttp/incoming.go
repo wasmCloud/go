@@ -54,15 +54,15 @@ func (p *IncomingRoundTripper) RoundTrip(r *http.Request) (*http.Response, error
 		return nil, ErrNoTarget
 	}
 
-	outgoingBodyTrailer := HttpBodyToWrpc(r.Body, r.Trailer)
+	outgoingBodyTrailer := HTTPBodyToWrpc(r.Body, r.Trailer)
 	pathWithQuery := r.URL.Path
 	if r.URL.RawQuery != "" {
 		pathWithQuery += "?" + r.URL.RawQuery
 	}
 	wreq := &wrpctypes.Request{
-		Headers:       HttpHeaderToWrpc(r.Header),
-		Method:        HttpMethodToWrpc(r.Method),
-		Scheme:        HttpSchemeToWrpc(r.URL.Scheme),
+		Headers:       HTTPHeaderToWrpc(r.Header),
+		Method:        HTTPMethodToWrpc(r.Method),
+		Scheme:        HTTPSchemeToWrpc(r.URL.Scheme),
 		PathWithQuery: &pathWithQuery,
 		Authority:     &r.Host,
 		Body:          outgoingBodyTrailer,
@@ -79,7 +79,7 @@ func (p *IncomingRoundTripper) RoundTrip(r *http.Request) (*http.Response, error
 		return nil, fmt.Errorf("%w: %s", ErrRPC, wresp.Err)
 	}
 
-	respBody, trailers := WrpcBodyToHttp(wresp.Ok.Body, wresp.Ok.Trailers)
+	respBody, trailers := WrpcBodyToHTTP(wresp.Ok.Body, wresp.Ok.Trailers)
 
 	resp := &http.Response{
 		StatusCode: int(wresp.Ok.Status),
@@ -159,7 +159,7 @@ func (r *wrpcOutgoingBody) Read(b []byte) (int, error) {
 
 func (r *wrpcOutgoingBody) Receive() ([]*wrpc.Tuple2[string, [][]byte], error) {
 	<-r.bodyIsDone
-	trailers := HttpHeaderToWrpc(r.trailer)
+	trailers := HTTPHeaderToWrpc(r.trailer)
 	return trailers, nil
 }
 
@@ -176,7 +176,8 @@ func (r *wrpcOutgoingBody) Close() error {
 	return nil
 }
 
-func HttpBodyToWrpc(body io.ReadCloser, trailer http.Header) *wrpcOutgoingBody {
+//nolint:revive
+func HTTPBodyToWrpc(body io.ReadCloser, trailer http.Header) *wrpcOutgoingBody {
 	return &wrpcOutgoingBody{
 		body:       body,
 		trailer:    trailer,
@@ -184,7 +185,8 @@ func HttpBodyToWrpc(body io.ReadCloser, trailer http.Header) *wrpcOutgoingBody {
 	}
 }
 
-func WrpcBodyToHttp(body io.Reader, trailerRx wrpc.Receiver[[]*wrpc.Tuple2[string, [][]uint8]]) (*wrpcIncomingBody, http.Header) {
+//nolint:revive
+func WrpcBodyToHTTP(body io.Reader, trailerRx wrpc.Receiver[[]*wrpc.Tuple2[string, [][]uint8]]) (*wrpcIncomingBody, http.Header) {
 	trailer := make(http.Header)
 	return &wrpcIncomingBody{
 		body:      body,
@@ -193,7 +195,7 @@ func WrpcBodyToHttp(body io.Reader, trailerRx wrpc.Receiver[[]*wrpc.Tuple2[strin
 	}, trailer
 }
 
-func HttpMethodToWrpc(method string) *wrpctypes.Method {
+func HTTPMethodToWrpc(method string) *wrpctypes.Method {
 	switch method {
 	case http.MethodConnect:
 		return wasitypes.NewMethodConnect()
@@ -218,7 +220,7 @@ func HttpMethodToWrpc(method string) *wrpctypes.Method {
 	}
 }
 
-func HttpSchemeToWrpc(scheme string) *wrpctypes.Scheme {
+func HTTPSchemeToWrpc(scheme string) *wrpctypes.Scheme {
 	switch scheme {
 	case "http":
 		return wasitypes.NewSchemeHttp()
@@ -229,7 +231,7 @@ func HttpSchemeToWrpc(scheme string) *wrpctypes.Scheme {
 	}
 }
 
-func HttpHeaderToWrpc(header http.Header) []*wrpc.Tuple2[string, [][]uint8] {
+func HTTPHeaderToWrpc(header http.Header) []*wrpc.Tuple2[string, [][]uint8] {
 	wasiHeader := make([]*wrpc.Tuple2[string, [][]uint8], 0, len(header))
 	for k, vals := range header {
 		var uintVals [][]uint8

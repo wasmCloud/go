@@ -41,7 +41,7 @@ func eventCommand() *cli.Command {
 			callback := func(_ context.Context, ev events.Event) {
 				jsonEv, err := json.MarshalIndent(ev.BusEvent, "", "  ")
 				if err != nil {
-					log.Printf("Error marshalling event: %s", err)
+					log.Printf("Error marshaling event: %s", err)
 					return
 				}
 

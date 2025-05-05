@@ -49,7 +49,7 @@ func newAppManifest(name string) *Manifest {
 		},
 	}
 	return &Manifest{
-		ApiVersion: DefaultManifestApiVersion,
+		APIVersion: DefaultManifestAPIVersion,
 		Kind:       DefaultManifestKind,
 		Metadata:   metadata,
 		Spec:       spec,

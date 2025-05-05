@@ -330,7 +330,7 @@ func TestListKeys(t *testing.T) {
 
 func NewTestEnvironment(ctx context.Context, t testing.TB) (*TestEnvironment, error) {
 	natsServer, err := startContainer(ctx)
-	normalizedName := strings.Replace(t.Name(), "/", "-", -1)
+	normalizedName := strings.ReplaceAll(t.Name(), "/", "-")
 	testcontainers.CleanupContainer(t, natsServer.Container)
 	if err != nil {
 		return nil, err
