@@ -88,7 +88,7 @@ func stopHostCommand(ctx context.Context, cmd *cli.Command, host string) error {
 	}
 
 	resp, err := client.HostStop(ctx, &control.HostStopRequest{
-		HostId: host,
+		HostID: host,
 	})
 	if err != nil {
 		return err
@@ -108,7 +108,7 @@ func putLabelCommand(ctx context.Context, cmd *cli.Command, host string) error {
 	}
 
 	resp, err := client.HostLabelPut(ctx, &control.HostLabelPutRequest{
-		HostId: host,
+		HostID: host,
 		Key:    cmd.String("key"),
 		Value:  cmd.String("value"),
 	})
@@ -130,7 +130,7 @@ func deleteLabelCommand(ctx context.Context, cmd *cli.Command, host string) erro
 	}
 
 	resp, err := client.HostLabelDelete(ctx, &control.HostLabelDeleteRequest{
-		HostId: host,
+		HostID: host,
 		Key:    cmd.String("key"),
 	})
 	if err != nil {
@@ -151,7 +151,7 @@ func inventoryCommand(ctx context.Context, cmd *cli.Command, host string) error 
 	}
 
 	resp, err := client.HostInventory(ctx, &control.HostInventoryRequest{
-		HostId: host,
+		HostID: host,
 	})
 	if err != nil {
 		return err
@@ -160,7 +160,7 @@ func inventoryCommand(ctx context.Context, cmd *cli.Command, host string) error 
 		return fmt.Errorf("received error response: %s", resp.Message)
 	}
 
-	fmt.Println(titleStyle.Render("⁜", resp.Response.HostId), resp.Response.FriendlyName)
+	fmt.Println(titleStyle.Render("⁜", resp.Response.HostID), resp.Response.FriendlyName)
 
 	renderKv("Version", resp.Response.Version)
 	renderKv("Uptime", resp.Response.UptimeHuman)
@@ -211,7 +211,7 @@ func pingCommand(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	for _, r := range resp.Response {
-		fmt.Println(titleStyle.Render("⁜", r.Id), r.FriendlyName)
+		fmt.Println(titleStyle.Render("⁜", r.ID), r.FriendlyName)
 		renderKv("Version", r.Version)
 		renderKv("Uptime", r.UptimeHuman)
 		renderKv("Labels", "")

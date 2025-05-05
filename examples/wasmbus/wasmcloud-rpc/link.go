@@ -119,7 +119,7 @@ func deleteLinkCommand(ctx context.Context, cmd *cli.Command) error {
 
 	resp, err := client.LinkDelete(ctx, &control.LinkDeleteRequest{
 		Name:         cmd.String("name"),
-		SourceId:     cmd.String("source"),
+		SourceID:     cmd.String("source"),
 		WitNamespace: cmd.String("namespace"),
 		WitPackage:   cmd.String("package"),
 	})
@@ -152,7 +152,7 @@ func getLinkCommand(ctx context.Context, cmd *cli.Command) error {
 	t.Headers("Name", "Source", "Target", "Namespace", "Package", "Interfaces")
 
 	for _, link := range resp.Response {
-		t.Row(link.Name, link.SourceId, link.Target, link.WitNamespace, link.WitPackage, strings.Join(link.WitInterfaces, ","))
+		t.Row(link.Name, link.SourceID, link.Target, link.WitNamespace, link.WitPackage, strings.Join(link.WitInterfaces, ","))
 	}
 	fmt.Println(t)
 
@@ -168,7 +168,7 @@ func putLinkCommand(ctx context.Context, cmd *cli.Command) error {
 
 	resp, err := client.LinkPut(ctx, &control.LinkPutRequest{
 		Name:          name,
-		SourceId:      cmd.String("source"),
+		SourceID:      cmd.String("source"),
 		Target:        cmd.String("target"),
 		WitNamespace:  cmd.String("namespace"),
 		WitPackage:    cmd.String("package"),

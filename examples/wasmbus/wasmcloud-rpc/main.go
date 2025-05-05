@@ -90,13 +90,11 @@ func newTable() *table.Table {
 	return table.New().
 		Border(lipgloss.NormalBorder()).
 		BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
-		StyleFunc(func(row, col int) lipgloss.Style {
-			switch {
-			case row%2 == 0:
+		StyleFunc(func(row, _ int) lipgloss.Style {
+			if row%2 == 0 {
 				return evenStyle
-			default:
-				return oddStyle
 			}
+			return oddStyle
 		})
 }
 
