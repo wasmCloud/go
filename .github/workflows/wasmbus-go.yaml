@@ -34,6 +34,7 @@ jobs:
         with:
           version: ${{ env.GOLANGCI_VERSION }}
           working-directory: x/wasmbus
+          args: --config=${{ github.workspace }}/.golangci.yml
 
       - name: Go generate
         working-directory: x/wasmbus
@@ -99,6 +100,7 @@ jobs:
         with:
           version: ${{ env.GOLANGCI_VERSION }}
           working-directory: "./examples/wasmbus/${{ matrix.example }}"
+          args: --config=${{ github.workspace }}/.golangci.yml
       - uses: taiki-e/install-action@86c23eed46c17b80677df6d8151545ce3e236c61 # v2.50.7
         with:
           tool: ${{ format('wash-cli@{0}', env.WASH_VERSION) }}

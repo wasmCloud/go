@@ -56,3 +56,4 @@ jobs:
         with:
           version: ${{ env.GOLANGCI_VERSION }}
           working-directory: ./provider
+          args: --config=${{ github.workspace }}/.golangci.yml

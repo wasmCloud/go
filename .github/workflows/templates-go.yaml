@@ -57,6 +57,7 @@ jobs:
         with:
           version: ${{ env.GOLANGCI_VERSION }}
           working-directory: "${{ runner.temp }}/sample-provider"
+          args: --config=${{ github.workspace }}/.golangci.yml
       - name: Go Test
         run: go test -v ./...
         working-directory: "${{ runner.temp }}/sample-provider"
@@ -98,6 +99,7 @@ jobs:
         with:
           version: ${{ env.GOLANGCI_VERSION }}
           working-directory: "${{ runner.temp }}/sample-component"
+          args: --config=${{ github.workspace }}/.golangci.yml
       - name: Go Test
         run: go test -v ./...
         working-directory: "${{ runner.temp }}/sample-component"
