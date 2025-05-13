@@ -114,7 +114,7 @@ func (r *Transport) RoundTrip(incomingRequest *http.Request) (*http.Response, er
 
 	// From `outgoing-body` documentation:
 	// Finalize an outgoing body, optionally providing trailers. This must be
-    // called to signal that the response is complete.
+	// called to signal that the response is complete.
 	outFinish := types.OutgoingBodyFinish(*body, maybeTrailers)
 	if outFinish.IsErr() {
 		return nil, fmt.Errorf("failed to finish body: %v", outFinish.Err())
