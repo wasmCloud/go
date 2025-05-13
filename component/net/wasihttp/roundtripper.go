@@ -35,7 +35,16 @@ var DefaultClient = &http.Client{Transport: DefaultTransport}
 
 func (r *Transport) requestOptions() types.RequestOptions {
 	options := types.NewRequestOptions()
-	options.SetConnectTimeout(cm.Some(monotonicclock.Duration(r.ConnectTimeout)))
+	if r.ConnectTimeout > 0 {
+		// Go’s time.Duration is a nanosecond count, and WASI’s monotonicclock.Duration is also a u64 of nanoseconds
+		options.SetConnectTimeout(
+			cm.Some(monotonicclock.Duration(r.ConnectTimeout)),
+		)
+	} else {
+		options.SetConnectTimeout(
+			cm.None[monotonicclock.Duration](),
+		)
+	}
 	return options
 }
 
