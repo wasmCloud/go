@@ -93,7 +93,7 @@ func (r *Transport) RoundTrip(incomingRequest *http.Request) (*http.Response, er
 		outTrailers := types.NewFields()
 		if err := HTTPtoWASIHeader(incomingRequest.Trailer, outTrailers); err != nil {
 			return nil, err
-		}	
+		}
 		maybeTrailers = cm.Some(outTrailers)
 	}
 
@@ -110,7 +110,7 @@ func (r *Transport) RoundTrip(incomingRequest *http.Request) (*http.Response, er
 		if err := adaptedBody.Close(); err != nil {
 			return nil, fmt.Errorf("failed to close body: %v", err)
 		}
-	} 
+	}
 
 	// From `outgoing-body` documentation:
 	// Finalize an outgoing body, optionally providing trailers. This must be
