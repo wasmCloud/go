@@ -122,8 +122,15 @@ func (r *Transport) RoundTrip(incomingRequest *http.Request) (*http.Response, er
 
 	// wait until resp is returned
 	futurePollable := futureResponse.Subscribe()
+	backoffDuration := 1 * time.Millisecond
 	for !futurePollable.Ready() {
 		runtime.Gosched()
+		backoff := monotonicclock.SubscribeDuration(monotonicclock.Duration(backoffDuration))
+		backoff.Block()
+		backoffDuration *= 2
+		if backoffDuration > 5*time.Second {
+			backoffDuration = 5 * time.Second // Cap the backoff duration
+		}
 	}
 
 	incomingResponseOuterOption := futureResponse.Get()
