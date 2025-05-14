@@ -35,7 +35,16 @@ var DefaultClient = &http.Client{Transport: DefaultTransport}
 
 func (r *Transport) requestOptions() types.RequestOptions {
 	options := types.NewRequestOptions()
-	options.SetConnectTimeout(cm.Some(monotonicclock.Duration(r.ConnectTimeout)))
+	if r.ConnectTimeout > 0 {
+		// Go’s time.Duration is a nanosecond count, and WASI’s monotonicclock.Duration is also a u64 of nanoseconds
+		options.SetConnectTimeout(
+			cm.Some(monotonicclock.Duration(r.ConnectTimeout)),
+		)
+	} else {
+		options.SetConnectTimeout(
+			cm.None[monotonicclock.Duration](),
+		)
+	}
 	return options
 }
 
@@ -68,27 +77,32 @@ func (r *Transport) RoundTrip(incomingRequest *http.Request) (*http.Response, er
 		outRequest.SetScheme(cm.Some(types.SchemeOther(incomingRequest.URL.Scheme)))
 	}
 
-	var adaptedBody io.WriteCloser
-	var body *types.OutgoingBody
-	if incomingRequest.Body != nil {
-		bodyRes := outRequest.Body()
-		if bodyRes.IsErr() {
-			return nil, fmt.Errorf("failed to acquire resource handle to request body: %s", bodyRes.Err())
-		}
-		body = bodyRes.OK()
-		adaptedBody, err = NewOutgoingBody(body)
-		if err != nil {
-			return nil, fmt.Errorf("failed to adapt body: %s", err)
-		}
+	bodyRes := outRequest.Body()
+	if bodyRes.IsErr() {
+		return nil, fmt.Errorf("failed to acquire resource handle to request body: %s", bodyRes.Err())
 	}
+	body := bodyRes.OK()
 
 	handleResp := outgoinghandler.Handle(outRequest, cm.Some(r.requestOptions()))
 	if handleResp.Err() != nil {
 		return nil, fmt.Errorf("%v", handleResp.Err())
 	}
 
+	maybeTrailers := cm.None[types.Fields]()
+	if len(incomingRequest.Trailer) > 0 {
+		outTrailers := types.NewFields()
+		if err := HTTPtoWASIHeader(incomingRequest.Trailer, outTrailers); err != nil {
+			return nil, err
+		}
+		maybeTrailers = cm.Some(outTrailers)
+	}
+
 	// NOTE(lxf): If request includes a body, copy it to the adapted wasi body
-	if body != nil {
+	if incomingRequest.Body != nil {
+		adaptedBody, err := NewOutgoingBody(body)
+		if err != nil {
+			return nil, fmt.Errorf("failed to adapt body: %s", err)
+		}
 		if _, err := io.Copy(adaptedBody, incomingRequest.Body); err != nil {
 			return nil, fmt.Errorf("failed to copy body: %v", err)
 		}
@@ -96,21 +110,14 @@ func (r *Transport) RoundTrip(incomingRequest *http.Request) (*http.Response, er
 		if err := adaptedBody.Close(); err != nil {
 			return nil, fmt.Errorf("failed to close body: %v", err)
 		}
+	}
 
-		outTrailers := types.NewFields()
-		if err := HTTPtoWASIHeader(incomingRequest.Trailer, outTrailers); err != nil {
-			return nil, err
-		}
-
-		maybeTrailers := cm.None[types.Fields]()
-		if len(incomingRequest.Trailer) > 0 {
-			maybeTrailers = cm.Some(outTrailers)
-		}
-
-		outFinish := types.OutgoingBodyFinish(*body, maybeTrailers)
-		if outFinish.IsErr() {
-			return nil, fmt.Errorf("failed to finish body: %v", outFinish.Err())
-		}
+	// From `outgoing-body` documentation:
+	// Finalize an outgoing body, optionally providing trailers. This must be
+	// called to signal that the response is complete.
+	outFinish := types.OutgoingBodyFinish(*body, maybeTrailers)
+	if outFinish.IsErr() {
+		return nil, fmt.Errorf("failed to finish body: %v", outFinish.Err())
 	}
 
 	// NOTE(lxf): Request is fully sent. Processing response.
