@@ -5,14 +5,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"runtime"
 	"sync"
-	"time"
 
 	"go.bytecodealliance.org/cm"
-	monotonicclock "go.wasmcloud.dev/component/gen/wasi/clocks/monotonic-clock"
 	"go.wasmcloud.dev/component/gen/wasi/http/types"
 	"go.wasmcloud.dev/component/gen/wasi/io/streams"
+	poll "go.wasmcloud.dev/component/poll"
 )
 
 // BodyConsumer interface is implemented by [types.IncomingRequest] and [types.IncomingResponse].
@@ -90,16 +88,7 @@ func (r *inputStreamReader) parseTrailers() {
 
 func (r *inputStreamReader) Read(p []byte) (n int, err error) {
 	pollable := r.stream.Subscribe()
-	backoffDuration := 1 * time.Millisecond
-	for !pollable.Ready() {
-		runtime.Gosched()
-		backoff := monotonicclock.SubscribeDuration(monotonicclock.Duration(backoffDuration))
-		backoff.Block()
-		backoffDuration *= 2
-		if backoffDuration > 5*time.Second {
-			backoffDuration = 5 * time.Second // Cap the backoff duration
-		}
-	}
+	poll.PollWithBackoff(pollable)
 	pollable.ResourceDrop()
 
 	readResult := r.stream.Read(uint64(len(p)))

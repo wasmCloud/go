@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"runtime"
 	"time"
 
 	"go.bytecodealliance.org/cm"
 	monotonicclock "go.wasmcloud.dev/component/gen/wasi/clocks/monotonic-clock"
 	outgoinghandler "go.wasmcloud.dev/component/gen/wasi/http/outgoing-handler"
 	"go.wasmcloud.dev/component/gen/wasi/http/types"
+	poll "go.wasmcloud.dev/component/poll"
 )
 
 // Transport implements [http.RoundTripper] for [wasi:http].
@@ -117,17 +117,7 @@ func (r *Transport) RoundTrip(incomingRequest *http.Request) (*http.Response, er
 	futureResponse := handleResp.OK()
 
 	// wait until resp is returned
-	futurePollable := futureResponse.Subscribe()
-	backoffDuration := 1 * time.Millisecond
-	for !futurePollable.Ready() {
-		runtime.Gosched()
-		backoff := monotonicclock.SubscribeDuration(monotonicclock.Duration(backoffDuration))
-		backoff.Block()
-		backoffDuration *= 2
-		if backoffDuration > 5*time.Second {
-			backoffDuration = 5 * time.Second // Cap the backoff duration
-		}
-	}
+	poll.PollWithBackoff(futureResponse.Subscribe())
 
 	pollableOption := futureResponse.Get()
 	if pollableOption.None() {
