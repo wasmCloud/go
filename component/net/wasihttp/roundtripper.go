@@ -54,7 +54,7 @@ func (r *Transport) RoundTrip(incomingRequest *http.Request) (*http.Response, er
 
 	outHeaders := types.NewFields()
 	if err := HTTPtoWASIHeader(incomingRequest.Header, outHeaders); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to convert outgoing headers: %w", err)
 	}
 
 	outRequest := types.NewOutgoingRequest(outHeaders)
@@ -77,51 +77,48 @@ func (r *Transport) RoundTrip(incomingRequest *http.Request) (*http.Response, er
 		outRequest.SetScheme(cm.Some(types.SchemeOther(incomingRequest.URL.Scheme)))
 	}
 
-	bodyRes := outRequest.Body()
-	if bodyRes.IsErr() {
-		return nil, fmt.Errorf("failed to acquire resource handle to request body: %s", bodyRes.Err())
+	body, bodyErr, isErr := outRequest.Body().Result()
+	if isErr {
+		return nil, fmt.Errorf("failed to acquire resource handle to request body: %s", bodyErr)
 	}
-	body := bodyRes.OK()
 
-	handleResp := outgoinghandler.Handle(outRequest, cm.Some(r.requestOptions()))
-	if handleResp.Err() != nil {
-		return nil, fmt.Errorf("%v", handleResp.Err())
+	futureResponse, handlerErr, isErr := outgoinghandler.Handle(outRequest, cm.Some(r.requestOptions())).Result()
+	if isErr {
+		return nil, fmt.Errorf("failed to acquire handle to outbound request: %s", handlerErr)
 	}
 
 	maybeTrailers := cm.None[types.Fields]()
 	if len(incomingRequest.Trailer) > 0 {
 		outTrailers := types.NewFields()
 		if err := HTTPtoWASIHeader(incomingRequest.Trailer, outTrailers); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to convert outgoing trailers: %w", err)
 		}
 		maybeTrailers = cm.Some(outTrailers)
 	}
 
 	// NOTE(lxf): If request includes a body, copy it to the adapted wasi body
 	if incomingRequest.Body != nil {
-		adaptedBody, err := NewOutgoingBody(body)
+		// For client requests, the Transport is responsible for calling Close on request's body.
+		defer incomingRequest.Body.Close()
+		adaptedBody, err := NewOutgoingBody(&body)
 		if err != nil {
-			return nil, fmt.Errorf("failed to adapt body: %s", err)
+			return nil, fmt.Errorf("failed to adapt body: %w", err)
 		}
 		if _, err := io.Copy(adaptedBody, incomingRequest.Body); err != nil {
-			return nil, fmt.Errorf("failed to copy body: %v", err)
+			return nil, fmt.Errorf("failed to copy body: %w", err)
 		}
-
 		if err := adaptedBody.Close(); err != nil {
-			return nil, fmt.Errorf("failed to close body: %v", err)
+			return nil, fmt.Errorf("failed to close body: %w", err)
 		}
 	}
 
 	// From `outgoing-body` documentation:
 	// Finalize an outgoing body, optionally providing trailers. This must be
 	// called to signal that the response is complete.
-	outFinish := types.OutgoingBodyFinish(*body, maybeTrailers)
+	outFinish := types.OutgoingBodyFinish(body, maybeTrailers)
 	if outFinish.IsErr() {
-		return nil, fmt.Errorf("failed to finish body: %v", outFinish.Err())
+		return nil, fmt.Errorf("failed to finish body: %s", outFinish.Err())
 	}
-
-	// NOTE(lxf): Request is fully sent. Processing response.
-	futureResponse := handleResp.OK()
 
 	// wait until resp is returned
 	futurePollable := futureResponse.Subscribe()
@@ -129,25 +126,27 @@ func (r *Transport) RoundTrip(incomingRequest *http.Request) (*http.Response, er
 		runtime.Gosched()
 	}
 
-	pollableOption := futureResponse.Get()
-	if pollableOption.None() {
-		return nil, fmt.Errorf("incoming resp is None")
+	incomingResponseOuterOption := futureResponse.Get()
+	if incomingResponseOuterOption.None() {
+		// NOTE: This should never happen since we subscribe to response readiness above
+		return nil, fmt.Errorf("failed to wait for future-incoming-response readiness")
 	}
 
-	pollableResult := pollableOption.Some()
-	if pollableResult.IsErr() {
-		return nil, fmt.Errorf("error is %v", pollableResult.Err())
+	// Unwrap the outer Option and the outer Result within it
+	innerResult, outerResultErr, isErr := incomingResponseOuterOption.Some().Result()
+	if isErr {
+		return nil, fmt.Errorf("failed to unwrap the outer result for incoming-response: %s", outerResultErr)
 	}
 
-	resultOption := pollableResult.OK()
-	if resultOption.IsErr() {
-		return nil, fmt.Errorf("%v", resultOption.Err())
+	// Unwrap the inner Result
+	incomingResponse, innerResultErr, isErr := innerResult.Result()
+	if isErr {
+		return nil, fmt.Errorf("failed to unwrap the inner result for incoming-response: %s", innerResultErr)
 	}
 
-	incomingResponse := resultOption.OK()
 	incomingBody, incomingTrailers, err := NewIncomingBodyTrailer(incomingResponse)
 	if err != nil {
-		return nil, fmt.Errorf("failed to consume incoming request %s", err)
+		return nil, fmt.Errorf("failed to parse incoming-response: %w", err)
 	}
 
 	incomingHeaders := http.Header{}
