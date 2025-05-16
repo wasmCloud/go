@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"runtime"
 	"sync"
 
 	"go.bytecodealliance.org/cm"
 	"go.wasmcloud.dev/component/gen/wasi/http/types"
 	"go.wasmcloud.dev/component/gen/wasi/io/streams"
+	poll "go.wasmcloud.dev/component/poll"
 )
 
 // BodyConsumer interface is implemented by [types.IncomingRequest] and [types.IncomingResponse].
@@ -88,9 +88,7 @@ func (r *inputStreamReader) parseTrailers() {
 
 func (r *inputStreamReader) Read(p []byte) (n int, err error) {
 	pollable := r.stream.Subscribe()
-	for !pollable.Ready() {
-		runtime.Gosched()
-	}
+	poll.Resolve(pollable)
 	pollable.ResourceDrop()
 
 	readResult := r.stream.Read(uint64(len(p)))
