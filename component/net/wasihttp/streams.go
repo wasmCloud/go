@@ -88,7 +88,7 @@ func (r *inputStreamReader) parseTrailers() {
 
 func (r *inputStreamReader) Read(p []byte) (n int, err error) {
 	pollable := r.stream.Subscribe()
-	poll.PollWithBackoff(pollable)
+	poll.Resolve(pollable)
 	pollable.ResourceDrop()
 
 	readResult := r.stream.Read(uint64(len(p)))
