@@ -121,7 +121,7 @@ func (r *Transport) RoundTrip(incomingRequest *http.Request) (*http.Response, er
 	}
 
 	// wait until resp is returned
-	poll.PollWithBackoff(futureResponse.Subscribe())
+	poll.Resolve(futureResponse.Subscribe())
 
 	incomingResponseOuterOption := futureResponse.Get()
 	if incomingResponseOuterOption.None() {
