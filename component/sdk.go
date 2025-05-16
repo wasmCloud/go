@@ -1,6 +1,6 @@
 package component
 
-//go:generate go tool wit-bindgen-go generate --world sdk --out gen ./wit
+//go:generate go tool wit-bindgen --world sdk --out gen ./wit
 
 import (
 	"embed"

@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"sync"
 
-	"go.bytecodealliance.org/cm"
+	"go.wasmcloud.dev/component/cm"
 	"go.wasmcloud.dev/component/gen/wasi/http/types"
 	"go.wasmcloud.dev/component/gen/wasi/io/streams"
 )
