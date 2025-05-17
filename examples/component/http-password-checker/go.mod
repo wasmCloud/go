@@ -6,7 +6,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/wagslane/go-password-validator v0.3.0
 	go.bytecodealliance.org/cm v0.1.0
-	go.wasmcloud.dev/component v0.0.6
+	go.wasmcloud.dev/component v0.0.7
 	go.wasmcloud.dev/wadge v0.7.0
 )
 
