@@ -4,9 +4,9 @@ go 1.24
 
 require (
 	go.opentelemetry.io/otel v1.36.0
-	go.opentelemetry.io/otel/log v0.12.1
+	go.opentelemetry.io/otel/log v0.12.2
 	go.opentelemetry.io/otel/sdk v1.36.0
-	go.opentelemetry.io/otel/sdk/log v0.12.1
+	go.opentelemetry.io/otel/sdk/log v0.12.2
 	go.opentelemetry.io/otel/sdk/metric v1.36.0
 	go.opentelemetry.io/otel/trace v1.36.0
 	go.wasmcloud.dev/component v0.0.6
