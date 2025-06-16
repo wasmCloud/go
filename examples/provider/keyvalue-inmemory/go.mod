@@ -2,7 +2,7 @@ module github.com/wasmCloud/go/examples/provider/keyvalue-inmemory
 
 go 1.24
 
-toolchain go1.24.3
+toolchain go1.24.4
 
 replace go.wasmcloud.dev/provider => ../../../provider
 
