@@ -43,7 +43,7 @@ jobs:
           version: ${{ env.GOLANGCI_VERSION }}
           working-directory: ./component
           args: --config=${{ github.workspace }}/.golangci.yml
-      - uses: taiki-e/install-action@92f69c195229fe62d58b4d697ab4bc75def98e76 # v2.52.7
+      - uses: taiki-e/install-action@cfe1303741c2e620e5f7daa667105e0da1316db9 # v2.53.0
         with:
           tool: ${{ format('wasm-tools@{0}', env.WASM_TOOLS_VERSION) }}
 
@@ -104,7 +104,7 @@ jobs:
           version: ${{ env.GOLANGCI_VERSION }}
           working-directory: "./examples/component/${{ matrix.example }}"
           args: --config=${{ github.workspace }}/.golangci.yml
-      - uses: taiki-e/install-action@92f69c195229fe62d58b4d697ab4bc75def98e76 # v2.52.7
+      - uses: taiki-e/install-action@cfe1303741c2e620e5f7daa667105e0da1316db9 # v2.53.0
         with:
           tool: ${{ format('wash@{0},wasm-tools@{1}', env.WASH_VERSION, env.WASM_TOOLS_VERSION) }}
 
