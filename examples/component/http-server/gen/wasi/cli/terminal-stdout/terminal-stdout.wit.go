@@ -5,7 +5,6 @@ package terminalstdout
 
 import (
 	terminaloutput "github.com/wasmCloud/go/examples/component/http-server/gen/wasi/cli/terminal-output"
-	"go.bytecodealliance.org/cm"
 )
 
 // TerminalOutput represents the imported type alias "wasi:cli/terminal-stdout@0.2.0#terminal-output".
@@ -15,10 +14,10 @@ type TerminalOutput = terminaloutput.TerminalOutput
 
 // GetTerminalStdout represents the imported function "get-terminal-stdout".
 //
-//	get-terminal-stdout: func() -> option<terminal-output>
+//	get-terminal-stdout: func()
 //
 //go:nosplit
-func GetTerminalStdout() (result cm.Option[TerminalOutput]) {
-	wasmimport_GetTerminalStdout(&result)
+func GetTerminalStdout() {
+	wasmimport_GetTerminalStdout()
 	return
 }

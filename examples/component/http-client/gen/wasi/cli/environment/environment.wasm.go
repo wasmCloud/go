@@ -2,20 +2,16 @@
 
 package environment
 
-import (
-	"go.bytecodealliance.org/cm"
-)
-
 // This file contains wasmimport and wasmexport declarations for "wasi:cli@0.2.0".
 
 //go:wasmimport wasi:cli/environment@0.2.0 get-environment
 //go:noescape
-func wasmimport_GetEnvironment(result *cm.List[[2]string])
+func wasmimport_GetEnvironment()
 
 //go:wasmimport wasi:cli/environment@0.2.0 get-arguments
 //go:noescape
-func wasmimport_GetArguments(result *cm.List[string])
+func wasmimport_GetArguments()
 
 //go:wasmimport wasi:cli/environment@0.2.0 initial-cwd
 //go:noescape
-func wasmimport_InitialCWD(result *cm.Option[string])
+func wasmimport_InitialCWD()

@@ -6,4 +6,4 @@ package stderr
 
 //go:wasmimport wasi:cli/stderr@0.2.0 get-stderr
 //go:noescape
-func wasmimport_GetStderr() (result0 uint32)
+func wasmimport_GetStderr()

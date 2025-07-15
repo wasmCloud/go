@@ -95,326 +95,321 @@ func (self TCPSocket) ResourceDrop() {
 
 // Accept represents the imported method "accept".
 //
-//	accept: func() -> result<tuple<tcp-socket, input-stream, output-stream>, error-code>
+//	accept: func()
 //
 //go:nosplit
-func (self TCPSocket) Accept() (result cm.Result[TupleTCPSocketInputStreamOutputStreamShape, cm.Tuple3[TCPSocket, InputStream, OutputStream], ErrorCode]) {
+func (self TCPSocket) Accept() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_TCPSocketAccept((uint32)(self0), &result)
+	wasmimport_TCPSocketAccept((uint32)(self0))
 	return
 }
 
 // AddressFamily represents the imported method "address-family".
 //
-//	address-family: func() -> ip-address-family
+//	address-family: func()
 //
 //go:nosplit
-func (self TCPSocket) AddressFamily() (result IPAddressFamily) {
+func (self TCPSocket) AddressFamily() {
 	self0 := cm.Reinterpret[uint32](self)
-	result0 := wasmimport_TCPSocketAddressFamily((uint32)(self0))
-	result = (network.IPAddressFamily)((uint32)(result0))
+	wasmimport_TCPSocketAddressFamily((uint32)(self0))
 	return
 }
 
 // FinishBind represents the imported method "finish-bind".
 //
-//	finish-bind: func() -> result<_, error-code>
+//	finish-bind: func()
 //
 //go:nosplit
-func (self TCPSocket) FinishBind() (result cm.Result[ErrorCode, struct{}, ErrorCode]) {
+func (self TCPSocket) FinishBind() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_TCPSocketFinishBind((uint32)(self0), &result)
+	wasmimport_TCPSocketFinishBind((uint32)(self0))
 	return
 }
 
 // FinishConnect represents the imported method "finish-connect".
 //
-//	finish-connect: func() -> result<tuple<input-stream, output-stream>, error-code>
+//	finish-connect: func()
 //
 //go:nosplit
-func (self TCPSocket) FinishConnect() (result cm.Result[TupleInputStreamOutputStreamShape, cm.Tuple[InputStream, OutputStream], ErrorCode]) {
+func (self TCPSocket) FinishConnect() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_TCPSocketFinishConnect((uint32)(self0), &result)
+	wasmimport_TCPSocketFinishConnect((uint32)(self0))
 	return
 }
 
 // FinishListen represents the imported method "finish-listen".
 //
-//	finish-listen: func() -> result<_, error-code>
+//	finish-listen: func()
 //
 //go:nosplit
-func (self TCPSocket) FinishListen() (result cm.Result[ErrorCode, struct{}, ErrorCode]) {
+func (self TCPSocket) FinishListen() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_TCPSocketFinishListen((uint32)(self0), &result)
+	wasmimport_TCPSocketFinishListen((uint32)(self0))
 	return
 }
 
 // HopLimit represents the imported method "hop-limit".
 //
-//	hop-limit: func() -> result<u8, error-code>
+//	hop-limit: func()
 //
 //go:nosplit
-func (self TCPSocket) HopLimit() (result cm.Result[uint8, uint8, ErrorCode]) {
+func (self TCPSocket) HopLimit() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_TCPSocketHopLimit((uint32)(self0), &result)
+	wasmimport_TCPSocketHopLimit((uint32)(self0))
 	return
 }
 
 // IsListening represents the imported method "is-listening".
 //
-//	is-listening: func() -> bool
+//	is-listening: func()
 //
 //go:nosplit
-func (self TCPSocket) IsListening() (result bool) {
+func (self TCPSocket) IsListening() {
 	self0 := cm.Reinterpret[uint32](self)
-	result0 := wasmimport_TCPSocketIsListening((uint32)(self0))
-	result = (bool)(cm.U32ToBool((uint32)(result0)))
+	wasmimport_TCPSocketIsListening((uint32)(self0))
 	return
 }
 
 // KeepAliveCount represents the imported method "keep-alive-count".
 //
-//	keep-alive-count: func() -> result<u32, error-code>
+//	keep-alive-count: func()
 //
 //go:nosplit
-func (self TCPSocket) KeepAliveCount() (result cm.Result[uint32, uint32, ErrorCode]) {
+func (self TCPSocket) KeepAliveCount() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_TCPSocketKeepAliveCount((uint32)(self0), &result)
+	wasmimport_TCPSocketKeepAliveCount((uint32)(self0))
 	return
 }
 
 // KeepAliveEnabled represents the imported method "keep-alive-enabled".
 //
-//	keep-alive-enabled: func() -> result<bool, error-code>
+//	keep-alive-enabled: func()
 //
 //go:nosplit
-func (self TCPSocket) KeepAliveEnabled() (result cm.Result[bool, bool, ErrorCode]) {
+func (self TCPSocket) KeepAliveEnabled() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_TCPSocketKeepAliveEnabled((uint32)(self0), &result)
+	wasmimport_TCPSocketKeepAliveEnabled((uint32)(self0))
 	return
 }
 
 // KeepAliveIdleTime represents the imported method "keep-alive-idle-time".
 //
-//	keep-alive-idle-time: func() -> result<duration, error-code>
+//	keep-alive-idle-time: func()
 //
 //go:nosplit
-func (self TCPSocket) KeepAliveIdleTime() (result cm.Result[uint64, Duration, ErrorCode]) {
+func (self TCPSocket) KeepAliveIdleTime() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_TCPSocketKeepAliveIdleTime((uint32)(self0), &result)
+	wasmimport_TCPSocketKeepAliveIdleTime((uint32)(self0))
 	return
 }
 
 // KeepAliveInterval represents the imported method "keep-alive-interval".
 //
-//	keep-alive-interval: func() -> result<duration, error-code>
+//	keep-alive-interval: func()
 //
 //go:nosplit
-func (self TCPSocket) KeepAliveInterval() (result cm.Result[uint64, Duration, ErrorCode]) {
+func (self TCPSocket) KeepAliveInterval() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_TCPSocketKeepAliveInterval((uint32)(self0), &result)
+	wasmimport_TCPSocketKeepAliveInterval((uint32)(self0))
 	return
 }
 
 // LocalAddress represents the imported method "local-address".
 //
-//	local-address: func() -> result<ip-socket-address, error-code>
+//	local-address: func()
 //
 //go:nosplit
-func (self TCPSocket) LocalAddress() (result cm.Result[IPSocketAddressShape, IPSocketAddress, ErrorCode]) {
+func (self TCPSocket) LocalAddress() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_TCPSocketLocalAddress((uint32)(self0), &result)
+	wasmimport_TCPSocketLocalAddress((uint32)(self0))
 	return
 }
 
 // ReceiveBufferSize represents the imported method "receive-buffer-size".
 //
-//	receive-buffer-size: func() -> result<u64, error-code>
+//	receive-buffer-size: func()
 //
 //go:nosplit
-func (self TCPSocket) ReceiveBufferSize() (result cm.Result[uint64, uint64, ErrorCode]) {
+func (self TCPSocket) ReceiveBufferSize() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_TCPSocketReceiveBufferSize((uint32)(self0), &result)
+	wasmimport_TCPSocketReceiveBufferSize((uint32)(self0))
 	return
 }
 
 // RemoteAddress represents the imported method "remote-address".
 //
-//	remote-address: func() -> result<ip-socket-address, error-code>
+//	remote-address: func()
 //
 //go:nosplit
-func (self TCPSocket) RemoteAddress() (result cm.Result[IPSocketAddressShape, IPSocketAddress, ErrorCode]) {
+func (self TCPSocket) RemoteAddress() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_TCPSocketRemoteAddress((uint32)(self0), &result)
+	wasmimport_TCPSocketRemoteAddress((uint32)(self0))
 	return
 }
 
 // SendBufferSize represents the imported method "send-buffer-size".
 //
-//	send-buffer-size: func() -> result<u64, error-code>
+//	send-buffer-size: func()
 //
 //go:nosplit
-func (self TCPSocket) SendBufferSize() (result cm.Result[uint64, uint64, ErrorCode]) {
+func (self TCPSocket) SendBufferSize() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_TCPSocketSendBufferSize((uint32)(self0), &result)
+	wasmimport_TCPSocketSendBufferSize((uint32)(self0))
 	return
 }
 
 // SetHopLimit represents the imported method "set-hop-limit".
 //
-//	set-hop-limit: func(value: u8) -> result<_, error-code>
+//	set-hop-limit: func(value: u8)
 //
 //go:nosplit
-func (self TCPSocket) SetHopLimit(value uint8) (result cm.Result[ErrorCode, struct{}, ErrorCode]) {
+func (self TCPSocket) SetHopLimit(value uint8) {
 	self0 := cm.Reinterpret[uint32](self)
 	value0 := (uint32)(value)
-	wasmimport_TCPSocketSetHopLimit((uint32)(self0), (uint32)(value0), &result)
+	wasmimport_TCPSocketSetHopLimit((uint32)(self0), (uint32)(value0))
 	return
 }
 
 // SetKeepAliveCount represents the imported method "set-keep-alive-count".
 //
-//	set-keep-alive-count: func(value: u32) -> result<_, error-code>
+//	set-keep-alive-count: func(value: u32)
 //
 //go:nosplit
-func (self TCPSocket) SetKeepAliveCount(value uint32) (result cm.Result[ErrorCode, struct{}, ErrorCode]) {
+func (self TCPSocket) SetKeepAliveCount(value uint32) {
 	self0 := cm.Reinterpret[uint32](self)
 	value0 := (uint32)(value)
-	wasmimport_TCPSocketSetKeepAliveCount((uint32)(self0), (uint32)(value0), &result)
+	wasmimport_TCPSocketSetKeepAliveCount((uint32)(self0), (uint32)(value0))
 	return
 }
 
 // SetKeepAliveEnabled represents the imported method "set-keep-alive-enabled".
 //
-//	set-keep-alive-enabled: func(value: bool) -> result<_, error-code>
+//	set-keep-alive-enabled: func(value: bool)
 //
 //go:nosplit
-func (self TCPSocket) SetKeepAliveEnabled(value bool) (result cm.Result[ErrorCode, struct{}, ErrorCode]) {
+func (self TCPSocket) SetKeepAliveEnabled(value bool) {
 	self0 := cm.Reinterpret[uint32](self)
 	value0 := (uint32)(cm.BoolToU32(value))
-	wasmimport_TCPSocketSetKeepAliveEnabled((uint32)(self0), (uint32)(value0), &result)
+	wasmimport_TCPSocketSetKeepAliveEnabled((uint32)(self0), (uint32)(value0))
 	return
 }
 
 // SetKeepAliveIdleTime represents the imported method "set-keep-alive-idle-time".
 //
-//	set-keep-alive-idle-time: func(value: duration) -> result<_, error-code>
+//	set-keep-alive-idle-time: func(value: duration)
 //
 //go:nosplit
-func (self TCPSocket) SetKeepAliveIdleTime(value Duration) (result cm.Result[ErrorCode, struct{}, ErrorCode]) {
+func (self TCPSocket) SetKeepAliveIdleTime(value Duration) {
 	self0 := cm.Reinterpret[uint32](self)
 	value0 := (uint64)(value)
-	wasmimport_TCPSocketSetKeepAliveIdleTime((uint32)(self0), (uint64)(value0), &result)
+	wasmimport_TCPSocketSetKeepAliveIdleTime((uint32)(self0), (uint64)(value0))
 	return
 }
 
 // SetKeepAliveInterval represents the imported method "set-keep-alive-interval".
 //
-//	set-keep-alive-interval: func(value: duration) -> result<_, error-code>
+//	set-keep-alive-interval: func(value: duration)
 //
 //go:nosplit
-func (self TCPSocket) SetKeepAliveInterval(value Duration) (result cm.Result[ErrorCode, struct{}, ErrorCode]) {
+func (self TCPSocket) SetKeepAliveInterval(value Duration) {
 	self0 := cm.Reinterpret[uint32](self)
 	value0 := (uint64)(value)
-	wasmimport_TCPSocketSetKeepAliveInterval((uint32)(self0), (uint64)(value0), &result)
+	wasmimport_TCPSocketSetKeepAliveInterval((uint32)(self0), (uint64)(value0))
 	return
 }
 
 // SetListenBacklogSize represents the imported method "set-listen-backlog-size".
 //
-//	set-listen-backlog-size: func(value: u64) -> result<_, error-code>
+//	set-listen-backlog-size: func(value: u64)
 //
 //go:nosplit
-func (self TCPSocket) SetListenBacklogSize(value uint64) (result cm.Result[ErrorCode, struct{}, ErrorCode]) {
+func (self TCPSocket) SetListenBacklogSize(value uint64) {
 	self0 := cm.Reinterpret[uint32](self)
 	value0 := (uint64)(value)
-	wasmimport_TCPSocketSetListenBacklogSize((uint32)(self0), (uint64)(value0), &result)
+	wasmimport_TCPSocketSetListenBacklogSize((uint32)(self0), (uint64)(value0))
 	return
 }
 
 // SetReceiveBufferSize represents the imported method "set-receive-buffer-size".
 //
-//	set-receive-buffer-size: func(value: u64) -> result<_, error-code>
+//	set-receive-buffer-size: func(value: u64)
 //
 //go:nosplit
-func (self TCPSocket) SetReceiveBufferSize(value uint64) (result cm.Result[ErrorCode, struct{}, ErrorCode]) {
+func (self TCPSocket) SetReceiveBufferSize(value uint64) {
 	self0 := cm.Reinterpret[uint32](self)
 	value0 := (uint64)(value)
-	wasmimport_TCPSocketSetReceiveBufferSize((uint32)(self0), (uint64)(value0), &result)
+	wasmimport_TCPSocketSetReceiveBufferSize((uint32)(self0), (uint64)(value0))
 	return
 }
 
 // SetSendBufferSize represents the imported method "set-send-buffer-size".
 //
-//	set-send-buffer-size: func(value: u64) -> result<_, error-code>
+//	set-send-buffer-size: func(value: u64)
 //
 //go:nosplit
-func (self TCPSocket) SetSendBufferSize(value uint64) (result cm.Result[ErrorCode, struct{}, ErrorCode]) {
+func (self TCPSocket) SetSendBufferSize(value uint64) {
 	self0 := cm.Reinterpret[uint32](self)
 	value0 := (uint64)(value)
-	wasmimport_TCPSocketSetSendBufferSize((uint32)(self0), (uint64)(value0), &result)
+	wasmimport_TCPSocketSetSendBufferSize((uint32)(self0), (uint64)(value0))
 	return
 }
 
 // Shutdown represents the imported method "shutdown".
 //
-//	shutdown: func(shutdown-type: shutdown-type) -> result<_, error-code>
+//	shutdown: func(shutdown-type: shutdown-type)
 //
 //go:nosplit
-func (self TCPSocket) Shutdown(shutdownType ShutdownType) (result cm.Result[ErrorCode, struct{}, ErrorCode]) {
+func (self TCPSocket) Shutdown(shutdownType ShutdownType) {
 	self0 := cm.Reinterpret[uint32](self)
 	shutdownType0 := (uint32)(shutdownType)
-	wasmimport_TCPSocketShutdown((uint32)(self0), (uint32)(shutdownType0), &result)
+	wasmimport_TCPSocketShutdown((uint32)(self0), (uint32)(shutdownType0))
 	return
 }
 
 // StartBind represents the imported method "start-bind".
 //
-//	start-bind: func(network: borrow<network>, local-address: ip-socket-address) ->
-//	result<_, error-code>
+//	start-bind: func(network: borrow<network>, local-address: ip-socket-address)
 //
 //go:nosplit
-func (self TCPSocket) StartBind(network_ Network, localAddress IPSocketAddress) (result cm.Result[ErrorCode, struct{}, ErrorCode]) {
+func (self TCPSocket) StartBind(network_ Network, localAddress IPSocketAddress) {
 	self0 := cm.Reinterpret[uint32](self)
 	network0 := cm.Reinterpret[uint32](network_)
 	localAddress0, localAddress1, localAddress2, localAddress3, localAddress4, localAddress5, localAddress6, localAddress7, localAddress8, localAddress9, localAddress10, localAddress11 := lower_IPSocketAddress(localAddress)
-	wasmimport_TCPSocketStartBind((uint32)(self0), (uint32)(network0), (uint32)(localAddress0), (uint32)(localAddress1), (uint32)(localAddress2), (uint32)(localAddress3), (uint32)(localAddress4), (uint32)(localAddress5), (uint32)(localAddress6), (uint32)(localAddress7), (uint32)(localAddress8), (uint32)(localAddress9), (uint32)(localAddress10), (uint32)(localAddress11), &result)
+	wasmimport_TCPSocketStartBind((uint32)(self0), (uint32)(network0), (uint32)(localAddress0), (uint32)(localAddress1), (uint32)(localAddress2), (uint32)(localAddress3), (uint32)(localAddress4), (uint32)(localAddress5), (uint32)(localAddress6), (uint32)(localAddress7), (uint32)(localAddress8), (uint32)(localAddress9), (uint32)(localAddress10), (uint32)(localAddress11))
 	return
 }
 
 // StartConnect represents the imported method "start-connect".
 //
 //	start-connect: func(network: borrow<network>, remote-address: ip-socket-address)
-//	-> result<_, error-code>
 //
 //go:nosplit
-func (self TCPSocket) StartConnect(network_ Network, remoteAddress IPSocketAddress) (result cm.Result[ErrorCode, struct{}, ErrorCode]) {
+func (self TCPSocket) StartConnect(network_ Network, remoteAddress IPSocketAddress) {
 	self0 := cm.Reinterpret[uint32](self)
 	network0 := cm.Reinterpret[uint32](network_)
 	remoteAddress0, remoteAddress1, remoteAddress2, remoteAddress3, remoteAddress4, remoteAddress5, remoteAddress6, remoteAddress7, remoteAddress8, remoteAddress9, remoteAddress10, remoteAddress11 := lower_IPSocketAddress(remoteAddress)
-	wasmimport_TCPSocketStartConnect((uint32)(self0), (uint32)(network0), (uint32)(remoteAddress0), (uint32)(remoteAddress1), (uint32)(remoteAddress2), (uint32)(remoteAddress3), (uint32)(remoteAddress4), (uint32)(remoteAddress5), (uint32)(remoteAddress6), (uint32)(remoteAddress7), (uint32)(remoteAddress8), (uint32)(remoteAddress9), (uint32)(remoteAddress10), (uint32)(remoteAddress11), &result)
+	wasmimport_TCPSocketStartConnect((uint32)(self0), (uint32)(network0), (uint32)(remoteAddress0), (uint32)(remoteAddress1), (uint32)(remoteAddress2), (uint32)(remoteAddress3), (uint32)(remoteAddress4), (uint32)(remoteAddress5), (uint32)(remoteAddress6), (uint32)(remoteAddress7), (uint32)(remoteAddress8), (uint32)(remoteAddress9), (uint32)(remoteAddress10), (uint32)(remoteAddress11))
 	return
 }
 
 // StartListen represents the imported method "start-listen".
 //
-//	start-listen: func() -> result<_, error-code>
+//	start-listen: func()
 //
 //go:nosplit
-func (self TCPSocket) StartListen() (result cm.Result[ErrorCode, struct{}, ErrorCode]) {
+func (self TCPSocket) StartListen() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_TCPSocketStartListen((uint32)(self0), &result)
+	wasmimport_TCPSocketStartListen((uint32)(self0))
 	return
 }
 
 // Subscribe represents the imported method "subscribe".
 //
-//	subscribe: func() -> pollable
+//	subscribe: func()
 //
 //go:nosplit
-func (self TCPSocket) Subscribe() (result Pollable) {
+func (self TCPSocket) Subscribe() {
 	self0 := cm.Reinterpret[uint32](self)
-	result0 := wasmimport_TCPSocketSubscribe((uint32)(self0))
-	result = cm.Reinterpret[Pollable]((uint32)(result0))
+	wasmimport_TCPSocketSubscribe((uint32)(self0))
 	return
 }

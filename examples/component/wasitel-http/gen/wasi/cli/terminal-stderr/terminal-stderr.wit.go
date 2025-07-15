@@ -4,7 +4,6 @@
 package terminalstderr
 
 import (
-	"go.bytecodealliance.org/cm"
 	terminaloutput "wasitel-http/gen/wasi/cli/terminal-output"
 )
 
@@ -15,10 +14,10 @@ type TerminalOutput = terminaloutput.TerminalOutput
 
 // GetTerminalStderr represents the imported function "get-terminal-stderr".
 //
-//	get-terminal-stderr: func() -> option<terminal-output>
+//	get-terminal-stderr: func()
 //
 //go:nosplit
-func GetTerminalStderr() (result cm.Option[TerminalOutput]) {
-	wasmimport_GetTerminalStderr(&result)
+func GetTerminalStderr() {
+	wasmimport_GetTerminalStderr()
 	return
 }

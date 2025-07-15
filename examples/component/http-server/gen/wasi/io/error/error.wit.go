@@ -25,11 +25,11 @@ func (self Error) ResourceDrop() {
 
 // ToDebugString represents the imported method "to-debug-string".
 //
-//	to-debug-string: func() -> string
+//	to-debug-string: func()
 //
 //go:nosplit
-func (self Error) ToDebugString() (result string) {
+func (self Error) ToDebugString() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_ErrorToDebugString((uint32)(self0), &result)
+	wasmimport_ErrorToDebugString((uint32)(self0))
 	return
 }

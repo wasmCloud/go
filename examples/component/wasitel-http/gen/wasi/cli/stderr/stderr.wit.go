@@ -4,7 +4,6 @@
 package stderr
 
 import (
-	"go.bytecodealliance.org/cm"
 	"wasitel-http/gen/wasi/io/streams"
 )
 
@@ -15,11 +14,10 @@ type OutputStream = streams.OutputStream
 
 // GetStderr represents the imported function "get-stderr".
 //
-//	get-stderr: func() -> output-stream
+//	get-stderr: func()
 //
 //go:nosplit
-func GetStderr() (result OutputStream) {
-	result0 := wasmimport_GetStderr()
-	result = cm.Reinterpret[OutputStream]((uint32)(result0))
+func GetStderr() {
+	wasmimport_GetStderr()
 	return
 }

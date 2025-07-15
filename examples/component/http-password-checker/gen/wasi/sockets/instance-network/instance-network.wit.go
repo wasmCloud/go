@@ -4,7 +4,6 @@
 package instancenetwork
 
 import (
-	"go.bytecodealliance.org/cm"
 	"http-password-checker/gen/wasi/sockets/network"
 )
 
@@ -15,11 +14,10 @@ type Network = network.Network
 
 // InstanceNetwork represents the imported function "instance-network".
 //
-//	instance-network: func() -> network
+//	instance-network: func()
 //
 //go:nosplit
-func InstanceNetwork() (result Network) {
-	result0 := wasmimport_InstanceNetwork()
-	result = cm.Reinterpret[Network]((uint32)(result0))
+func InstanceNetwork() {
+	wasmimport_InstanceNetwork()
 	return
 }

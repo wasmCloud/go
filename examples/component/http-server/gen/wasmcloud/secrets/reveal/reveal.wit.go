@@ -20,11 +20,11 @@ type SecretValue = store.SecretValue
 
 // Reveal represents the imported function "reveal".
 //
-//	reveal: func(s: borrow<secret>) -> secret-value
+//	reveal: func(s: borrow<secret>)
 //
 //go:nosplit
-func Reveal(s Secret) (result SecretValue) {
+func Reveal(s Secret) {
 	s0 := cm.Reinterpret[uint32](s)
-	wasmimport_Reveal((uint32)(s0), &result)
+	wasmimport_Reveal((uint32)(s0))
 	return
 }

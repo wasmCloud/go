@@ -5,7 +5,6 @@ package terminalstderr
 
 import (
 	terminaloutput "github.com/wasmCloud/go/examples/component/http-client/gen/wasi/cli/terminal-output"
-	"go.bytecodealliance.org/cm"
 )
 
 // TerminalOutput represents the imported type alias "wasi:cli/terminal-stderr@0.2.0#terminal-output".
@@ -15,10 +14,10 @@ type TerminalOutput = terminaloutput.TerminalOutput
 
 // GetTerminalStderr represents the imported function "get-terminal-stderr".
 //
-//	get-terminal-stderr: func() -> option<terminal-output>
+//	get-terminal-stderr: func()
 //
 //go:nosplit
-func GetTerminalStderr() (result cm.Option[TerminalOutput]) {
-	wasmimport_GetTerminalStderr(&result)
+func GetTerminalStderr() {
+	wasmimport_GetTerminalStderr()
 	return
 }

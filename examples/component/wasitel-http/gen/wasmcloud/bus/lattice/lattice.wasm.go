@@ -10,7 +10,7 @@ func wasmimport_CallTargetInterfaceResourceDrop(self0 uint32)
 
 //go:wasmimport wasmcloud:bus/lattice@1.0.0 [constructor]call-target-interface
 //go:noescape
-func wasmimport_NewCallTargetInterface(namespace0 *uint8, namespace1 uint32, package0 *uint8, package1 uint32, interface0 *uint8, interface1 uint32) (result0 uint32)
+func wasmimport_NewCallTargetInterface(namespace0 *uint8, namespace1 uint32, package0 *uint8, package1 uint32, interface0 *uint8, interface1 uint32)
 
 //go:wasmimport wasmcloud:bus/lattice@1.0.0 set-link-name
 //go:noescape

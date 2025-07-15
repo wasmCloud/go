@@ -10,4 +10,4 @@ func wasmimport_ErrorResourceDrop(self0 uint32)
 
 //go:wasmimport wasi:io/error@0.2.0 [method]error.to-debug-string
 //go:noescape
-func wasmimport_ErrorToDebugString(self0 uint32, result *string)
+func wasmimport_ErrorToDebugString(self0 uint32)

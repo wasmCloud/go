@@ -21,20 +21,20 @@ type DateTime struct {
 
 // Now represents the imported function "now".
 //
-//	now: func() -> datetime
+//	now: func()
 //
 //go:nosplit
-func Now() (result DateTime) {
-	wasmimport_Now(&result)
+func Now() {
+	wasmimport_Now()
 	return
 }
 
 // Resolution represents the imported function "resolution".
 //
-//	resolution: func() -> datetime
+//	resolution: func()
 //
 //go:nosplit
-func Resolution() (result DateTime) {
-	wasmimport_Resolution(&result)
+func Resolution() {
+	wasmimport_Resolution()
 	return
 }

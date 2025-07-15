@@ -5,7 +5,6 @@ package stdout
 
 import (
 	"github.com/wasmCloud/go/examples/component/http-server/gen/wasi/io/streams"
-	"go.bytecodealliance.org/cm"
 )
 
 // OutputStream represents the imported type alias "wasi:cli/stdout@0.2.0#output-stream".
@@ -15,11 +14,10 @@ type OutputStream = streams.OutputStream
 
 // GetStdout represents the imported function "get-stdout".
 //
-//	get-stdout: func() -> output-stream
+//	get-stdout: func()
 //
 //go:nosplit
-func GetStdout() (result OutputStream) {
-	result0 := wasmimport_GetStdout()
-	result = cm.Reinterpret[OutputStream]((uint32)(result0))
+func GetStdout() {
+	wasmimport_GetStdout()
 	return
 }

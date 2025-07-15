@@ -4,7 +4,6 @@
 package stdout
 
 import (
-	"go.bytecodealliance.org/cm"
 	"http-password-checker/gen/wasi/io/streams"
 )
 
@@ -15,11 +14,10 @@ type OutputStream = streams.OutputStream
 
 // GetStdout represents the imported function "get-stdout".
 //
-//	get-stdout: func() -> output-stream
+//	get-stdout: func()
 //
 //go:nosplit
-func GetStdout() (result OutputStream) {
-	result0 := wasmimport_GetStdout()
-	result = cm.Reinterpret[OutputStream]((uint32)(result0))
+func GetStdout() {
+	wasmimport_GetStdout()
 	return
 }

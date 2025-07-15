@@ -47,21 +47,21 @@ func (v ConfigError) String() string {
 
 // Get represents the imported function "get".
 //
-//	get: func(key: string) -> result<option<string>, config-error>
+//	get: func(key: string)
 //
 //go:nosplit
-func Get(key string) (result cm.Result[OptionStringShape, cm.Option[string], ConfigError]) {
+func Get(key string) {
 	key0, key1 := cm.LowerString(key)
-	wasmimport_Get((*uint8)(key0), (uint32)(key1), &result)
+	wasmimport_Get((*uint8)(key0), (uint32)(key1))
 	return
 }
 
 // GetAll represents the imported function "get-all".
 //
-//	get-all: func() -> result<list<tuple<string, string>>, config-error>
+//	get-all: func()
 //
 //go:nosplit
-func GetAll() (result cm.Result[ConfigErrorShape, cm.List[[2]string], ConfigError]) {
-	wasmimport_GetAll(&result)
+func GetAll() {
+	wasmimport_GetAll()
 	return
 }

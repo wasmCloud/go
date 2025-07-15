@@ -44,13 +44,12 @@ type ErrorCode = types.ErrorCode
 // or not allowed to be made. Otherwise, protocol errors are reported
 // through the `future-incoming-response`.
 //
-//	handle: func(request: outgoing-request, options: option<request-options>) -> result<future-incoming-response,
-//	error-code>
+//	handle: func(request: outgoing-request, options: option<request-options>)
 //
 //go:nosplit
-func Handle(request OutgoingRequest, options cm.Option[RequestOptions]) (result cm.Result[ErrorCodeShape, FutureIncomingResponse, ErrorCode]) {
+func Handle(request OutgoingRequest, options cm.Option[RequestOptions]) {
 	request0 := cm.Reinterpret[uint32](request)
 	options0, options1 := lower_OptionRequestOptions(options)
-	wasmimport_Handle((uint32)(request0), (uint32)(options0), (uint32)(options1), &result)
+	wasmimport_Handle((uint32)(request0), (uint32)(options0), (uint32)(options1))
 	return
 }

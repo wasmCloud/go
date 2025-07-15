@@ -3,36 +3,32 @@
 // Package environment represents the imported interface "wasi:cli/environment@0.2.0".
 package environment
 
-import (
-	"go.bytecodealliance.org/cm"
-)
-
 // GetEnvironment represents the imported function "get-environment".
 //
-//	get-environment: func() -> list<tuple<string, string>>
+//	get-environment: func()
 //
 //go:nosplit
-func GetEnvironment() (result cm.List[[2]string]) {
-	wasmimport_GetEnvironment(&result)
+func GetEnvironment() {
+	wasmimport_GetEnvironment()
 	return
 }
 
 // GetArguments represents the imported function "get-arguments".
 //
-//	get-arguments: func() -> list<string>
+//	get-arguments: func()
 //
 //go:nosplit
-func GetArguments() (result cm.List[string]) {
-	wasmimport_GetArguments(&result)
+func GetArguments() {
+	wasmimport_GetArguments()
 	return
 }
 
 // InitialCWD represents the imported function "initial-cwd".
 //
-//	initial-cwd: func() -> option<string>
+//	initial-cwd: func()
 //
 //go:nosplit
-func InitialCWD() (result cm.Option[string]) {
-	wasmimport_InitialCWD(&result)
+func InitialCWD() {
+	wasmimport_InitialCWD()
 	return
 }

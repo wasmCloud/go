@@ -6,4 +6,4 @@ package stdout
 
 //go:wasmimport wasi:cli/stdout@0.2.0 get-stdout
 //go:noescape
-func wasmimport_GetStdout() (result0 uint32)
+func wasmimport_GetStdout()

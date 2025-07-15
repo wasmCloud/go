@@ -47,36 +47,34 @@ func (self ResolveAddressStream) ResourceDrop() {
 
 // ResolveNextAddress represents the imported method "resolve-next-address".
 //
-//	resolve-next-address: func() -> result<option<ip-address>, error-code>
+//	resolve-next-address: func()
 //
 //go:nosplit
-func (self ResolveAddressStream) ResolveNextAddress() (result cm.Result[OptionIPAddressShape, cm.Option[IPAddress], ErrorCode]) {
+func (self ResolveAddressStream) ResolveNextAddress() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_ResolveAddressStreamResolveNextAddress((uint32)(self0), &result)
+	wasmimport_ResolveAddressStreamResolveNextAddress((uint32)(self0))
 	return
 }
 
 // Subscribe represents the imported method "subscribe".
 //
-//	subscribe: func() -> pollable
+//	subscribe: func()
 //
 //go:nosplit
-func (self ResolveAddressStream) Subscribe() (result Pollable) {
+func (self ResolveAddressStream) Subscribe() {
 	self0 := cm.Reinterpret[uint32](self)
-	result0 := wasmimport_ResolveAddressStreamSubscribe((uint32)(self0))
-	result = cm.Reinterpret[Pollable]((uint32)(result0))
+	wasmimport_ResolveAddressStreamSubscribe((uint32)(self0))
 	return
 }
 
 // ResolveAddresses represents the imported function "resolve-addresses".
 //
-//	resolve-addresses: func(network: borrow<network>, name: string) -> result<resolve-address-stream,
-//	error-code>
+//	resolve-addresses: func(network: borrow<network>, name: string)
 //
 //go:nosplit
-func ResolveAddresses(network_ Network, name string) (result cm.Result[ResolveAddressStream, ResolveAddressStream, ErrorCode]) {
+func ResolveAddresses(network_ Network, name string) {
 	network0 := cm.Reinterpret[uint32](network_)
 	name0, name1 := cm.LowerString(name)
-	wasmimport_ResolveAddresses((uint32)(network0), (*uint8)(name0), (uint32)(name1), &result)
+	wasmimport_ResolveAddresses((uint32)(network0), (*uint8)(name0), (uint32)(name1))
 	return
 }

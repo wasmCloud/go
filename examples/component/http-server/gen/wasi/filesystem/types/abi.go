@@ -5,20 +5,7 @@ package types
 import (
 	wallclock "github.com/wasmCloud/go/examples/component/http-server/gen/wasi/clocks/wall-clock"
 	"go.bytecodealliance.org/cm"
-	"unsafe"
 )
-
-// MetadataHashValueShape is used for storage in variant or result types.
-type MetadataHashValueShape struct {
-	_     cm.HostLayout
-	shape [unsafe.Sizeof(MetadataHashValue{})]byte
-}
-
-// TupleListU8BoolShape is used for storage in variant or result types.
-type TupleListU8BoolShape struct {
-	_     cm.HostLayout
-	shape [unsafe.Sizeof(cm.Tuple[cm.List[uint8], bool]{})]byte
-}
 
 func lower_DateTime(v wallclock.DateTime) (f0 uint64, f1 uint32) {
 	f0 = (uint64)(v.Seconds)
@@ -35,16 +22,4 @@ func lower_NewTimestamp(v NewTimestamp) (f0 uint32, f1 uint64, f2 uint32) {
 		f2 = (uint32)(v2)
 	}
 	return
-}
-
-// DescriptorStatShape is used for storage in variant or result types.
-type DescriptorStatShape struct {
-	_     cm.HostLayout
-	shape [unsafe.Sizeof(DescriptorStat{})]byte
-}
-
-// OptionDirectoryEntryShape is used for storage in variant or result types.
-type OptionDirectoryEntryShape struct {
-	_     cm.HostLayout
-	shape [unsafe.Sizeof(cm.Option[DirectoryEntry]{})]byte
 }

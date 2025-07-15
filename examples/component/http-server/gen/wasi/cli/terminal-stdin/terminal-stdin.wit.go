@@ -5,7 +5,6 @@ package terminalstdin
 
 import (
 	terminalinput "github.com/wasmCloud/go/examples/component/http-server/gen/wasi/cli/terminal-input"
-	"go.bytecodealliance.org/cm"
 )
 
 // TerminalInput represents the imported type alias "wasi:cli/terminal-stdin@0.2.0#terminal-input".
@@ -15,10 +14,10 @@ type TerminalInput = terminalinput.TerminalInput
 
 // GetTerminalStdin represents the imported function "get-terminal-stdin".
 //
-//	get-terminal-stdin: func() -> option<terminal-input>
+//	get-terminal-stdin: func()
 //
 //go:nosplit
-func GetTerminalStdin() (result cm.Option[TerminalInput]) {
-	wasmimport_GetTerminalStdin(&result)
+func GetTerminalStdin() {
+	wasmimport_GetTerminalStdin()
 	return
 }

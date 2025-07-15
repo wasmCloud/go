@@ -886,9 +886,8 @@ func (self Fields) ResourceDrop() {
 //	constructor()
 //
 //go:nosplit
-func NewFields() (result Fields) {
-	result0 := wasmimport_NewFields()
-	result = cm.Reinterpret[Fields]((uint32)(result0))
+func NewFields() {
+	wasmimport_NewFields()
 	return
 }
 
@@ -910,13 +909,12 @@ func NewFields() (result Fields) {
 // An error result will be returned if any header or value was
 // syntactically invalid, or if a header was forbidden.
 //
-//	from-list: static func(entries: list<tuple<field-key, field-value>>) -> result<fields,
-//	header-error>
+//	from-list: static func(entries: list<tuple<field-key, field-value>>)
 //
 //go:nosplit
-func FieldsFromList(entries cm.List[cm.Tuple[FieldKey, FieldValue]]) (result cm.Result[Fields, Fields, HeaderError]) {
+func FieldsFromList(entries cm.List[cm.Tuple[FieldKey, FieldValue]]) {
 	entries0, entries1 := cm.LowerList(entries)
-	wasmimport_FieldsFromList((*cm.Tuple[FieldKey, FieldValue])(entries0), (uint32)(entries1), &result)
+	wasmimport_FieldsFromList((*cm.Tuple[FieldKey, FieldValue])(entries0), (uint32)(entries1))
 	return
 }
 
@@ -927,14 +925,14 @@ func FieldsFromList(entries cm.List[cm.Tuple[FieldKey, FieldValue]]) (result cm.
 //
 // Fails with `header-error.immutable` if the `fields` are immutable.
 //
-//	append: func(name: field-key, value: field-value) -> result<_, header-error>
+//	append: func(name: field-key, value: field-value)
 //
 //go:nosplit
-func (self Fields) Append(name FieldKey, value FieldValue) (result cm.Result[HeaderError, struct{}, HeaderError]) {
+func (self Fields) Append(name FieldKey, value FieldValue) {
 	self0 := cm.Reinterpret[uint32](self)
 	name0, name1 := cm.LowerString(name)
 	value0, value1 := cm.LowerList(value)
-	wasmimport_FieldsAppend((uint32)(self0), (*uint8)(name0), (uint32)(name1), (*uint8)(value0), (uint32)(value1), &result)
+	wasmimport_FieldsAppend((uint32)(self0), (*uint8)(name0), (uint32)(name1), (*uint8)(value0), (uint32)(value1))
 	return
 }
 
@@ -944,13 +942,12 @@ func (self Fields) Append(name FieldKey, value FieldValue) (result cm.Result[Hea
 // `fields` constructor on the return value of `entries`. The resulting
 // `fields` is mutable.
 //
-//	clone: func() -> fields
+//	clone: func()
 //
 //go:nosplit
-func (self Fields) Clone() (result Fields) {
+func (self Fields) Clone() {
 	self0 := cm.Reinterpret[uint32](self)
-	result0 := wasmimport_FieldsClone((uint32)(self0))
-	result = cm.Reinterpret[Fields]((uint32)(result0))
+	wasmimport_FieldsClone((uint32)(self0))
 	return
 }
 
@@ -961,13 +958,13 @@ func (self Fields) Clone() (result Fields) {
 //
 // Fails with `header-error.immutable` if the `fields` are immutable.
 //
-//	delete: func(name: field-key) -> result<_, header-error>
+//	delete: func(name: field-key)
 //
 //go:nosplit
-func (self Fields) Delete(name FieldKey) (result cm.Result[HeaderError, struct{}, HeaderError]) {
+func (self Fields) Delete(name FieldKey) {
 	self0 := cm.Reinterpret[uint32](self)
 	name0, name1 := cm.LowerString(name)
-	wasmimport_FieldsDelete((uint32)(self0), (*uint8)(name0), (uint32)(name1), &result)
+	wasmimport_FieldsDelete((uint32)(self0), (*uint8)(name0), (uint32)(name1))
 	return
 }
 
@@ -980,12 +977,12 @@ func (self Fields) Delete(name FieldKey) (result cm.Result[HeaderError, struct{}
 // which have multiple values are represented by multiple entries in this
 // list with the same key.
 //
-//	entries: func() -> list<tuple<field-key, field-value>>
+//	entries: func()
 //
 //go:nosplit
-func (self Fields) Entries() (result cm.List[cm.Tuple[FieldKey, FieldValue]]) {
+func (self Fields) Entries() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_FieldsEntries((uint32)(self0), &result)
+	wasmimport_FieldsEntries((uint32)(self0))
 	return
 }
 
@@ -996,13 +993,13 @@ func (self Fields) Entries() (result cm.List[cm.Tuple[FieldKey, FieldValue]]) {
 // present but empty, this is represented by a list with one or more
 // empty field-values present.
 //
-//	get: func(name: field-key) -> list<field-value>
+//	get: func(name: field-key)
 //
 //go:nosplit
-func (self Fields) Get(name FieldKey) (result cm.List[FieldValue]) {
+func (self Fields) Get(name FieldKey) {
 	self0 := cm.Reinterpret[uint32](self)
 	name0, name1 := cm.LowerString(name)
-	wasmimport_FieldsGet((uint32)(self0), (*uint8)(name0), (uint32)(name1), &result)
+	wasmimport_FieldsGet((uint32)(self0), (*uint8)(name0), (uint32)(name1))
 	return
 }
 
@@ -1011,14 +1008,13 @@ func (self Fields) Get(name FieldKey) (result cm.List[FieldValue]) {
 // Returns `true` when the key is present in this `fields`. If the key is
 // syntactically invalid, `false` is returned.
 //
-//	has: func(name: field-key) -> bool
+//	has: func(name: field-key)
 //
 //go:nosplit
-func (self Fields) Has(name FieldKey) (result bool) {
+func (self Fields) Has(name FieldKey) {
 	self0 := cm.Reinterpret[uint32](self)
 	name0, name1 := cm.LowerString(name)
-	result0 := wasmimport_FieldsHas((uint32)(self0), (*uint8)(name0), (uint32)(name1))
-	result = (bool)(cm.U32ToBool((uint32)(result0)))
+	wasmimport_FieldsHas((uint32)(self0), (*uint8)(name0), (uint32)(name1))
 	return
 }
 
@@ -1029,14 +1025,14 @@ func (self Fields) Has(name FieldKey) (result bool) {
 //
 // Fails with `header-error.immutable` if the `fields` are immutable.
 //
-//	set: func(name: field-key, value: list<field-value>) -> result<_, header-error>
+//	set: func(name: field-key, value: list<field-value>)
 //
 //go:nosplit
-func (self Fields) Set(name FieldKey, value cm.List[FieldValue]) (result cm.Result[HeaderError, struct{}, HeaderError]) {
+func (self Fields) Set(name FieldKey, value cm.List[FieldValue]) {
 	self0 := cm.Reinterpret[uint32](self)
 	name0, name1 := cm.LowerString(name)
 	value0, value1 := cm.LowerList(value)
-	wasmimport_FieldsSet((uint32)(self0), (*uint8)(name0), (uint32)(name1), (*FieldValue)(value0), (uint32)(value1), &result)
+	wasmimport_FieldsSet((uint32)(self0), (*uint8)(name0), (uint32)(name1), (*FieldValue)(value0), (uint32)(value1))
 	return
 }
 
@@ -1072,12 +1068,12 @@ func (self IncomingRequest) ResourceDrop() {
 //
 // Returns the authority from the request, if it was present.
 //
-//	authority: func() -> option<string>
+//	authority: func()
 //
 //go:nosplit
-func (self IncomingRequest) Authority() (result cm.Option[string]) {
+func (self IncomingRequest) Authority() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_IncomingRequestAuthority((uint32)(self0), &result)
+	wasmimport_IncomingRequestAuthority((uint32)(self0))
 	return
 }
 
@@ -1086,12 +1082,12 @@ func (self IncomingRequest) Authority() (result cm.Option[string]) {
 // Gives the `incoming-body` associated with this request. Will only
 // return success at most once, and subsequent calls will return error.
 //
-//	consume: func() -> result<incoming-body>
+//	consume: func()
 //
 //go:nosplit
-func (self IncomingRequest) Consume() (result cm.Result[IncomingBody, IncomingBody, struct{}]) {
+func (self IncomingRequest) Consume() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_IncomingRequestConsume((uint32)(self0), &result)
+	wasmimport_IncomingRequestConsume((uint32)(self0))
 	return
 }
 
@@ -1106,13 +1102,12 @@ func (self IncomingRequest) Consume() (result cm.Result[IncomingBody, IncomingBo
 // the parent `incoming-request` is dropped. Dropping this
 // `incoming-request` before all children are dropped will trap.
 //
-//	headers: func() -> headers
+//	headers: func()
 //
 //go:nosplit
-func (self IncomingRequest) Headers() (result Headers) {
+func (self IncomingRequest) Headers() {
 	self0 := cm.Reinterpret[uint32](self)
-	result0 := wasmimport_IncomingRequestHeaders((uint32)(self0))
-	result = cm.Reinterpret[Headers]((uint32)(result0))
+	wasmimport_IncomingRequestHeaders((uint32)(self0))
 	return
 }
 
@@ -1120,12 +1115,12 @@ func (self IncomingRequest) Headers() (result Headers) {
 //
 // Returns the method of the incoming request.
 //
-//	method: func() -> method
+//	method: func()
 //
 //go:nosplit
-func (self IncomingRequest) Method() (result Method) {
+func (self IncomingRequest) Method() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_IncomingRequestMethod((uint32)(self0), &result)
+	wasmimport_IncomingRequestMethod((uint32)(self0))
 	return
 }
 
@@ -1133,12 +1128,12 @@ func (self IncomingRequest) Method() (result Method) {
 //
 // Returns the path with query parameters from the request, as a string.
 //
-//	path-with-query: func() -> option<string>
+//	path-with-query: func()
 //
 //go:nosplit
-func (self IncomingRequest) PathWithQuery() (result cm.Option[string]) {
+func (self IncomingRequest) PathWithQuery() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_IncomingRequestPathWithQuery((uint32)(self0), &result)
+	wasmimport_IncomingRequestPathWithQuery((uint32)(self0))
 	return
 }
 
@@ -1146,12 +1141,12 @@ func (self IncomingRequest) PathWithQuery() (result cm.Option[string]) {
 //
 // Returns the protocol scheme from the request.
 //
-//	scheme: func() -> option<scheme>
+//	scheme: func()
 //
 //go:nosplit
-func (self IncomingRequest) Scheme() (result cm.Option[Scheme]) {
+func (self IncomingRequest) Scheme() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_IncomingRequestScheme((uint32)(self0), &result)
+	wasmimport_IncomingRequestScheme((uint32)(self0))
 	return
 }
 
@@ -1189,10 +1184,9 @@ func (self OutgoingRequest) ResourceDrop() {
 //	constructor(headers: headers)
 //
 //go:nosplit
-func NewOutgoingRequest(headers Headers) (result OutgoingRequest) {
+func NewOutgoingRequest(headers Headers) {
 	headers0 := cm.Reinterpret[uint32](headers)
-	result0 := wasmimport_NewOutgoingRequest((uint32)(headers0))
-	result = cm.Reinterpret[OutgoingRequest]((uint32)(result0))
+	wasmimport_NewOutgoingRequest((uint32)(headers0))
 	return
 }
 
@@ -1202,12 +1196,12 @@ func NewOutgoingRequest(headers Headers) (result OutgoingRequest) {
 // with Related Schemes which do not require an Authority. The HTTP and
 // HTTPS schemes always require an authority.
 //
-//	authority: func() -> option<string>
+//	authority: func()
 //
 //go:nosplit
-func (self OutgoingRequest) Authority() (result cm.Option[string]) {
+func (self OutgoingRequest) Authority() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_OutgoingRequestAuthority((uint32)(self0), &result)
+	wasmimport_OutgoingRequestAuthority((uint32)(self0))
 	return
 }
 
@@ -1220,12 +1214,12 @@ func (self OutgoingRequest) Authority() (result cm.Option[string]) {
 // this `outgoing-request` can be retrieved at most once. Subsequent
 // calls will return error.
 //
-//	body: func() -> result<outgoing-body>
+//	body: func()
 //
 //go:nosplit
-func (self OutgoingRequest) Body() (result cm.Result[OutgoingBody, OutgoingBody, struct{}]) {
+func (self OutgoingRequest) Body() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_OutgoingRequestBody((uint32)(self0), &result)
+	wasmimport_OutgoingRequestBody((uint32)(self0))
 	return
 }
 
@@ -1240,13 +1234,12 @@ func (self OutgoingRequest) Body() (result cm.Result[OutgoingBody, OutgoingBody,
 // `outgoing-request` is dropped, or its ownership is transfered to
 // another component by e.g. `outgoing-handler.handle`.
 //
-//	headers: func() -> headers
+//	headers: func()
 //
 //go:nosplit
-func (self OutgoingRequest) Headers() (result Headers) {
+func (self OutgoingRequest) Headers() {
 	self0 := cm.Reinterpret[uint32](self)
-	result0 := wasmimport_OutgoingRequestHeaders((uint32)(self0))
-	result = cm.Reinterpret[Headers]((uint32)(result0))
+	wasmimport_OutgoingRequestHeaders((uint32)(self0))
 	return
 }
 
@@ -1254,12 +1247,12 @@ func (self OutgoingRequest) Headers() (result Headers) {
 //
 // Get the Method for the Request.
 //
-//	method: func() -> method
+//	method: func()
 //
 //go:nosplit
-func (self OutgoingRequest) Method() (result Method) {
+func (self OutgoingRequest) Method() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_OutgoingRequestMethod((uint32)(self0), &result)
+	wasmimport_OutgoingRequestMethod((uint32)(self0))
 	return
 }
 
@@ -1268,12 +1261,12 @@ func (self OutgoingRequest) Method() (result Method) {
 // Get the combination of the HTTP Path and Query for the Request.
 // When `none`, this represents an empty Path and empty Query.
 //
-//	path-with-query: func() -> option<string>
+//	path-with-query: func()
 //
 //go:nosplit
-func (self OutgoingRequest) PathWithQuery() (result cm.Option[string]) {
+func (self OutgoingRequest) PathWithQuery() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_OutgoingRequestPathWithQuery((uint32)(self0), &result)
+	wasmimport_OutgoingRequestPathWithQuery((uint32)(self0))
 	return
 }
 
@@ -1282,12 +1275,12 @@ func (self OutgoingRequest) PathWithQuery() (result cm.Option[string]) {
 // Get the HTTP Related Scheme for the Request. When `none`, the
 // implementation may choose an appropriate default scheme.
 //
-//	scheme: func() -> option<scheme>
+//	scheme: func()
 //
 //go:nosplit
-func (self OutgoingRequest) Scheme() (result cm.Option[Scheme]) {
+func (self OutgoingRequest) Scheme() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_OutgoingRequestScheme((uint32)(self0), &result)
+	wasmimport_OutgoingRequestScheme((uint32)(self0))
 	return
 }
 
@@ -1298,14 +1291,13 @@ func (self OutgoingRequest) Scheme() (result cm.Option[Scheme]) {
 // HTTPS schemes always require an authority. Fails if the string given is
 // not a syntactically valid uri authority.
 //
-//	set-authority: func(authority: option<string>) -> result
+//	set-authority: func(authority: option<string>)
 //
 //go:nosplit
-func (self OutgoingRequest) SetAuthority(authority cm.Option[string]) (result cm.BoolResult) {
+func (self OutgoingRequest) SetAuthority(authority cm.Option[string]) {
 	self0 := cm.Reinterpret[uint32](self)
 	authority0, authority1, authority2 := lower_OptionString(authority)
-	result0 := wasmimport_OutgoingRequestSetAuthority((uint32)(self0), (uint32)(authority0), (*uint8)(authority1), (uint32)(authority2))
-	result = (cm.BoolResult)((bool)(cm.U32ToBool((uint32)(result0))))
+	wasmimport_OutgoingRequestSetAuthority((uint32)(self0), (uint32)(authority0), (*uint8)(authority1), (uint32)(authority2))
 	return
 }
 
@@ -1314,14 +1306,13 @@ func (self OutgoingRequest) SetAuthority(authority cm.Option[string]) (result cm
 // Set the Method for the Request. Fails if the string present in a
 // `method.other` argument is not a syntactically valid method.
 //
-//	set-method: func(method: method) -> result
+//	set-method: func(method: method)
 //
 //go:nosplit
-func (self OutgoingRequest) SetMethod(method Method) (result cm.BoolResult) {
+func (self OutgoingRequest) SetMethod(method Method) {
 	self0 := cm.Reinterpret[uint32](self)
 	method0, method1, method2 := lower_Method(method)
-	result0 := wasmimport_OutgoingRequestSetMethod((uint32)(self0), (uint32)(method0), (*uint8)(method1), (uint32)(method2))
-	result = (cm.BoolResult)((bool)(cm.U32ToBool((uint32)(result0))))
+	wasmimport_OutgoingRequestSetMethod((uint32)(self0), (uint32)(method0), (*uint8)(method1), (uint32)(method2))
 	return
 }
 
@@ -1331,14 +1322,13 @@ func (self OutgoingRequest) SetMethod(method Method) (result cm.BoolResult) {
 // When `none`, this represents an empty Path and empty Query. Fails is the
 // string given is not a syntactically valid path and query uri component.
 //
-//	set-path-with-query: func(path-with-query: option<string>) -> result
+//	set-path-with-query: func(path-with-query: option<string>)
 //
 //go:nosplit
-func (self OutgoingRequest) SetPathWithQuery(pathWithQuery cm.Option[string]) (result cm.BoolResult) {
+func (self OutgoingRequest) SetPathWithQuery(pathWithQuery cm.Option[string]) {
 	self0 := cm.Reinterpret[uint32](self)
 	pathWithQuery0, pathWithQuery1, pathWithQuery2 := lower_OptionString(pathWithQuery)
-	result0 := wasmimport_OutgoingRequestSetPathWithQuery((uint32)(self0), (uint32)(pathWithQuery0), (*uint8)(pathWithQuery1), (uint32)(pathWithQuery2))
-	result = (cm.BoolResult)((bool)(cm.U32ToBool((uint32)(result0))))
+	wasmimport_OutgoingRequestSetPathWithQuery((uint32)(self0), (uint32)(pathWithQuery0), (*uint8)(pathWithQuery1), (uint32)(pathWithQuery2))
 	return
 }
 
@@ -1348,14 +1338,13 @@ func (self OutgoingRequest) SetPathWithQuery(pathWithQuery cm.Option[string]) (r
 // implementation may choose an appropriate default scheme. Fails if the
 // string given is not a syntactically valid uri scheme.
 //
-//	set-scheme: func(scheme: option<scheme>) -> result
+//	set-scheme: func(scheme: option<scheme>)
 //
 //go:nosplit
-func (self OutgoingRequest) SetScheme(scheme cm.Option[Scheme]) (result cm.BoolResult) {
+func (self OutgoingRequest) SetScheme(scheme cm.Option[Scheme]) {
 	self0 := cm.Reinterpret[uint32](self)
 	scheme0, scheme1, scheme2, scheme3 := lower_OptionScheme(scheme)
-	result0 := wasmimport_OutgoingRequestSetScheme((uint32)(self0), (uint32)(scheme0), (uint32)(scheme1), (*uint8)(scheme2), (uint32)(scheme3))
-	result = (cm.BoolResult)((bool)(cm.U32ToBool((uint32)(result0))))
+	wasmimport_OutgoingRequestSetScheme((uint32)(self0), (uint32)(scheme0), (uint32)(scheme1), (*uint8)(scheme2), (uint32)(scheme3))
 	return
 }
 
@@ -1389,9 +1378,8 @@ func (self RequestOptions) ResourceDrop() {
 //	constructor()
 //
 //go:nosplit
-func NewRequestOptions() (result RequestOptions) {
-	result0 := wasmimport_NewRequestOptions()
-	result = cm.Reinterpret[RequestOptions]((uint32)(result0))
+func NewRequestOptions() {
+	wasmimport_NewRequestOptions()
 	return
 }
 
@@ -1400,12 +1388,12 @@ func NewRequestOptions() (result RequestOptions) {
 // The timeout for receiving subsequent chunks of bytes in the Response
 // body stream.
 //
-//	between-bytes-timeout: func() -> option<duration>
+//	between-bytes-timeout: func()
 //
 //go:nosplit
-func (self RequestOptions) BetweenBytesTimeout() (result cm.Option[Duration]) {
+func (self RequestOptions) BetweenBytesTimeout() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_RequestOptionsBetweenBytesTimeout((uint32)(self0), &result)
+	wasmimport_RequestOptionsBetweenBytesTimeout((uint32)(self0))
 	return
 }
 
@@ -1413,12 +1401,12 @@ func (self RequestOptions) BetweenBytesTimeout() (result cm.Option[Duration]) {
 //
 // The timeout for the initial connect to the HTTP Server.
 //
-//	connect-timeout: func() -> option<duration>
+//	connect-timeout: func()
 //
 //go:nosplit
-func (self RequestOptions) ConnectTimeout() (result cm.Option[Duration]) {
+func (self RequestOptions) ConnectTimeout() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_RequestOptionsConnectTimeout((uint32)(self0), &result)
+	wasmimport_RequestOptionsConnectTimeout((uint32)(self0))
 	return
 }
 
@@ -1426,12 +1414,12 @@ func (self RequestOptions) ConnectTimeout() (result cm.Option[Duration]) {
 //
 // The timeout for receiving the first byte of the Response body.
 //
-//	first-byte-timeout: func() -> option<duration>
+//	first-byte-timeout: func()
 //
 //go:nosplit
-func (self RequestOptions) FirstByteTimeout() (result cm.Option[Duration]) {
+func (self RequestOptions) FirstByteTimeout() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_RequestOptionsFirstByteTimeout((uint32)(self0), &result)
+	wasmimport_RequestOptionsFirstByteTimeout((uint32)(self0))
 	return
 }
 
@@ -1441,14 +1429,13 @@ func (self RequestOptions) FirstByteTimeout() (result cm.Option[Duration]) {
 // body stream. An error return value indicates that this timeout is not
 // supported.
 //
-//	set-between-bytes-timeout: func(duration: option<duration>) -> result
+//	set-between-bytes-timeout: func(duration: option<duration>)
 //
 //go:nosplit
-func (self RequestOptions) SetBetweenBytesTimeout(duration cm.Option[Duration]) (result cm.BoolResult) {
+func (self RequestOptions) SetBetweenBytesTimeout(duration cm.Option[Duration]) {
 	self0 := cm.Reinterpret[uint32](self)
 	duration0, duration1 := lower_OptionDuration(duration)
-	result0 := wasmimport_RequestOptionsSetBetweenBytesTimeout((uint32)(self0), (uint32)(duration0), (uint64)(duration1))
-	result = (cm.BoolResult)((bool)(cm.U32ToBool((uint32)(result0))))
+	wasmimport_RequestOptionsSetBetweenBytesTimeout((uint32)(self0), (uint32)(duration0), (uint64)(duration1))
 	return
 }
 
@@ -1457,14 +1444,13 @@ func (self RequestOptions) SetBetweenBytesTimeout(duration cm.Option[Duration]) 
 // Set the timeout for the initial connect to the HTTP Server. An error
 // return value indicates that this timeout is not supported.
 //
-//	set-connect-timeout: func(duration: option<duration>) -> result
+//	set-connect-timeout: func(duration: option<duration>)
 //
 //go:nosplit
-func (self RequestOptions) SetConnectTimeout(duration cm.Option[Duration]) (result cm.BoolResult) {
+func (self RequestOptions) SetConnectTimeout(duration cm.Option[Duration]) {
 	self0 := cm.Reinterpret[uint32](self)
 	duration0, duration1 := lower_OptionDuration(duration)
-	result0 := wasmimport_RequestOptionsSetConnectTimeout((uint32)(self0), (uint32)(duration0), (uint64)(duration1))
-	result = (cm.BoolResult)((bool)(cm.U32ToBool((uint32)(result0))))
+	wasmimport_RequestOptionsSetConnectTimeout((uint32)(self0), (uint32)(duration0), (uint64)(duration1))
 	return
 }
 
@@ -1473,14 +1459,13 @@ func (self RequestOptions) SetConnectTimeout(duration cm.Option[Duration]) (resu
 // Set the timeout for receiving the first byte of the Response body. An
 // error return value indicates that this timeout is not supported.
 //
-//	set-first-byte-timeout: func(duration: option<duration>) -> result
+//	set-first-byte-timeout: func(duration: option<duration>)
 //
 //go:nosplit
-func (self RequestOptions) SetFirstByteTimeout(duration cm.Option[Duration]) (result cm.BoolResult) {
+func (self RequestOptions) SetFirstByteTimeout(duration cm.Option[Duration]) {
 	self0 := cm.Reinterpret[uint32](self)
 	duration0, duration1 := lower_OptionDuration(duration)
-	result0 := wasmimport_RequestOptionsSetFirstByteTimeout((uint32)(self0), (uint32)(duration0), (uint64)(duration1))
-	result = (cm.BoolResult)((bool)(cm.U32ToBool((uint32)(result0))))
+	wasmimport_RequestOptionsSetFirstByteTimeout((uint32)(self0), (uint32)(duration0), (uint64)(duration1))
 	return
 }
 
@@ -1559,12 +1544,12 @@ func (self IncomingResponse) ResourceDrop() {
 // Returns the incoming body. May be called at most once. Returns error
 // if called additional times.
 //
-//	consume: func() -> result<incoming-body>
+//	consume: func()
 //
 //go:nosplit
-func (self IncomingResponse) Consume() (result cm.Result[IncomingBody, IncomingBody, struct{}]) {
+func (self IncomingResponse) Consume() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_IncomingResponseConsume((uint32)(self0), &result)
+	wasmimport_IncomingResponseConsume((uint32)(self0))
 	return
 }
 
@@ -1578,13 +1563,12 @@ func (self IncomingResponse) Consume() (result cm.Result[IncomingBody, IncomingB
 // This headers resource is a child: it must be dropped before the parent
 // `incoming-response` is dropped.
 //
-//	headers: func() -> headers
+//	headers: func()
 //
 //go:nosplit
-func (self IncomingResponse) Headers() (result Headers) {
+func (self IncomingResponse) Headers() {
 	self0 := cm.Reinterpret[uint32](self)
-	result0 := wasmimport_IncomingResponseHeaders((uint32)(self0))
-	result = cm.Reinterpret[Headers]((uint32)(result0))
+	wasmimport_IncomingResponseHeaders((uint32)(self0))
 	return
 }
 
@@ -1592,13 +1576,12 @@ func (self IncomingResponse) Headers() (result Headers) {
 //
 // Returns the status code from the incoming response.
 //
-//	status: func() -> status-code
+//	status: func()
 //
 //go:nosplit
-func (self IncomingResponse) Status() (result StatusCode) {
+func (self IncomingResponse) Status() {
 	self0 := cm.Reinterpret[uint32](self)
-	result0 := wasmimport_IncomingResponseStatus((uint32)(self0))
-	result = (StatusCode)((uint32)(result0))
+	wasmimport_IncomingResponseStatus((uint32)(self0))
 	return
 }
 
@@ -1632,13 +1615,12 @@ func (self IncomingBody) ResourceDrop() {
 // Takes ownership of `incoming-body`, and returns a `future-trailers`.
 // This function will trap if the `input-stream` child is still alive.
 //
-//	finish: static func(this: incoming-body) -> future-trailers
+//	finish: static func(this: incoming-body)
 //
 //go:nosplit
-func IncomingBodyFinish(this IncomingBody) (result FutureTrailers) {
+func IncomingBodyFinish(this IncomingBody) {
 	this0 := cm.Reinterpret[uint32](this)
-	result0 := wasmimport_IncomingBodyFinish((uint32)(this0))
-	result = cm.Reinterpret[FutureTrailers]((uint32)(result0))
+	wasmimport_IncomingBodyFinish((uint32)(this0))
 	return
 }
 
@@ -1660,12 +1642,12 @@ func IncomingBodyFinish(this IncomingBody) (result FutureTrailers) {
 // and for that backpressure to not inhibit delivery of the trailers if
 // the user does not read the entire body.
 //
-//	%stream: func() -> result<input-stream>
+//	%stream: func()
 //
 //go:nosplit
-func (self IncomingBody) Stream() (result cm.Result[InputStream, InputStream, struct{}]) {
+func (self IncomingBody) Stream() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_IncomingBodyStream((uint32)(self0), &result)
+	wasmimport_IncomingBodyStream((uint32)(self0))
 	return
 }
 
@@ -1713,12 +1695,12 @@ func (self FutureTrailers) ResourceDrop() {
 // `delete` methods will return an error, and the resource must be
 // dropped before the parent `future-trailers` is dropped.
 //
-//	get: func() -> option<result<result<option<trailers>, error-code>>>
+//	get: func()
 //
 //go:nosplit
-func (self FutureTrailers) Get() (result cm.Option[cm.Result[cm.Result[ErrorCodeShape, cm.Option[Trailers], ErrorCode], cm.Result[ErrorCodeShape, cm.Option[Trailers], ErrorCode], struct{}]]) {
+func (self FutureTrailers) Get() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_FutureTrailersGet((uint32)(self0), &result)
+	wasmimport_FutureTrailersGet((uint32)(self0))
 	return
 }
 
@@ -1728,13 +1710,12 @@ func (self FutureTrailers) Get() (result cm.Option[cm.Result[cm.Result[ErrorCode
 // been received, or an error has occured. When this pollable is ready,
 // the `get` method will return `some`.
 //
-//	subscribe: func() -> pollable
+//	subscribe: func()
 //
 //go:nosplit
-func (self FutureTrailers) Subscribe() (result Pollable) {
+func (self FutureTrailers) Subscribe() {
 	self0 := cm.Reinterpret[uint32](self)
-	result0 := wasmimport_FutureTrailersSubscribe((uint32)(self0))
-	result = cm.Reinterpret[Pollable]((uint32)(result0))
+	wasmimport_FutureTrailersSubscribe((uint32)(self0))
 	return
 }
 
@@ -1767,10 +1748,9 @@ func (self OutgoingResponse) ResourceDrop() {
 //	constructor(headers: headers)
 //
 //go:nosplit
-func NewOutgoingResponse(headers Headers) (result OutgoingResponse) {
+func NewOutgoingResponse(headers Headers) {
 	headers0 := cm.Reinterpret[uint32](headers)
-	result0 := wasmimport_NewOutgoingResponse((uint32)(headers0))
-	result = cm.Reinterpret[OutgoingResponse]((uint32)(result0))
+	wasmimport_NewOutgoingResponse((uint32)(headers0))
 	return
 }
 
@@ -1782,12 +1762,12 @@ func NewOutgoingResponse(headers Headers) (result OutgoingResponse) {
 // this `outgoing-response` can be retrieved at most once. Subsequent
 // calls will return error.
 //
-//	body: func() -> result<outgoing-body>
+//	body: func()
 //
 //go:nosplit
-func (self OutgoingResponse) Body() (result cm.Result[OutgoingBody, OutgoingBody, struct{}]) {
+func (self OutgoingResponse) Body() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_OutgoingResponseBody((uint32)(self0), &result)
+	wasmimport_OutgoingResponseBody((uint32)(self0))
 	return
 }
 
@@ -1802,13 +1782,12 @@ func (self OutgoingResponse) Body() (result cm.Result[OutgoingBody, OutgoingBody
 // `outgoing-request` is dropped, or its ownership is transfered to
 // another component by e.g. `outgoing-handler.handle`.
 //
-//	headers: func() -> headers
+//	headers: func()
 //
 //go:nosplit
-func (self OutgoingResponse) Headers() (result Headers) {
+func (self OutgoingResponse) Headers() {
 	self0 := cm.Reinterpret[uint32](self)
-	result0 := wasmimport_OutgoingResponseHeaders((uint32)(self0))
-	result = cm.Reinterpret[Headers]((uint32)(result0))
+	wasmimport_OutgoingResponseHeaders((uint32)(self0))
 	return
 }
 
@@ -1817,14 +1796,13 @@ func (self OutgoingResponse) Headers() (result Headers) {
 // Set the HTTP Status Code for the Response. Fails if the status-code
 // given is not a valid http status code.
 //
-//	set-status-code: func(status-code: status-code) -> result
+//	set-status-code: func(status-code: status-code)
 //
 //go:nosplit
-func (self OutgoingResponse) SetStatusCode(statusCode StatusCode) (result cm.BoolResult) {
+func (self OutgoingResponse) SetStatusCode(statusCode StatusCode) {
 	self0 := cm.Reinterpret[uint32](self)
 	statusCode0 := (uint32)(statusCode)
-	result0 := wasmimport_OutgoingResponseSetStatusCode((uint32)(self0), (uint32)(statusCode0))
-	result = (cm.BoolResult)((bool)(cm.U32ToBool((uint32)(result0))))
+	wasmimport_OutgoingResponseSetStatusCode((uint32)(self0), (uint32)(statusCode0))
 	return
 }
 
@@ -1832,13 +1810,12 @@ func (self OutgoingResponse) SetStatusCode(statusCode StatusCode) (result cm.Boo
 //
 // Get the HTTP Status Code for the Response.
 //
-//	status-code: func() -> status-code
+//	status-code: func()
 //
 //go:nosplit
-func (self OutgoingResponse) StatusCode() (result StatusCode) {
+func (self OutgoingResponse) StatusCode() {
 	self0 := cm.Reinterpret[uint32](self)
-	result0 := wasmimport_OutgoingResponseStatusCode((uint32)(self0))
-	result = (StatusCode)((uint32)(result0))
+	wasmimport_OutgoingResponseStatusCode((uint32)(self0))
 	return
 }
 
@@ -1887,14 +1864,13 @@ func (self OutgoingBody) ResourceDrop() {
 // to the body (via `write`) does not match the value given in the
 // Content-Length.
 //
-//	finish: static func(this: outgoing-body, trailers: option<trailers>) -> result<_,
-//	error-code>
+//	finish: static func(this: outgoing-body, trailers: option<trailers>)
 //
 //go:nosplit
-func OutgoingBodyFinish(this OutgoingBody, trailers cm.Option[Trailers]) (result cm.Result[ErrorCode, struct{}, ErrorCode]) {
+func OutgoingBodyFinish(this OutgoingBody, trailers cm.Option[Trailers]) {
 	this0 := cm.Reinterpret[uint32](this)
 	trailers0, trailers1 := lower_OptionTrailers(trailers)
-	wasmimport_OutgoingBodyFinish((uint32)(this0), (uint32)(trailers0), (uint32)(trailers1), &result)
+	wasmimport_OutgoingBodyFinish((uint32)(this0), (uint32)(trailers0), (uint32)(trailers1))
 	return
 }
 
@@ -1910,12 +1886,12 @@ func OutgoingBodyFinish(this OutgoingBody, trailers cm.Option[Trailers]) (result
 // this `outgoing-body` may be retrieved at most once. Subsequent calls
 // will return error.
 //
-//	write: func() -> result<output-stream>
+//	write: func()
 //
 //go:nosplit
-func (self OutgoingBody) Write() (result cm.Result[OutputStream, OutputStream, struct{}]) {
+func (self OutgoingBody) Write() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_OutgoingBodyWrite((uint32)(self0), &result)
+	wasmimport_OutgoingBodyWrite((uint32)(self0))
 	return
 }
 
@@ -1958,12 +1934,12 @@ func (self FutureIncomingResponse) ResourceDrop() {
 // but those will be reported by the `incoming-body` and its
 // `output-stream` child.
 //
-//	get: func() -> option<result<result<incoming-response, error-code>>>
+//	get: func()
 //
 //go:nosplit
-func (self FutureIncomingResponse) Get() (result cm.Option[cm.Result[cm.Result[ErrorCodeShape, IncomingResponse, ErrorCode], cm.Result[ErrorCodeShape, IncomingResponse, ErrorCode], struct{}]]) {
+func (self FutureIncomingResponse) Get() {
 	self0 := cm.Reinterpret[uint32](self)
-	wasmimport_FutureIncomingResponseGet((uint32)(self0), &result)
+	wasmimport_FutureIncomingResponseGet((uint32)(self0))
 	return
 }
 
@@ -1973,13 +1949,12 @@ func (self FutureIncomingResponse) Get() (result cm.Option[cm.Result[cm.Result[E
 // been received, or an error has occured. When this pollable is ready,
 // the `get` method will return `some`.
 //
-//	subscribe: func() -> pollable
+//	subscribe: func()
 //
 //go:nosplit
-func (self FutureIncomingResponse) Subscribe() (result Pollable) {
+func (self FutureIncomingResponse) Subscribe() {
 	self0 := cm.Reinterpret[uint32](self)
-	result0 := wasmimport_FutureIncomingResponseSubscribe((uint32)(self0))
-	result = cm.Reinterpret[Pollable]((uint32)(result0))
+	wasmimport_FutureIncomingResponseSubscribe((uint32)(self0))
 	return
 }
 
@@ -1997,11 +1972,11 @@ func (self FutureIncomingResponse) Subscribe() (result Pollable) {
 // Note that this function is fallible because not all io-errors are
 // http-related errors.
 //
-//	http-error-code: func(err: borrow<io-error>) -> option<error-code>
+//	http-error-code: func(err: borrow<io-error>)
 //
 //go:nosplit
-func HTTPErrorCode(err IOError) (result cm.Option[ErrorCode]) {
+func HTTPErrorCode(err IOError) {
 	err0 := cm.Reinterpret[uint32](err)
-	wasmimport_HTTPErrorCode((uint32)(err0), &result)
+	wasmimport_HTTPErrorCode((uint32)(err0))
 	return
 }

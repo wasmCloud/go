@@ -3,16 +3,8 @@
 package outgoinghandler
 
 import (
-	"github.com/wasmCloud/go/examples/component/http-server/gen/wasi/http/types"
 	"go.bytecodealliance.org/cm"
-	"unsafe"
 )
-
-// ErrorCodeShape is used for storage in variant or result types.
-type ErrorCodeShape struct {
-	_     cm.HostLayout
-	shape [unsafe.Sizeof(types.ErrorCode{})]byte
-}
 
 func lower_OptionRequestOptions(v cm.Option[RequestOptions]) (f0 uint32, f1 uint32) {
 	some := v.Some()

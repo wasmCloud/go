@@ -4,7 +4,6 @@
 package preopens
 
 import (
-	"go.bytecodealliance.org/cm"
 	"http-password-checker/gen/wasi/filesystem/types"
 )
 
@@ -15,10 +14,10 @@ type Descriptor = types.Descriptor
 
 // GetDirectories represents the imported function "get-directories".
 //
-//	get-directories: func() -> list<tuple<descriptor, string>>
+//	get-directories: func()
 //
 //go:nosplit
-func GetDirectories() (result cm.List[cm.Tuple[Descriptor, string]]) {
-	wasmimport_GetDirectories(&result)
+func GetDirectories() {
+	wasmimport_GetDirectories()
 	return
 }

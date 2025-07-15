@@ -6,7 +6,6 @@ package tcpcreatesocket
 import (
 	"github.com/wasmCloud/go/examples/component/http-client/gen/wasi/sockets/network"
 	"github.com/wasmCloud/go/examples/component/http-client/gen/wasi/sockets/tcp"
-	"go.bytecodealliance.org/cm"
 )
 
 // Network represents the imported type alias "wasi:sockets/tcp-create-socket@0.2.0#network".
@@ -31,12 +30,11 @@ type TCPSocket = tcp.TCPSocket
 
 // CreateTCPSocket represents the imported function "create-tcp-socket".
 //
-//	create-tcp-socket: func(address-family: ip-address-family) -> result<tcp-socket,
-//	error-code>
+//	create-tcp-socket: func(address-family: ip-address-family)
 //
 //go:nosplit
-func CreateTCPSocket(addressFamily IPAddressFamily) (result cm.Result[TCPSocket, TCPSocket, ErrorCode]) {
+func CreateTCPSocket(addressFamily IPAddressFamily) {
 	addressFamily0 := (uint32)(addressFamily)
-	wasmimport_CreateTCPSocket((uint32)(addressFamily0), &result)
+	wasmimport_CreateTCPSocket((uint32)(addressFamily0))
 	return
 }

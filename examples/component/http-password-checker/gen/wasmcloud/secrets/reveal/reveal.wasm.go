@@ -6,4 +6,4 @@ package reveal
 
 //go:wasmimport wasmcloud:secrets/reveal@0.1.0-draft reveal
 //go:noescape
-func wasmimport_Reveal(s0 uint32, result *SecretValue)
+func wasmimport_Reveal(s0 uint32)

@@ -4,7 +4,6 @@
 package stdin
 
 import (
-	"go.bytecodealliance.org/cm"
 	"wasitel-http/gen/wasi/io/streams"
 )
 
@@ -15,11 +14,10 @@ type InputStream = streams.InputStream
 
 // GetStdin represents the imported function "get-stdin".
 //
-//	get-stdin: func() -> input-stream
+//	get-stdin: func()
 //
 //go:nosplit
-func GetStdin() (result InputStream) {
-	result0 := wasmimport_GetStdin()
-	result = cm.Reinterpret[InputStream]((uint32)(result0))
+func GetStdin() {
+	wasmimport_GetStdin()
 	return
 }

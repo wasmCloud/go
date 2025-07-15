@@ -5,10 +5,10 @@ package insecureseed
 
 // InsecureSeed represents the imported function "insecure-seed".
 //
-//	insecure-seed: func() -> tuple<u64, u64>
+//	insecure-seed: func()
 //
 //go:nosplit
-func InsecureSeed() (result [2]uint64) {
-	wasmimport_InsecureSeed(&result)
+func InsecureSeed() {
+	wasmimport_InsecureSeed()
 	return
 }

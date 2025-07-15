@@ -4,7 +4,6 @@
 package terminalstdin
 
 import (
-	"go.bytecodealliance.org/cm"
 	terminalinput "http-password-checker/gen/wasi/cli/terminal-input"
 )
 
@@ -15,10 +14,10 @@ type TerminalInput = terminalinput.TerminalInput
 
 // GetTerminalStdin represents the imported function "get-terminal-stdin".
 //
-//	get-terminal-stdin: func() -> option<terminal-input>
+//	get-terminal-stdin: func()
 //
 //go:nosplit
-func GetTerminalStdin() (result cm.Option[TerminalInput]) {
-	wasmimport_GetTerminalStdin(&result)
+func GetTerminalStdin() {
+	wasmimport_GetTerminalStdin()
 	return
 }

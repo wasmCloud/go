@@ -4,27 +4,8 @@ package tcp
 
 import (
 	"go.bytecodealliance.org/cm"
-	"unsafe"
 	"wasitel-http/gen/wasi/sockets/network"
 )
-
-// TupleTCPSocketInputStreamOutputStreamShape is used for storage in variant or result types.
-type TupleTCPSocketInputStreamOutputStreamShape struct {
-	_     cm.HostLayout
-	shape [unsafe.Sizeof(cm.Tuple3[TCPSocket, InputStream, OutputStream]{})]byte
-}
-
-// TupleInputStreamOutputStreamShape is used for storage in variant or result types.
-type TupleInputStreamOutputStreamShape struct {
-	_     cm.HostLayout
-	shape [unsafe.Sizeof(cm.Tuple[InputStream, OutputStream]{})]byte
-}
-
-// IPSocketAddressShape is used for storage in variant or result types.
-type IPSocketAddressShape struct {
-	_     cm.HostLayout
-	shape [unsafe.Sizeof(network.IPSocketAddress{})]byte
-}
 
 func lower_IPv4Address(v network.IPv4Address) (f0 uint32, f1 uint32, f2 uint32, f3 uint32) {
 	f0 = (uint32)(v[0])

@@ -5,7 +5,6 @@ package stderr
 
 import (
 	"github.com/wasmCloud/go/examples/component/http-client/gen/wasi/io/streams"
-	"go.bytecodealliance.org/cm"
 )
 
 // OutputStream represents the imported type alias "wasi:cli/stderr@0.2.0#output-stream".
@@ -15,11 +14,10 @@ type OutputStream = streams.OutputStream
 
 // GetStderr represents the imported function "get-stderr".
 //
-//	get-stderr: func() -> output-stream
+//	get-stderr: func()
 //
 //go:nosplit
-func GetStderr() (result OutputStream) {
-	result0 := wasmimport_GetStderr()
-	result = cm.Reinterpret[OutputStream]((uint32)(result0))
+func GetStderr() {
+	wasmimport_GetStderr()
 	return
 }

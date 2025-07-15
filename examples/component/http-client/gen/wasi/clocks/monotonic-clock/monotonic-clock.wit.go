@@ -5,7 +5,6 @@ package monotonicclock
 
 import (
 	"github.com/wasmCloud/go/examples/component/http-client/gen/wasi/io/poll"
-	"go.bytecodealliance.org/cm"
 )
 
 // Pollable represents the imported type alias "wasi:clocks/monotonic-clock@0.2.0#pollable".
@@ -25,46 +24,42 @@ type Duration uint64
 
 // Now represents the imported function "now".
 //
-//	now: func() -> instant
+//	now: func()
 //
 //go:nosplit
-func Now() (result Instant) {
-	result0 := wasmimport_Now()
-	result = (Instant)((uint64)(result0))
+func Now() {
+	wasmimport_Now()
 	return
 }
 
 // Resolution represents the imported function "resolution".
 //
-//	resolution: func() -> duration
+//	resolution: func()
 //
 //go:nosplit
-func Resolution() (result Duration) {
-	result0 := wasmimport_Resolution()
-	result = (Duration)((uint64)(result0))
+func Resolution() {
+	wasmimport_Resolution()
 	return
 }
 
 // SubscribeInstant represents the imported function "subscribe-instant".
 //
-//	subscribe-instant: func(when: instant) -> pollable
+//	subscribe-instant: func(when: instant)
 //
 //go:nosplit
-func SubscribeInstant(when Instant) (result Pollable) {
+func SubscribeInstant(when Instant) {
 	when0 := (uint64)(when)
-	result0 := wasmimport_SubscribeInstant((uint64)(when0))
-	result = cm.Reinterpret[Pollable]((uint32)(result0))
+	wasmimport_SubscribeInstant((uint64)(when0))
 	return
 }
 
 // SubscribeDuration represents the imported function "subscribe-duration".
 //
-//	subscribe-duration: func(when: duration) -> pollable
+//	subscribe-duration: func(when: duration)
 //
 //go:nosplit
-func SubscribeDuration(when Duration) (result Pollable) {
+func SubscribeDuration(when Duration) {
 	when0 := (uint64)(when)
-	result0 := wasmimport_SubscribeDuration((uint64)(when0))
-	result = cm.Reinterpret[Pollable]((uint32)(result0))
+	wasmimport_SubscribeDuration((uint64)(when0))
 	return
 }

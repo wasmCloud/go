@@ -2,10 +2,6 @@
 
 package store
 
-import (
-	"go.bytecodealliance.org/cm"
-)
-
 // This file contains wasmimport and wasmexport declarations for "wasmcloud:secrets@0.1.0-draft".
 
 //go:wasmimport wasmcloud:secrets/store@0.1.0-draft [resource-drop]secret
@@ -14,4 +10,4 @@ func wasmimport_SecretResourceDrop(self0 uint32)
 
 //go:wasmimport wasmcloud:secrets/store@0.1.0-draft get
 //go:noescape
-func wasmimport_Get(key0 *uint8, key1 uint32, result *cm.Result[SecretsErrorShape, Secret, SecretsError])
+func wasmimport_Get(key0 *uint8, key1 uint32)

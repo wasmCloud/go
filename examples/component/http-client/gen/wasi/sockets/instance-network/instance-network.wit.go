@@ -5,7 +5,6 @@ package instancenetwork
 
 import (
 	"github.com/wasmCloud/go/examples/component/http-client/gen/wasi/sockets/network"
-	"go.bytecodealliance.org/cm"
 )
 
 // Network represents the imported type alias "wasi:sockets/instance-network@0.2.0#network".
@@ -15,11 +14,10 @@ type Network = network.Network
 
 // InstanceNetwork represents the imported function "instance-network".
 //
-//	instance-network: func() -> network
+//	instance-network: func()
 //
 //go:nosplit
-func InstanceNetwork() (result Network) {
-	result0 := wasmimport_InstanceNetwork()
-	result = cm.Reinterpret[Network]((uint32)(result0))
+func InstanceNetwork() {
+	wasmimport_InstanceNetwork()
 	return
 }

@@ -3,28 +3,23 @@
 // Package random represents the imported interface "wasi:random/random@0.2.0".
 package random
 
-import (
-	"go.bytecodealliance.org/cm"
-)
-
 // GetRandomBytes represents the imported function "get-random-bytes".
 //
-//	get-random-bytes: func(len: u64) -> list<u8>
+//	get-random-bytes: func(len: u64)
 //
 //go:nosplit
-func GetRandomBytes(len_ uint64) (result cm.List[uint8]) {
+func GetRandomBytes(len_ uint64) {
 	len0 := (uint64)(len_)
-	wasmimport_GetRandomBytes((uint64)(len0), &result)
+	wasmimport_GetRandomBytes((uint64)(len0))
 	return
 }
 
 // GetRandomU64 represents the imported function "get-random-u64".
 //
-//	get-random-u64: func() -> u64
+//	get-random-u64: func()
 //
 //go:nosplit
-func GetRandomU64() (result uint64) {
-	result0 := wasmimport_GetRandomU64()
-	result = (uint64)((uint64)(result0))
+func GetRandomU64() {
+	wasmimport_GetRandomU64()
 	return
 }

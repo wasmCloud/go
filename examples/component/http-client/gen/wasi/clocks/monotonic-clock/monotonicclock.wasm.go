@@ -6,16 +6,16 @@ package monotonicclock
 
 //go:wasmimport wasi:clocks/monotonic-clock@0.2.0 now
 //go:noescape
-func wasmimport_Now() (result0 uint64)
+func wasmimport_Now()
 
 //go:wasmimport wasi:clocks/monotonic-clock@0.2.0 resolution
 //go:noescape
-func wasmimport_Resolution() (result0 uint64)
+func wasmimport_Resolution()
 
 //go:wasmimport wasi:clocks/monotonic-clock@0.2.0 subscribe-instant
 //go:noescape
-func wasmimport_SubscribeInstant(when0 uint64) (result0 uint32)
+func wasmimport_SubscribeInstant(when0 uint64)
 
 //go:wasmimport wasi:clocks/monotonic-clock@0.2.0 subscribe-duration
 //go:noescape
-func wasmimport_SubscribeDuration(when0 uint64) (result0 uint32)
+func wasmimport_SubscribeDuration(when0 uint64)

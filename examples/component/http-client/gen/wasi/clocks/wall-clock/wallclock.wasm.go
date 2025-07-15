@@ -6,8 +6,8 @@ package wallclock
 
 //go:wasmimport wasi:clocks/wall-clock@0.2.0 now
 //go:noescape
-func wasmimport_Now(result *DateTime)
+func wasmimport_Now()
 
 //go:wasmimport wasi:clocks/wall-clock@0.2.0 resolution
 //go:noescape
-func wasmimport_Resolution(result *DateTime)
+func wasmimport_Resolution()

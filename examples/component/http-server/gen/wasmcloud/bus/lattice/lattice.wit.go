@@ -28,12 +28,11 @@ func (self CallTargetInterface) ResourceDrop() {
 //	constructor(namespace: string, %package: string, %interface: string)
 //
 //go:nosplit
-func NewCallTargetInterface(namespace string, package_ string, interface_ string) (result CallTargetInterface) {
+func NewCallTargetInterface(namespace string, package_ string, interface_ string) {
 	namespace0, namespace1 := cm.LowerString(namespace)
 	package0, package1 := cm.LowerString(package_)
 	interface0, interface1 := cm.LowerString(interface_)
-	result0 := wasmimport_NewCallTargetInterface((*uint8)(namespace0), (uint32)(namespace1), (*uint8)(package0), (uint32)(package1), (*uint8)(interface0), (uint32)(interface1))
-	result = cm.Reinterpret[CallTargetInterface]((uint32)(result0))
+	wasmimport_NewCallTargetInterface((*uint8)(namespace0), (uint32)(namespace1), (*uint8)(package0), (uint32)(package1), (*uint8)(interface0), (uint32)(interface1))
 	return
 }
 

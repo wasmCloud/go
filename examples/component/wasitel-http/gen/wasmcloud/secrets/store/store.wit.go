@@ -114,11 +114,11 @@ func (self Secret) ResourceDrop() {
 
 // Get represents the imported function "get".
 //
-//	get: func(key: string) -> result<secret, secrets-error>
+//	get: func(key: string)
 //
 //go:nosplit
-func Get(key string) (result cm.Result[SecretsErrorShape, Secret, SecretsError]) {
+func Get(key string) {
 	key0, key1 := cm.LowerString(key)
-	wasmimport_Get((*uint8)(key0), (uint32)(key1), &result)
+	wasmimport_Get((*uint8)(key0), (uint32)(key1))
 	return
 }

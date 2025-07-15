@@ -4,7 +4,6 @@
 package terminalstdout
 
 import (
-	"go.bytecodealliance.org/cm"
 	terminaloutput "http-password-checker/gen/wasi/cli/terminal-output"
 )
 
@@ -15,10 +14,10 @@ type TerminalOutput = terminaloutput.TerminalOutput
 
 // GetTerminalStdout represents the imported function "get-terminal-stdout".
 //
-//	get-terminal-stdout: func() -> option<terminal-output>
+//	get-terminal-stdout: func()
 //
 //go:nosplit
-func GetTerminalStdout() (result cm.Option[TerminalOutput]) {
-	wasmimport_GetTerminalStdout(&result)
+func GetTerminalStdout() {
+	wasmimport_GetTerminalStdout()
 	return
 }

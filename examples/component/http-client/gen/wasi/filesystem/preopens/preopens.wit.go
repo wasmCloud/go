@@ -5,7 +5,6 @@ package preopens
 
 import (
 	"github.com/wasmCloud/go/examples/component/http-client/gen/wasi/filesystem/types"
-	"go.bytecodealliance.org/cm"
 )
 
 // Descriptor represents the imported type alias "wasi:filesystem/preopens@0.2.0#descriptor".
@@ -15,10 +14,10 @@ type Descriptor = types.Descriptor
 
 // GetDirectories represents the imported function "get-directories".
 //
-//	get-directories: func() -> list<tuple<descriptor, string>>
+//	get-directories: func()
 //
 //go:nosplit
-func GetDirectories() (result cm.List[cm.Tuple[Descriptor, string]]) {
-	wasmimport_GetDirectories(&result)
+func GetDirectories() {
+	wasmimport_GetDirectories()
 	return
 }

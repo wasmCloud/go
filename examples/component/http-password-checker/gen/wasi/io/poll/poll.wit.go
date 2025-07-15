@@ -36,23 +36,22 @@ func (self Pollable) Block() {
 
 // Ready represents the imported method "ready".
 //
-//	ready: func() -> bool
+//	ready: func()
 //
 //go:nosplit
-func (self Pollable) Ready() (result bool) {
+func (self Pollable) Ready() {
 	self0 := cm.Reinterpret[uint32](self)
-	result0 := wasmimport_PollableReady((uint32)(self0))
-	result = (bool)(cm.U32ToBool((uint32)(result0)))
+	wasmimport_PollableReady((uint32)(self0))
 	return
 }
 
 // Poll represents the imported function "poll".
 //
-//	poll: func(in: list<borrow<pollable>>) -> list<u32>
+//	poll: func(in: list<borrow<pollable>>)
 //
 //go:nosplit
-func Poll(in cm.List[Pollable]) (result cm.List[uint32]) {
+func Poll(in cm.List[Pollable]) {
 	in0, in1 := cm.LowerList(in)
-	wasmimport_Poll((*Pollable)(in0), (uint32)(in1), &result)
+	wasmimport_Poll((*Pollable)(in0), (uint32)(in1))
 	return
 }

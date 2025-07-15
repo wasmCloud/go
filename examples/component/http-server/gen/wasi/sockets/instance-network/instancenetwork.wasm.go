@@ -6,4 +6,4 @@ package instancenetwork
 
 //go:wasmimport wasi:sockets/instance-network@0.2.0 instance-network
 //go:noescape
-func wasmimport_InstanceNetwork() (result0 uint32)
+func wasmimport_InstanceNetwork()
