@@ -2,4 +2,5 @@
 Cargo.lock
 
 # Wash build artifacts
-build
+gen/*
+build/*
