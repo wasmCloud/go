@@ -39,6 +39,8 @@ go.bytecodealliance.org/cm v0.1.0 h1:78Rk4d5rgir5Hm+LMFpDWhjmFBWrKDFPSKUwDBj+nwo
 go.bytecodealliance.org/cm v0.1.0/go.mod h1:NZ2UT0DyGhBfpIPOxPMCuG6g1YTR4YF3xweD7mHX5VQ=
 go.wasmcloud.dev/component v0.0.5 h1:z9+fq1CJKm/yom33ctd5wfo8TVunm5IaI7EJdY2i9hk=
 go.wasmcloud.dev/component v0.0.5/go.mod h1:PvVHQ7Xp8D9kZnVB3fm8lqWAcC6Yxd7CI/snXZUAG8E=
+go.wasmcloud.dev/component v0.0.8 h1:6tQjaKqYpxpB5s0ZQku4pdZN7mjOQEsUCVo+vfuqLKE=
+go.wasmcloud.dev/component v0.0.8/go.mod h1:Ww1oCrzFXk/QSlE7X/vJRI7rF3bmhCc/Usp7Isf8Atw=
 go.wasmcloud.dev/wadge v0.7.0 h1:eUt0jODh6xQ5HEof1PFSgDp+evrNs+lD1LYCYeRR2Cg=
 go.wasmcloud.dev/wadge v0.7.0/go.mod h1:SMnPSWZFTkXyUX0GJ11mcdc7ZoMITtbAlPLlpvGJd4M=
 golang.org/x/mod v0.22.0 h1:D4nJWe9zXqHOmWqj4VMOJhvzj7bEZg4wEYa759z1pH4=

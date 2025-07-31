@@ -9,7 +9,7 @@ require (
 	go.opentelemetry.io/otel/sdk/log v0.12.2
 	go.opentelemetry.io/otel/sdk/metric v1.36.0
 	go.opentelemetry.io/otel/trace v1.36.0
-	go.wasmcloud.dev/component v0.0.6
+	go.wasmcloud.dev/component v0.0.8
 )
 
 require (
