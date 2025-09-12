@@ -152,13 +152,23 @@ func (r *outgoingBody) Close() error {
 }
 
 func (r *outgoingBody) Write(p []byte) (n int, err error) {
-	contents := cm.ToList(p)
-	writeResult := r.stream.BlockingWriteAndFlush(contents)
-	if err := writeResult.Err(); err != nil {
-		if err.Closed() {
-			return 0, io.EOF
+	// Split the input into 4096-byte chunks to avoid exceeding stream buffer limits
+	const chunkSize = 4096
+	totalWritten := 0
+
+	for offset := 0; offset < len(p); offset += chunkSize {
+		end := min(offset+chunkSize, len(p))
+		chunk := cm.ToList(p[offset:end])
+
+		writeResult := r.stream.BlockingWriteAndFlush(chunk)
+		if err := writeResult.Err(); err != nil {
+			if err.Closed() {
+				return totalWritten, io.EOF
+			}
+			return totalWritten, fmt.Errorf("failed to write to response body's stream: %s", err.LastOperationFailed().ToDebugString())
 		}
-		return 0, fmt.Errorf("failed to write to response body's stream: %s", err.LastOperationFailed().ToDebugString())
+
+		totalWritten += end - offset
 	}
-	return len(p), nil
+	return totalWritten, nil
 }
