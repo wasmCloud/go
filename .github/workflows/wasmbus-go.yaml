@@ -50,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      - uses: taiki-e/install-action@ad95d4e02e061d4390c4b66ef5ed56c7fee3d2ce # v2.58.17
+      - uses: taiki-e/install-action@d6912b47771be2c443ec90dbb3d28e023987e782 # v2.62.1
         with:
           tool: ${{ format('wash-cli@{0}', env.WASH_VERSION) }}
       - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
@@ -101,7 +101,7 @@ jobs:
           version: ${{ env.GOLANGCI_VERSION }}
           working-directory: "./examples/wasmbus/${{ matrix.example }}"
           args: --config=${{ github.workspace }}/.golangci.yml
-      - uses: taiki-e/install-action@ad95d4e02e061d4390c4b66ef5ed56c7fee3d2ce # v2.58.17
+      - uses: taiki-e/install-action@d6912b47771be2c443ec90dbb3d28e023987e782 # v2.62.1
         with:
           tool: ${{ format('wash-cli@{0}', env.WASH_VERSION) }}
 
