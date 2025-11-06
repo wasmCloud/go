@@ -4,12 +4,11 @@ package query
 
 import (
 	"go.bytecodealliance.org/cm"
-	"sqldb-postgres-query/gen/wasmcloud/postgres/types"
 	"unsafe"
 )
 
 // QueryErrorShape is used for storage in variant or result types.
 type QueryErrorShape struct {
 	_     cm.HostLayout
-	shape [unsafe.Sizeof(types.QueryError{})]byte
+	shape [unsafe.Sizeof(QueryError{})]byte
 }

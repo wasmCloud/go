@@ -4,9 +4,9 @@
 package udp
 
 import (
-	"github.com/wasmCloud/go/examples/component/invoke/gen/wasi/io/poll"
-	"github.com/wasmCloud/go/examples/component/invoke/gen/wasi/sockets/network"
 	"go.bytecodealliance.org/cm"
+	"invoke/gen/wasi/io/poll"
+	"invoke/gen/wasi/sockets/network"
 )
 
 // Pollable represents the imported type alias "wasi:sockets/udp@0.2.0#pollable".
@@ -41,9 +41,9 @@ type IPAddressFamily = network.IPAddressFamily
 //		remote-address: ip-socket-address,
 //	}
 type IncomingDatagram struct {
-	_             cm.HostLayout
-	Data          cm.List[uint8]
-	RemoteAddress IPSocketAddress
+	_             cm.HostLayout   `json:"-"`
+	Data          cm.List[uint8]  `json:"data"`
+	RemoteAddress IPSocketAddress `json:"remote-address"`
 }
 
 // OutgoingDatagram represents the record "wasi:sockets/udp@0.2.0#outgoing-datagram".
@@ -53,9 +53,9 @@ type IncomingDatagram struct {
 //		remote-address: option<ip-socket-address>,
 //	}
 type OutgoingDatagram struct {
-	_             cm.HostLayout
-	Data          cm.List[uint8]
-	RemoteAddress cm.Option[IPSocketAddress]
+	_             cm.HostLayout              `json:"-"`
+	Data          cm.List[uint8]             `json:"data"`
+	RemoteAddress cm.Option[IPSocketAddress] `json:"remote-address"`
 }
 
 // UDPSocket represents the imported resource "wasi:sockets/udp@0.2.0#udp-socket".

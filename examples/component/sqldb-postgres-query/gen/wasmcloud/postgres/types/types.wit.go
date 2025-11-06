@@ -56,7 +56,7 @@ func (self *QueryError) Unexpected() *string {
 	return cm.Case[string](self, 2)
 }
 
-var stringsQueryError = [3]string{
+var _QueryErrorStrings = [3]string{
 	"invalid-params",
 	"invalid-query",
 	"unexpected",
@@ -64,7 +64,7 @@ var stringsQueryError = [3]string{
 
 // String implements [fmt.Stringer], returning the variant case name of v.
 func (v QueryError) String() string {
-	return stringsQueryError[v.Tag()]
+	return _QueryErrorStrings[v.Tag()]
 }
 
 // StatementPrepareError represents the variant "wasmcloud:postgres/types@0.1.1-draft#statement-prepare-error".
@@ -88,13 +88,13 @@ func (self *StatementPrepareError) Unexpected() *string {
 	return cm.Case[string](self, 0)
 }
 
-var stringsStatementPrepareError = [1]string{
+var _StatementPrepareErrorStrings = [1]string{
 	"unexpected",
 }
 
 // String implements [fmt.Stringer], returning the variant case name of v.
 func (v StatementPrepareError) String() string {
-	return stringsStatementPrepareError[v.Tag()]
+	return _StatementPrepareErrorStrings[v.Tag()]
 }
 
 // PreparedStatementExecError represents the variant "wasmcloud:postgres/types@0.1.1-draft#prepared-statement-exec-error".
@@ -145,7 +145,7 @@ func (self *PreparedStatementExecError) Unexpected() *string {
 	return cm.Case[string](self, 2)
 }
 
-var stringsPreparedStatementExecError = [3]string{
+var _PreparedStatementExecErrorStrings = [3]string{
 	"unknown-prepared-query",
 	"query-error",
 	"unexpected",
@@ -153,7 +153,7 @@ var stringsPreparedStatementExecError = [3]string{
 
 // String implements [fmt.Stringer], returning the variant case name of v.
 func (v PreparedStatementExecError) String() string {
-	return stringsPreparedStatementExecError[v.Tag()]
+	return _PreparedStatementExecErrorStrings[v.Tag()]
 }
 
 // HashableF64 represents the tuple "wasmcloud:postgres/types@0.1.1-draft#hashable-f64".
@@ -278,7 +278,7 @@ const (
 	LexemeWeightD
 )
 
-var stringsLexemeWeight = [4]string{
+var _LexemeWeightStrings = [4]string{
 	"A",
 	"B",
 	"C",
@@ -287,8 +287,21 @@ var stringsLexemeWeight = [4]string{
 
 // String implements [fmt.Stringer], returning the enum case name of e.
 func (e LexemeWeight) String() string {
-	return stringsLexemeWeight[e]
+	return _LexemeWeightStrings[e]
 }
+
+// MarshalText implements [encoding.TextMarshaler].
+func (e LexemeWeight) MarshalText() ([]byte, error) {
+	return []byte(e.String()), nil
+}
+
+// UnmarshalText implements [encoding.TextUnmarshaler], unmarshaling into an enum
+// case. Returns an error if the supplied text is not one of the enum cases.
+func (e *LexemeWeight) UnmarshalText(text []byte) error {
+	return _LexemeWeightUnmarshalCase(e, text)
+}
+
+var _LexemeWeightUnmarshalCase = cm.CaseUnmarshaler[LexemeWeight](_LexemeWeightStrings[:])
 
 // Lexeme represents the record "wasmcloud:postgres/types@0.1.1-draft#lexeme".
 //
@@ -300,15 +313,15 @@ func (e LexemeWeight) String() string {
 //		data: string,
 //	}
 type Lexeme struct {
-	_ cm.HostLayout
+	_ cm.HostLayout `json:"-"`
 	// Position (1->16383)
-	Position cm.Option[uint16]
+	Position cm.Option[uint16] `json:"position"`
 
 	// Weight of the lexeme (in a relevant ts-vector)
-	Weight cm.Option[LexemeWeight]
+	Weight cm.Option[LexemeWeight] `json:"weight"`
 
 	// Data
-	Data string
+	Data string `json:"data"`
 }
 
 // Offset represents the variant "wasmcloud:postgres/types@0.1.1-draft#offset".
@@ -345,14 +358,14 @@ func (self *Offset) WesternHemisphereSecs() *int32 {
 	return cm.Case[int32](self, 1)
 }
 
-var stringsOffset = [2]string{
+var _OffsetStrings = [2]string{
 	"eastern-hemisphere-secs",
 	"western-hemisphere-secs",
 }
 
 // String implements [fmt.Stringer], returning the variant case name of v.
 func (v Offset) String() string {
-	return stringsOffset[v.Tag()]
+	return _OffsetStrings[v.Tag()]
 }
 
 // Date represents the variant "wasmcloud:postgres/types@0.1.1-draft#date".
@@ -399,7 +412,7 @@ func (self *Date) Ymd() *cm.Tuple3[int32, uint32, uint32] {
 	return cm.Case[cm.Tuple3[int32, uint32, uint32]](self, 2)
 }
 
-var stringsDate = [3]string{
+var _DateStrings = [3]string{
 	"positive-infinity",
 	"negative-infinity",
 	"ymd",
@@ -407,7 +420,7 @@ var stringsDate = [3]string{
 
 // String implements [fmt.Stringer], returning the variant case name of v.
 func (v Date) String() string {
-	return stringsDate[v.Tag()]
+	return _DateStrings[v.Tag()]
 }
 
 // Interval represents the record "wasmcloud:postgres/types@0.1.1-draft#interval".
@@ -419,11 +432,11 @@ func (v Date) String() string {
 //		end-inclusive: bool,
 //	}
 type Interval struct {
-	_              cm.HostLayout
-	Start          Date
-	StartInclusive bool
-	End            Date
-	EndInclusive   bool
+	_              cm.HostLayout `json:"-"`
+	Start          Date          `json:"start"`
+	StartInclusive bool          `json:"start-inclusive"`
+	End            Date          `json:"end"`
+	EndInclusive   bool          `json:"end-inclusive"`
 }
 
 // Time represents the record "wasmcloud:postgres/types@0.1.1-draft#time".
@@ -435,11 +448,11 @@ type Interval struct {
 //		micro: u32,
 //	}
 type Time struct {
-	_     cm.HostLayout
-	Hour  uint32
-	Min   uint32
-	Sec   uint32
-	Micro uint32
+	_     cm.HostLayout `json:"-"`
+	Hour  uint32        `json:"hour"`
+	Min   uint32        `json:"min"`
+	Sec   uint32        `json:"sec"`
+	Micro uint32        `json:"micro"`
 }
 
 // TimeTz represents the record "wasmcloud:postgres/types@0.1.1-draft#time-tz".
@@ -449,9 +462,9 @@ type Time struct {
 //		time: time,
 //	}
 type TimeTz struct {
-	_         cm.HostLayout
-	Timesonze string
-	Time      Time
+	_         cm.HostLayout `json:"-"`
+	Timesonze string        `json:"timesonze"`
+	Time      Time          `json:"time"`
 }
 
 // Timestamp represents the record "wasmcloud:postgres/types@0.1.1-draft#timestamp".
@@ -461,9 +474,9 @@ type TimeTz struct {
 //		time: time,
 //	}
 type Timestamp struct {
-	_    cm.HostLayout
-	Date Date
-	Time Time
+	_    cm.HostLayout `json:"-"`
+	Date Date          `json:"date"`
+	Time Time          `json:"time"`
 }
 
 // TimestampTz represents the record "wasmcloud:postgres/types@0.1.1-draft#timestamp-tz".
@@ -473,9 +486,9 @@ type Timestamp struct {
 //		offset: offset,
 //	}
 type TimestampTz struct {
-	_         cm.HostLayout
-	Timestamp Timestamp
-	Offset    Offset
+	_         cm.HostLayout `json:"-"`
+	Timestamp Timestamp     `json:"timestamp"`
+	Offset    Offset        `json:"offset"`
 }
 
 // MacAddressEui48 represents the record "wasmcloud:postgres/types@0.1.1-draft#mac-address-eui48".
@@ -484,8 +497,8 @@ type TimestampTz struct {
 //		bytes: tuple<u8, u8, u8, u8, u8, u8>,
 //	}
 type MacAddressEui48 struct {
-	_     cm.HostLayout
-	Bytes [6]uint8
+	_     cm.HostLayout `json:"-"`
+	Bytes [6]uint8      `json:"bytes"`
 }
 
 // MacAddressEui64 represents the record "wasmcloud:postgres/types@0.1.1-draft#mac-address-eui64".
@@ -494,8 +507,8 @@ type MacAddressEui48 struct {
 //		bytes: tuple<u8, u8, u8, u8, u8, u8, u8, u8>,
 //	}
 type MacAddressEui64 struct {
-	_     cm.HostLayout
-	Bytes [8]uint8
+	_     cm.HostLayout `json:"-"`
+	Bytes [8]uint8      `json:"bytes"`
 }
 
 // PgValue represents the variant "wasmcloud:postgres/types@0.1.1-draft#pg-value".
@@ -606,7 +619,7 @@ type MacAddressEui64 struct {
 //		uuid-array(list<string>),
 //		hstore(list<tuple<string, option<string>>>),
 //	}
-type PgValue cm.Variant[uint8, TupleLowerLeftPointUpperRightPointShape, int64]
+type PgValue cm.Variant[uint8, TupleLowerLeftPointUpperRightPointShape, cm.Tuple[LowerLeftPoint, UpperRightPoint]]
 
 // PgValueNull returns a [PgValue] of case "null".
 func PgValueNull() PgValue {
@@ -1625,7 +1638,7 @@ func (self *PgValue) Hstore() *cm.List[cm.Tuple[string, cm.Option[string]]] {
 	return cm.Case[cm.List[cm.Tuple[string, cm.Option[string]]]](self, 96)
 }
 
-var stringsPgValue = [97]string{
+var _PgValueStrings = [97]string{
 	"null",
 	"big-int",
 	"int8",
@@ -1727,7 +1740,7 @@ var stringsPgValue = [97]string{
 
 // String implements [fmt.Stringer], returning the variant case name of v.
 func (v PgValue) String() string {
-	return stringsPgValue[v.Tag()]
+	return _PgValueStrings[v.Tag()]
 }
 
 // ResultRowEntry represents the record "wasmcloud:postgres/types@0.1.1-draft#result-row-entry".
@@ -1737,12 +1750,12 @@ func (v PgValue) String() string {
 //		value: pg-value,
 //	}
 type ResultRowEntry struct {
-	_ cm.HostLayout
+	_ cm.HostLayout `json:"-"`
 	// Name of the result column
-	ColumnName string
+	ColumnName string `json:"column-name"`
 
 	// Value of the result column
-	Value PgValue
+	Value PgValue `json:"value"`
 }
 
 // ResultRow represents the list "wasmcloud:postgres/types@0.1.1-draft#result-row".

@@ -1,4 +1,4 @@
-//go:generate go tool wit-bindgen-go generate --world example --out gen ./wit
+//go:generate go tool wit-bindgen-go generate --world wasmcloud:wasitel-echo/wasitel-echo --out gen ./wit
 
 package main
 

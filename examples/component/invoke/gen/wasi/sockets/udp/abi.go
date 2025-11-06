@@ -3,15 +3,15 @@
 package udp
 
 import (
-	"github.com/wasmCloud/go/examples/component/invoke/gen/wasi/sockets/network"
 	"go.bytecodealliance.org/cm"
+	"invoke/gen/wasi/sockets/network"
 	"unsafe"
 )
 
 // IPSocketAddressShape is used for storage in variant or result types.
 type IPSocketAddressShape struct {
 	_     cm.HostLayout
-	shape [unsafe.Sizeof(network.IPSocketAddress{})]byte
+	shape [unsafe.Sizeof(IPSocketAddress{})]byte
 }
 
 func lower_IPv4Address(v network.IPv4Address) (f0 uint32, f1 uint32, f2 uint32, f3 uint32) {

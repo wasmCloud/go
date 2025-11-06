@@ -4,9 +4,9 @@
 package types
 
 import (
-	wallclock "github.com/wasmCloud/go/examples/component/invoke/gen/wasi/clocks/wall-clock"
-	"github.com/wasmCloud/go/examples/component/invoke/gen/wasi/io/streams"
 	"go.bytecodealliance.org/cm"
+	wallclock "invoke/gen/wasi/clocks/wall-clock"
+	"invoke/gen/wasi/io/streams"
 )
 
 // InputStream represents the imported type alias "wasi:filesystem/types@0.2.0#input-stream".
@@ -59,7 +59,7 @@ const (
 	DescriptorTypeSocket
 )
 
-var stringsDescriptorType = [8]string{
+var _DescriptorTypeStrings = [8]string{
 	"unknown",
 	"block-device",
 	"character-device",
@@ -72,8 +72,21 @@ var stringsDescriptorType = [8]string{
 
 // String implements [fmt.Stringer], returning the enum case name of e.
 func (e DescriptorType) String() string {
-	return stringsDescriptorType[e]
+	return _DescriptorTypeStrings[e]
 }
+
+// MarshalText implements [encoding.TextMarshaler].
+func (e DescriptorType) MarshalText() ([]byte, error) {
+	return []byte(e.String()), nil
+}
+
+// UnmarshalText implements [encoding.TextUnmarshaler], unmarshaling into an enum
+// case. Returns an error if the supplied text is not one of the enum cases.
+func (e *DescriptorType) UnmarshalText(text []byte) error {
+	return _DescriptorTypeUnmarshalCase(e, text)
+}
+
+var _DescriptorTypeUnmarshalCase = cm.CaseUnmarshaler[DescriptorType](_DescriptorTypeStrings[:])
 
 // DescriptorFlags represents the flags "wasi:filesystem/types@0.2.0#descriptor-flags".
 //
@@ -140,13 +153,13 @@ type LinkCount uint64
 //		status-change-timestamp: option<datetime>,
 //	}
 type DescriptorStat struct {
-	_                         cm.HostLayout
-	Type                      DescriptorType
-	LinkCount                 LinkCount
-	Size                      FileSize
-	DataAccessTimestamp       cm.Option[DateTime]
-	DataModificationTimestamp cm.Option[DateTime]
-	StatusChangeTimestamp     cm.Option[DateTime]
+	_                         cm.HostLayout       `json:"-"`
+	Type                      DescriptorType      `json:"type"`
+	LinkCount                 LinkCount           `json:"link-count"`
+	Size                      FileSize            `json:"size"`
+	DataAccessTimestamp       cm.Option[DateTime] `json:"data-access-timestamp"`
+	DataModificationTimestamp cm.Option[DateTime] `json:"data-modification-timestamp"`
+	StatusChangeTimestamp     cm.Option[DateTime] `json:"status-change-timestamp"`
 }
 
 // NewTimestamp represents the variant "wasi:filesystem/types@0.2.0#new-timestamp".
@@ -190,7 +203,7 @@ func (self *NewTimestamp) Timestamp() *DateTime {
 	return cm.Case[DateTime](self, 2)
 }
 
-var stringsNewTimestamp = [3]string{
+var _NewTimestampStrings = [3]string{
 	"no-change",
 	"now",
 	"timestamp",
@@ -198,7 +211,7 @@ var stringsNewTimestamp = [3]string{
 
 // String implements [fmt.Stringer], returning the variant case name of v.
 func (v NewTimestamp) String() string {
-	return stringsNewTimestamp[v.Tag()]
+	return _NewTimestampStrings[v.Tag()]
 }
 
 // DirectoryEntry represents the record "wasi:filesystem/types@0.2.0#directory-entry".
@@ -208,9 +221,9 @@ func (v NewTimestamp) String() string {
 //		name: string,
 //	}
 type DirectoryEntry struct {
-	_    cm.HostLayout
-	Type DescriptorType
-	Name string
+	_    cm.HostLayout  `json:"-"`
+	Type DescriptorType `json:"type"`
+	Name string         `json:"name"`
 }
 
 // ErrorCode represents the enum "wasi:filesystem/types@0.2.0#error-code".
@@ -296,7 +309,7 @@ const (
 	ErrorCodeCrossDevice
 )
 
-var stringsErrorCode = [37]string{
+var _ErrorCodeStrings = [37]string{
 	"access",
 	"would-block",
 	"already",
@@ -338,8 +351,21 @@ var stringsErrorCode = [37]string{
 
 // String implements [fmt.Stringer], returning the enum case name of e.
 func (e ErrorCode) String() string {
-	return stringsErrorCode[e]
+	return _ErrorCodeStrings[e]
 }
+
+// MarshalText implements [encoding.TextMarshaler].
+func (e ErrorCode) MarshalText() ([]byte, error) {
+	return []byte(e.String()), nil
+}
+
+// UnmarshalText implements [encoding.TextUnmarshaler], unmarshaling into an enum
+// case. Returns an error if the supplied text is not one of the enum cases.
+func (e *ErrorCode) UnmarshalText(text []byte) error {
+	return _ErrorCodeUnmarshalCase(e, text)
+}
+
+var _ErrorCodeUnmarshalCase = cm.CaseUnmarshaler[ErrorCode](_ErrorCodeStrings[:])
 
 // Advice represents the enum "wasi:filesystem/types@0.2.0#advice".
 //
@@ -362,7 +388,7 @@ const (
 	AdviceNoReuse
 )
 
-var stringsAdvice = [6]string{
+var _AdviceStrings = [6]string{
 	"normal",
 	"sequential",
 	"random",
@@ -373,8 +399,21 @@ var stringsAdvice = [6]string{
 
 // String implements [fmt.Stringer], returning the enum case name of e.
 func (e Advice) String() string {
-	return stringsAdvice[e]
+	return _AdviceStrings[e]
 }
+
+// MarshalText implements [encoding.TextMarshaler].
+func (e Advice) MarshalText() ([]byte, error) {
+	return []byte(e.String()), nil
+}
+
+// UnmarshalText implements [encoding.TextUnmarshaler], unmarshaling into an enum
+// case. Returns an error if the supplied text is not one of the enum cases.
+func (e *Advice) UnmarshalText(text []byte) error {
+	return _AdviceUnmarshalCase(e, text)
+}
+
+var _AdviceUnmarshalCase = cm.CaseUnmarshaler[Advice](_AdviceStrings[:])
 
 // MetadataHashValue represents the record "wasi:filesystem/types@0.2.0#metadata-hash-value".
 //
@@ -383,9 +422,9 @@ func (e Advice) String() string {
 //		upper: u64,
 //	}
 type MetadataHashValue struct {
-	_     cm.HostLayout
-	Lower uint64
-	Upper uint64
+	_     cm.HostLayout `json:"-"`
+	Lower uint64        `json:"lower"`
+	Upper uint64        `json:"upper"`
 }
 
 // Descriptor represents the imported resource "wasi:filesystem/types@0.2.0#descriptor".

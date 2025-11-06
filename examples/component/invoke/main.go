@@ -1,10 +1,10 @@
-//go:generate go tool wit-bindgen-go generate --world example --out gen ./wit
+//go:generate go tool wit-bindgen-go generate --world wasmcloud:invoker/component --out gen ./wit
 
 package main
 
 import (
-	"github.com/wasmCloud/go/examples/component/invoke/gen/example/invoker/invoker"
 	"go.wasmcloud.dev/component/log/wasilog"
+	"invoke/gen/wasmcloud/invoker/invoker"
 )
 
 const InvokeResponse = "Hello from the invoker!"

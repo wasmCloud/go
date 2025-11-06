@@ -4,9 +4,9 @@
 package udpcreatesocket
 
 import (
-	"github.com/wasmCloud/go/examples/component/invoke/gen/wasi/sockets/network"
-	"github.com/wasmCloud/go/examples/component/invoke/gen/wasi/sockets/udp"
 	"go.bytecodealliance.org/cm"
+	"invoke/gen/wasi/sockets/network"
+	"invoke/gen/wasi/sockets/udp"
 )
 
 // Network represents the imported type alias "wasi:sockets/udp-create-socket@0.2.0#network".

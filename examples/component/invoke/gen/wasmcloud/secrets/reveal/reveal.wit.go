@@ -4,8 +4,8 @@
 package reveal
 
 import (
-	"github.com/wasmCloud/go/examples/component/invoke/gen/wasmcloud/secrets/store"
 	"go.bytecodealliance.org/cm"
+	"invoke/gen/wasmcloud/secrets/store"
 )
 
 // Secret represents the imported type alias "wasmcloud:secrets/reveal@0.1.0-draft#secret".

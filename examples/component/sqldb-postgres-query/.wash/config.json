@@ -1,0 +1,69 @@
+{
+  "build": {
+    "tinygo": {
+      "target": "wasip2",
+      "build_flags": [],
+      "disable_go_generate": false,
+      "scheduler": "asyncify",
+      "gc": "conservative",
+      "wit_world": "component"
+    },
+    "artifact_path": "build/output.wasm"
+  },
+  "templates": [
+    {
+      "name": "cosmonic-control-welcome-tour",
+      "description": "Welcome to Cosmonic!",
+      "repository": "https://github.com/cosmonic-labs/control-demos",
+      "subfolder": "welcome-tour",
+      "ref": "welcome-tour",
+      "language": "TypeScript"
+    },
+    {
+      "name": "sample-wasi-http-rust",
+      "description": "An example wasi:http server component written in Rust",
+      "repository": "https://github.com/bytecodealliance/sample-wasi-http-rust",
+      "subfolder": null,
+      "ref": null,
+      "language": "Rust"
+    },
+    {
+      "name": "sample-wasi-http-js",
+      "description": "An example wasi:http server component written in JavaScript",
+      "repository": "https://github.com/bytecodealliance/sample-wasi-http-js",
+      "subfolder": null,
+      "ref": null,
+      "language": "TypeScript"
+    },
+    {
+      "name": "http-hello-world",
+      "description": "A simple HTTP hello world component",
+      "repository": "https://github.com/wasmcloud/wasmcloud",
+      "subfolder": "examples/rust/components/http-hello-world",
+      "ref": null,
+      "language": "Rust"
+    },
+    {
+      "name": "http-hello-world",
+      "description": "A simple HTTP hello world component",
+      "repository": "https://github.com/wasmcloud/wasmcloud",
+      "subfolder": "examples/tinygo/components/http-hello-world",
+      "ref": null,
+      "language": "TinyGo"
+    },
+    {
+      "name": "http-hello-world",
+      "description": "A simple HTTP hello world component",
+      "repository": "https://github.com/wasmcloud/wasmcloud",
+      "subfolder": "examples/typescript/components/http-hello-world",
+      "ref": null,
+      "language": "TypeScript"
+    }
+  ],
+  "wit": {
+    "registries": [],
+    "skip_fetch": false,
+    "wit_dir": null,
+    "sources": {}
+  }
+}
