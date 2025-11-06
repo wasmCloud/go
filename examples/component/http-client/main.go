@@ -1,6 +1,6 @@
 package main
 
-//go:generate go tool wit-bindgen-go generate --world example --out gen ./wit
+//go:generate go tool wit-bindgen-go generate --world wasmcloud:http-client/http-client --out gen ./wit
 
 import (
 	"io"

@@ -1,4 +1,4 @@
-//go:generate go tool wit-bindgen-go generate --world example --out gen ./wit
+//go:generate go tool wit-bindgen-go generate --world wasmcloud:http-server/http-server --out gen ./wit
 
 package main
 

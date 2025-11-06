@@ -24,3 +24,8 @@ go.work.sum
 # env file
 .env
 .envrc
+
+*.wasm
+
+# Claude Code settings
+.claude/

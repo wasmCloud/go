@@ -4,9 +4,9 @@
 package ipnamelookup
 
 import (
-	"github.com/wasmCloud/go/examples/component/invoke/gen/wasi/io/poll"
-	"github.com/wasmCloud/go/examples/component/invoke/gen/wasi/sockets/network"
 	"go.bytecodealliance.org/cm"
+	"invoke/gen/wasi/io/poll"
+	"invoke/gen/wasi/sockets/network"
 )
 
 // Pollable represents the imported type alias "wasi:sockets/ip-name-lookup@0.2.0#pollable".

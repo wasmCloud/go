@@ -4,8 +4,8 @@
 package instancenetwork
 
 import (
-	"github.com/wasmCloud/go/examples/component/invoke/gen/wasi/sockets/network"
 	"go.bytecodealliance.org/cm"
+	"invoke/gen/wasi/sockets/network"
 )
 
 // Network represents the imported type alias "wasi:sockets/instance-network@0.2.0#network".

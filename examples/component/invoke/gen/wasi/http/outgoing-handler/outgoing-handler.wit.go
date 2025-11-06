@@ -4,8 +4,8 @@
 package outgoinghandler
 
 import (
-	"github.com/wasmCloud/go/examples/component/invoke/gen/wasi/http/types"
 	"go.bytecodealliance.org/cm"
+	"invoke/gen/wasi/http/types"
 )
 
 // OutgoingRequest represents the imported type alias "wasi:http/outgoing-handler@0.2.0#outgoing-request".

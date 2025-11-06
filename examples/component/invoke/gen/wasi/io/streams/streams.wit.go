@@ -4,9 +4,9 @@
 package streams
 
 import (
-	ioerror "github.com/wasmCloud/go/examples/component/invoke/gen/wasi/io/error"
-	"github.com/wasmCloud/go/examples/component/invoke/gen/wasi/io/poll"
 	"go.bytecodealliance.org/cm"
+	ioerror "invoke/gen/wasi/io/error"
+	"invoke/gen/wasi/io/poll"
 )
 
 // Error represents the imported type alias "wasi:io/streams@0.2.0#error".
@@ -48,14 +48,14 @@ func (self *StreamError) Closed() bool {
 	return self.Tag() == 1
 }
 
-var stringsStreamError = [2]string{
+var _StreamErrorStrings = [2]string{
 	"last-operation-failed",
 	"closed",
 }
 
 // String implements [fmt.Stringer], returning the variant case name of v.
 func (v StreamError) String() string {
-	return stringsStreamError[v.Tag()]
+	return _StreamErrorStrings[v.Tag()]
 }
 
 // InputStream represents the imported resource "wasi:io/streams@0.2.0#input-stream".

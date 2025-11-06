@@ -4,8 +4,8 @@
 package monotonicclock
 
 import (
-	"github.com/wasmCloud/go/examples/component/invoke/gen/wasi/io/poll"
 	"go.bytecodealliance.org/cm"
+	"invoke/gen/wasi/io/poll"
 )
 
 // Pollable represents the imported type alias "wasi:clocks/monotonic-clock@0.2.0#pollable".
