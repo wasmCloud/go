@@ -11,7 +11,7 @@ world imports {
 
   // wasi
   import wasi:logging/logging@0.1.0-draft;
-  import wasi:config/runtime@0.2.0-draft;
+  import wasi:config/store@0.2.0-rc.1;
   import wasi:http/outgoing-handler@0.2.0;
 
   // wasmcloud
