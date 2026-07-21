@@ -34,9 +34,12 @@ jobs:
       - name: Build SDK
         working-directory: ./component
         run: GOOS=wasip1 GOARCH=wasm go build ./...
+      # The generated componentize-go bindings trip the unsafeptr and
+      # composites analyzers, so only handwritten packages are vetted; the
+      # generated ones are still compile-checked by the build step above.
       - name: Vet SDK
         working-directory: ./component
-        run: GOOS=wasip1 GOARCH=wasm go vet ./...
+        run: GOOS=wasip1 GOARCH=wasm go vet $(go list ./... | grep -vE '/(imports|exports)/')
 
   examples:
     name: Example (${{ matrix.example.folder }})
@@ -78,10 +81,19 @@ jobs:
         run: |
           wash dev --non-interactive &
           DEV_PID=$!
+          # wash serves HTTP before the component is deployed (requests fail
+          # with "no workload registered"), so waiting for the port to open is
+          # not enough: retry the actual test until the component responds.
+          smoke_test() {
+            ${{ matrix.example.test-command }}
+          }
+          ok=""
           for i in $(seq 1 60); do
             sleep 2
-            if curl -s -m 2 127.0.0.1:8000/ >/dev/null 2>&1; then break; fi
+            if smoke_test; then ok=1; break; fi
           done
-          set -e
-          ${{ matrix.example.test-command }}
-          kill $DEV_PID
+          kill $DEV_PID || true
+          if [ -z "$ok" ]; then
+            echo "Smoke test did not pass within 120s" >&2
+            exit 1
+          fi

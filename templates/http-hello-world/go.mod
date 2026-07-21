@@ -1,4 +1,4 @@
-module {{project-name}}
+module http-hello-world
 
 go 1.25
 

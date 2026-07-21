@@ -1,4 +1,4 @@
-# {{project-name}}
+# http-hello-world
 
 A Go WebAssembly component that handles HTTP requests with standard
 `net/http` types, built with the
@@ -35,7 +35,7 @@ use `go.wasmcloud.dev/component/net/wasihttp3`.
 ## Deploy to wasmCloud on Kubernetes
 
 ```shell
-wash oci push ghcr.io/<your-org>/{{project-name}}:0.1.0 build/{{project-name}}.wasm
+wash oci push ghcr.io/<your-org>/http-hello-world:0.1.0 build/http_hello_world.wasm
 kubectl apply -f deployment.yaml
 ```
 
