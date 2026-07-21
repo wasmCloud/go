@@ -7,7 +7,7 @@ import (
 	"testing"
 	_ "unsafe"
 
-	"go.wasmcloud.dev/component/gen/wasi/logging/logging"
+	logging "go.wasmcloud.dev/component/imports/wasi_logging_0_1_0_draft_logging"
 )
 
 func TestLogLevelMapping(t *testing.T) {

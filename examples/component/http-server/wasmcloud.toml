@@ -1,8 +1,0 @@
-name = "http_server"
-language = "tinygo"
-type = "component"
-version = "0.1.0"
-
-[component]
-wit_world = "http-server"
-wasm_target = "wasm32-wasi-preview2"

@@ -8,25 +8,25 @@ import (
 	"net/http"
 	"sync"
 
-	"go.bytecodealliance.org/cm"
-	"go.wasmcloud.dev/component/gen/wasi/http/types"
-	"go.wasmcloud.dev/component/gen/wasi/io/streams"
+	witTypes "go.bytecodealliance.org/pkg/wit/types"
+	types "go.wasmcloud.dev/component/imports/wasi_http_0_2_8_types"
+	streams "go.wasmcloud.dev/component/imports/wasi_io_0_2_8_streams"
 )
 
 var _ http.ResponseWriter = (*ResponseOutparamWriter)(nil)
 
 // IncomingRequest represents an incoming HTTP request as defined in [wasi:http/types.incoming-request]
 //
-// [wasi:http/types.incoming-request]: https://github.com/WebAssembly/wasi-http/blob/v0.2.0/wit/types.wit#L220-L248
+// [wasi:http/types.incoming-request]: https://github.com/WebAssembly/wasi-http/blob/main/wit-0.3.0-draft/types.wit
 type IncomingRequest = types.IncomingRequest
 
 // ResponseOutparamWriter implements a [net/http.ResponseWriter] for [wasi:http]
 //
-// [wasi:http]: https://github.com/WebAssembly/wasi-http/tree/v0.2.0
+// [wasi:http]: https://github.com/WebAssembly/wasi-http
 type ResponseOutparamWriter struct {
-	outparam    types.ResponseOutparam
-	response    types.OutgoingResponse
-	wasiHeaders types.Fields
+	outparam    *types.ResponseOutparam
+	response    *types.OutgoingResponse
+	wasiHeaders *types.Fields
 	httpHeaders http.Header
 	body        *types.OutgoingBody
 	stream      *streams.OutputStream
@@ -50,10 +50,9 @@ func (row *ResponseOutparamWriter) Write(buf []byte) (int, error) {
 		return 0, row.headerErr
 	}
 
-	contents := cm.ToList(buf)
-	writeResult := row.stream.Write(contents)
+	writeResult := row.stream.Write(buf)
 	if writeResult.IsErr() {
-		if writeResult.Err().Closed() {
+		if writeResult.Err().Tag() == streams.StreamErrorClosed {
 			return 0, io.EOF
 		}
 
@@ -62,7 +61,7 @@ func (row *ResponseOutparamWriter) Write(buf []byte) (int, error) {
 
 	row.stream.BlockingFlush()
 
-	return int(contents.Len()), nil
+	return len(buf), nil
 }
 
 // WriteHeader sends an HTTP response header with the provided
@@ -77,13 +76,13 @@ func (row *ResponseOutparamWriter) WriteHeader(statusCode int) {
 // reconcile headers from go to wasi
 func (row *ResponseOutparamWriter) reconcileHeaders() error {
 	for key, vals := range row.httpHeaders {
-		fieldVals := []types.FieldValue{}
+		fieldVals := [][]uint8{}
 		for _, val := range vals {
-			fieldVals = append(fieldVals, types.FieldValue(cm.ToList([]uint8(val))))
+			fieldVals = append(fieldVals, []uint8(val))
 		}
 
-		if result := row.wasiHeaders.Set(types.FieldKey(key), cm.ToList(fieldVals)); result.IsErr() {
-			return fmt.Errorf("failed to set header %s: %s", key, result.Err())
+		if result := row.wasiHeaders.Set(key, fieldVals); result.IsErr() {
+			return fmt.Errorf("failed to set header %s: %v", key, result.Err())
 		}
 	}
 
@@ -98,24 +97,24 @@ func (row *ResponseOutparamWriter) reconcile() {
 		return
 	}
 
-	row.response = types.NewOutgoingResponse(row.wasiHeaders)
-	row.response.SetStatusCode(types.StatusCode(row.statuscode))
+	row.response = types.MakeOutgoingResponse(row.wasiHeaders)
+	row.response.SetStatusCode(uint16(row.statuscode))
 
 	bodyResult := row.response.Body()
 	if bodyResult.IsErr() {
-		row.headerErr = fmt.Errorf("failed to acquire resource handle to response body: %s", bodyResult.Err())
+		row.headerErr = fmt.Errorf("failed to acquire resource handle to response body")
 		return
 	}
-	row.body = bodyResult.OK()
+	row.body = bodyResult.Ok()
 
 	writeResult := row.body.Write()
 	if writeResult.IsErr() {
-		row.headerErr = fmt.Errorf("failed to acquire resource handle for response body's stream: %s", writeResult.Err())
+		row.headerErr = fmt.Errorf("failed to acquire resource handle for response body's stream")
 		return
 	}
-	row.stream = writeResult.OK()
+	row.stream = writeResult.Ok()
 
-	result := cm.OK[cm.Result[types.ErrorCodeShape, types.OutgoingResponse, types.ErrorCode]](row.response)
+	result := witTypes.Ok[*types.OutgoingResponse, types.ErrorCode](row.response)
 	types.ResponseOutparamSet(row.outparam, result)
 }
 
@@ -127,28 +126,26 @@ func (row *ResponseOutparamWriter) Close() error {
 	}
 
 	row.stream.BlockingFlush()
-	row.stream.ResourceDrop()
+	row.stream.Drop()
 	row.stream = nil
 
-	var maybeTrailers cm.Option[types.Fields]
-	wasiTrailers := types.NewFields()
+	maybeTrailers := witTypes.None[*types.Fields]()
+	wasiTrailers := types.MakeFields()
 	for key, vals := range row.httpHeaders {
-		fieldVals := []types.FieldValue{}
+		fieldVals := [][]uint8{}
 		for _, val := range vals {
-			fieldVals = append(fieldVals, types.FieldValue(cm.ToList([]uint8(val))))
+			fieldVals = append(fieldVals, []uint8(val))
 		}
 
-		if result := wasiTrailers.Set(types.FieldKey(key), cm.ToList(fieldVals)); result.IsErr() {
-			return fmt.Errorf("failed to set trailer %s: %s", key, result.Err())
+		if result := wasiTrailers.Set(key, fieldVals); result.IsErr() {
+			return fmt.Errorf("failed to set trailer %s: %v", key, result.Err())
 		}
 	}
 	if len(row.httpHeaders) > 0 {
-		maybeTrailers = cm.Some(wasiTrailers)
-	} else {
-		maybeTrailers = cm.None[types.Fields]()
+		maybeTrailers = witTypes.Some(wasiTrailers)
 	}
 
-	res := types.OutgoingBodyFinish(*row.body, maybeTrailers)
+	res := types.OutgoingBodyFinish(row.body, maybeTrailers)
 	if res.IsErr() {
 		return fmt.Errorf("failed to set trailer: %v", res.Err())
 	}
@@ -158,31 +155,31 @@ func (row *ResponseOutparamWriter) Close() error {
 // WASItoHTTPResponseWriter takes a [types.ResponseOutparam] representing [wasi:http/types.response-outparam]
 // and instantiates a new [ResponseOutparamWriter] for writing to it.
 //
-// [wasi:http/types.response-outparam]: https://github.com/WebAssembly/wasi-http/blob/v0.2.0/wit/types.wit#L352-L372
-func WASItoHTTPResponseWriter(out types.ResponseOutparam) *ResponseOutparamWriter {
+// [wasi:http/types.response-outparam]: https://github.com/WebAssembly/wasi-http/blob/main/wit/types.wit
+func WASItoHTTPResponseWriter(out *types.ResponseOutparam) *ResponseOutparamWriter {
 	return &ResponseOutparamWriter{
 		outparam:    out,
 		httpHeaders: http.Header{},
-		wasiHeaders: types.NewFields(),
+		wasiHeaders: types.MakeFields(),
 		statuscode:  http.StatusOK,
 	}
 }
 
 // WASItoHTTPRequest takes an [IncomingRequest] and returns a [net/http.Request] representation of it.
-func WASItoHTTPRequest(ir IncomingRequest) (req *http.Request, err error) {
+func WASItoHTTPRequest(ir *IncomingRequest) (req *http.Request, err error) {
 	method, err := methodToString(ir.Method())
 	if err != nil {
 		return nil, err
 	}
 
 	authority := "localhost"
-	if auth := ir.Authority(); !auth.None() {
-		authority = *auth.Some()
+	if auth := ir.Authority(); auth.IsSome() {
+		authority = auth.Some()
 	}
 
 	pathWithQuery := "/"
-	if p := ir.PathWithQuery(); !p.None() {
-		pathWithQuery = *p.Some()
+	if p := ir.PathWithQuery(); p.IsSome() {
+		pathWithQuery = p.Some()
 	}
 
 	body, trailers, err := NewIncomingBodyTrailer(ir)
@@ -208,7 +205,7 @@ func WASItoHTTPRequest(ir IncomingRequest) (req *http.Request, err error) {
 
 	headers := ir.Headers()
 	WASItoHTTPHeader(headers, &req.Header)
-	headers.ResourceDrop()
+	headers.Drop()
 
 	req.Host = authority
 	req.URL.Host = authority
@@ -218,52 +215,50 @@ func WASItoHTTPRequest(ir IncomingRequest) (req *http.Request, err error) {
 }
 
 func methodToString(m types.Method) (string, error) {
-	if m.Connect() {
+	switch m.Tag() {
+	case types.MethodConnect:
 		return http.MethodConnect, nil
-	} else if m.Delete() {
+	case types.MethodDelete:
 		return http.MethodDelete, nil
-	} else if m.Get() {
+	case types.MethodGet:
 		return http.MethodGet, nil
-	} else if m.Head() {
+	case types.MethodHead:
 		return http.MethodHead, nil
-	} else if m.Options() {
+	case types.MethodOptions:
 		return http.MethodOptions, nil
-	} else if m.Patch() {
+	case types.MethodPatch:
 		return http.MethodPatch, nil
-	} else if m.Post() {
+	case types.MethodPost:
 		return http.MethodPost, nil
-	} else if m.Put() {
+	case types.MethodPut:
 		return http.MethodPut, nil
-	} else if m.Trace() {
+	case types.MethodTrace:
 		return http.MethodTrace, nil
-	} else if other := m.Other(); other != nil {
-		return *other, fmt.Errorf("unknown http method '%s'", *other)
+	case types.MethodOther:
+		other := m.Other()
+		return other, fmt.Errorf("unknown http method '%s'", other)
 	}
 	return "", fmt.Errorf("failed to convert http method")
 }
 
 // WASItoHTTPHeader takes a [types.Fields] and copies them to the provided [net/http.Header] map.
-func WASItoHTTPHeader(src types.Fields, dest *http.Header) {
-	for _, f := range src.Entries().Slice() {
-		key := string(f.F0)
-		value := string(cm.List[uint8](f.F1).Slice())
-		dest.Add(key, value)
+func WASItoHTTPHeader(src *types.Fields, dest *http.Header) {
+	for _, f := range src.Entries() {
+		dest.Add(f.F0, string(f.F1))
 	}
 }
 
 // HTTPtoWASIHeader takes a [net/http.Header] map and copies them to the provided [types.Fields].
-func HTTPtoWASIHeader(src http.Header, dest types.Fields) error {
+func HTTPtoWASIHeader(src http.Header, dest *types.Fields) error {
 	for k, v := range src {
-		key := types.FieldKey(k)
-		fieldVals := []types.FieldValue{}
-
+		fieldVals := [][]uint8{}
 		for _, val := range v {
-			fieldVals = append(fieldVals, types.FieldValue(cm.ToList([]uint8(val))))
+			fieldVals = append(fieldVals, []uint8(val))
 		}
 
-		res := dest.Set(key, cm.ToList(fieldVals))
+		res := dest.Set(k, fieldVals)
 		if res.IsErr() {
-			return fmt.Errorf("failed to set header %s: %s", k, res.Err())
+			return fmt.Errorf("failed to set header %s: %v", k, res.Err())
 		}
 	}
 
@@ -273,24 +268,24 @@ func HTTPtoWASIHeader(src http.Header, dest types.Fields) error {
 func toWasiMethod(s string) types.Method {
 	switch s {
 	case http.MethodConnect:
-		return types.MethodConnect()
+		return types.MakeMethodConnect()
 	case http.MethodDelete:
-		return types.MethodDelete()
+		return types.MakeMethodDelete()
 	case http.MethodGet:
-		return types.MethodGet()
+		return types.MakeMethodGet()
 	case http.MethodHead:
-		return types.MethodHead()
+		return types.MakeMethodHead()
 	case http.MethodOptions:
-		return types.MethodOptions()
+		return types.MakeMethodOptions()
 	case http.MethodPatch:
-		return types.MethodPatch()
+		return types.MakeMethodPatch()
 	case http.MethodPost:
-		return types.MethodPost()
+		return types.MakeMethodPost()
 	case http.MethodPut:
-		return types.MethodPut()
+		return types.MakeMethodPut()
 	case http.MethodTrace:
-		return types.MethodTrace()
+		return types.MakeMethodTrace()
 	default:
-		return types.MethodOther(s)
+		return types.MakeMethodOther(s)
 	}
 }

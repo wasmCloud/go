@@ -1,18 +1,20 @@
 package wasmcloud
 
-import "go.wasmcloud.dev/component/gen/wasi/config/store"
+import (
+	store "go.wasmcloud.dev/component/imports/wasi_config_0_2_0_rc_1_store"
+)
 
 // GetConfigOrDefault tries to get a configuration value by provided key using
 // [wasi:config/store.get] and falling back to the provided defaultValue if a
 // configuration value by provided key is not found.
 //
-// [wasi:config/store.get]: https://github.com/WebAssembly/wasi-runtime-config/blob/f4d699bc6dd77adad99fa1a2246d482225ec6485/wit/store.wit#L17-L24
+// [wasi:config/store.get]: https://github.com/WebAssembly/wasi-config/blob/main/wit/store.wit
 func GetConfigOrDefault(key string, defaultValue string) string {
 	res := store.Get(key)
-	if res.IsOK() {
-		opt := *res.OK()
-		if !opt.None() {
-			return *opt.Some()
+	if res.IsOk() {
+		opt := res.Ok()
+		if opt.IsSome() {
+			return opt.Some()
 		}
 	}
 

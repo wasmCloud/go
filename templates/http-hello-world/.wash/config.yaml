@@ -1,0 +1,5 @@
+new:
+  command: go mod tidy
+build:
+  command: go tool componentize-go build -o build/{{project-name}}.wasm
+  component_path: build/{{project-name}}.wasm

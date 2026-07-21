@@ -1,0 +1,5 @@
+# Adds this component's extra world (wasi:keyvalue) on top of the SDK's
+# default wasip2 world; componentize-go merges worlds from all
+# componentize-go.toml files found in the module graph.
+worlds = ["wasmcloud:examples/http-keyvalue-crud@0.1.0"]
+wit_paths = ["wit"]

@@ -5,9 +5,12 @@ import (
 	"net/http"
 	"os"
 
-	"go.bytecodealliance.org/cm"
-	incominghandler "go.wasmcloud.dev/component/gen/wasi/http/incoming-handler"
-	"go.wasmcloud.dev/component/gen/wasi/http/types"
+	witTypes "go.bytecodealliance.org/pkg/wit/types"
+	incominghandler "go.wasmcloud.dev/component/exports/wasmcloud_component_go_wasip2_0_2_0/export_wasi_http_0_2_8_incoming_handler"
+	types "go.wasmcloud.dev/component/imports/wasi_http_0_2_8_types"
+
+	// Pull in the //go:wasmexport glue for the component's exports.
+	_ "go.wasmcloud.dev/component/exports/wasmcloud_component_go_wasip2_0_2_0/wit_exports"
 )
 
 // handler is the function that will be called by the http server.
@@ -31,11 +34,11 @@ func HandleFunc(h http.HandlerFunc) {
 	handler = h
 }
 
-func wasiHandle(request types.IncomingRequest, responseOut types.ResponseOutparam) {
+func wasiHandle(request *types.IncomingRequest, responseOut *types.ResponseOutparam) {
 	httpReq, err := WASItoHTTPRequest(request)
 	if err != nil {
-		types.ResponseOutparamSet(responseOut, cm.Err[cm.Result[types.ErrorCodeShape, types.OutgoingResponse, types.ErrorCode]](
-			types.ErrorCodeInternalError(cm.Some(err.Error()))),
+		types.ResponseOutparamSet(responseOut, witTypes.Err[*types.OutgoingResponse, types.ErrorCode](
+			types.MakeErrorCodeInternalError(witTypes.Some(err.Error()))),
 		)
 		return
 	}

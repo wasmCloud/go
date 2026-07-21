@@ -1,8 +1,0 @@
-name = "wasitel-http"
-language = "tinygo"
-type = "component"
-version = "0.1.0"
-
-[component]
-wit_world = "wasitel-echo"
-wasm_target = "wasm32-wasi-preview2"

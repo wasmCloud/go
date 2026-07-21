@@ -1,0 +1,8 @@
+package wasmcloud:examples@0.1.0;
+
+// Extra interfaces this component needs beyond the SDK's wasip2 world.
+// The component is built with both worlds merged:
+// the SDK world provides wasi:http; this world adds wasi:keyvalue.
+world http-keyvalue-crud {
+  import wasi:keyvalue/store@0.2.0-draft;
+}
