@@ -52,8 +52,11 @@ jobs:
             test-command: curl -sf 127.0.0.1:8000/ && curl -sf -X POST -d 'ping' 127.0.0.1:8000/post
           - folder: http-client
             test-command: curl -sf 127.0.0.1:8000/
+          # The checker requires >= 60 bits of entropy, so the smoke test
+          # needs a genuinely strong password ("hunter2" scores ~36 and
+          # is rejected with a 400).
           - folder: http-password-checker
-            test-command: curl -sf -X POST 127.0.0.1:8000/api/v1/check -d '{"value":"hunter2"}'
+            test-command: curl -sf -X POST 127.0.0.1:8000/api/v1/check -d '{"value":"Tr0ub4dor&3xplor3r!"}'
           - folder: http-keyvalue-crud
             test-command: curl -sf -X POST 127.0.0.1:8000/crud/ci -d '{"a":"b"}' && curl -sf 127.0.0.1:8000/crud/ci && curl -sf -X DELETE 127.0.0.1:8000/crud/ci
           - folder: http-p3-streaming

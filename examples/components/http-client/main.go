@@ -1,6 +1,5 @@
 package main
 
-
 import (
 	"io"
 	"net/http"
@@ -18,7 +17,7 @@ func init() {
 }
 
 func proxyHandler(w http.ResponseWriter, _ *http.Request) {
-	url := "http://www.randomnumberapi.com/api/v1.0/random?min=100&max=1000&count=5"
+	url := "https://dog.ceo/api/breeds/image/random"
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		http.Error(w, "failed to create request", http.StatusBadGateway)
