@@ -1,0 +1,145 @@
+name: bench
+
+# Modeled on wasmCloud/wasmCloud's .github/workflows/bench.yml: manual
+# dispatch of a named bench against any ref, plus an automatic run when an
+# SDK release is published so the releases timeline stays populated.
+#
+# Differences from the Rust repo, deliberately:
+#   - Runs on GitHub-hosted runners for now. Numbers are noisier than the
+#     dedicated Hetzner bench host (shared vCPUs, no isolcpus), so treat
+#     absolute values loosely and trends across many runs as the signal.
+#     If this repo is granted access to the org's self-hosted bench runner
+#     group, switch `runs-on` to [self-hosted, bench, hetzner] and add the
+#     preflight/concurrency pieces from the Rust workflow.
+#   - No S3/CloudFront push yet. results.jsonl is emitted in the same row
+#     schema as bench-tools (see scripts/bench/httpbench), so wiring the
+#     push later only needs the bucket secrets and a bench-push step.
+
+on:
+  workflow_dispatch:
+    inputs:
+      bench:
+        description: which bench to run
+        type: choice
+        default: http_invoke
+        options:
+          - http_invoke
+          - http_invoke_p3
+      ref:
+        description: git ref to bench (branch, tag, or sha; default = the workflow ref)
+        type: string
+        default: ""
+  # This repo publishes a GitHub release per Go module tag
+  # (component/vX.Y.Z, x/wasitel/vX.Y.Z, ...). Only component/* releases
+  # can move these benches, so the matrix job filters the rest out.
+  release:
+    types: [published]
+
+defaults:
+  run:
+    shell: bash
+
+# Queue rather than cancel so an in-flight bench finishes its sampling.
+concurrency:
+  group: bench
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  # Compute the matrix shape from the trigger:
+  #   - workflow_dispatch: a one-element matrix (just inputs.bench)
+  #   - release:           $RELEASE_BENCHES for component/* tags, empty
+  #                        (skip) for provider/templates/x releases
+  matrix:
+    name: build matrix
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    outputs:
+      benches: ${{ steps.set.outputs.benches }}
+      ref: ${{ steps.set.outputs.ref }}
+    env:
+      # Subset of inputs.bench.options to run automatically when a
+      # component SDK release is published.
+      RELEASE_BENCHES: '["http_invoke"]'
+    steps:
+      - id: set
+        env:
+          EVENT: ${{ github.event_name }}
+          INPUT_BENCH: ${{ inputs.bench }}
+          INPUT_REF: ${{ inputs.ref }}
+          DEFAULT_REF: ${{ github.ref }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = "release" ]; then
+            case "$RELEASE_TAG" in
+              component/v*)
+                echo "benches=${RELEASE_BENCHES}" >> "$GITHUB_OUTPUT"
+                ;;
+              *)
+                # Not an SDK release; nothing to bench.
+                echo "benches=[]" >> "$GITHUB_OUTPUT"
+                ;;
+            esac
+            echo "ref=${RELEASE_TAG}" >> "$GITHUB_OUTPUT"
+          else
+            echo "benches=[\"${INPUT_BENCH}\"]" >> "$GITHUB_OUTPUT"
+            ref="${INPUT_REF:-${DEFAULT_REF}}"
+            ref="${ref#refs/heads/}"; ref="${ref#refs/tags/}"
+            echo "ref=${ref}" >> "$GITHUB_OUTPUT"
+          fi
+
+  bench:
+    needs: matrix
+    if: needs.matrix.outputs.benches != '[]'
+    name: ${{ matrix.bench }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        bench: ${{ fromJSON(needs.matrix.outputs.benches) }}
+    env:
+      GO_VERSION: "1.25"
+      WASMCLOUD_BENCH_NAME: ${{ matrix.bench }}
+      # The ref recorded on each data row — httpbench reads this as the
+      # single source of truth for what was benched (the tag for a
+      # release, the checked-out ref for a dispatch). GITHUB_REF_NAME is
+      # deliberately not used: it's the *dispatch* ref (e.g. `main` even
+      # when the `ref` input is component/v0.1.0).
+      WASMCLOUD_BENCH_REF: ${{ needs.matrix.outputs.ref }}
+      BENCH_OUTPUT_DIR: ${{ github.workspace }}/bench-output
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          ref: ${{ needs.matrix.outputs.ref }}
+          fetch-depth: 0
+          # The runner executes the component under test; don't leave the
+          # GITHUB_TOKEN in .git/config where that code could read it.
+          persist-credentials: false
+
+      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: false
+
+      - uses: wasmcloud/setup-wash-action@v2.1.0
+
+      - name: run bench
+        run: ./scripts/bench/run-bench.sh "${WASMCLOUD_BENCH_NAME}"
+
+      - name: render markdown summary
+        run: cat "${BENCH_OUTPUT_DIR}/summary.md" >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: upload bench artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: bench-${{ matrix.bench }}-${{ github.run_id }}
+          path: ${{ env.BENCH_OUTPUT_DIR }}
+          retention-days: 90
+          # A run that produced no output is a bug worth flagging loudly.
+          if-no-files-found: error
