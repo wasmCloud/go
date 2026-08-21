@@ -8,8 +8,12 @@ import (
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
-	"go.wasmcloud.dev/component/log/wasilog"
-	"go.wasmcloud.dev/component/net/wasihttp"
+	"go.bytecodealliance.org/pkg/wasihttp"
+	"go.bytecodealliance.org/pkg/wasilog"
+
+	// Anchor go.wasmcloud.dev/component in go.mod: it carries the wasmCloud
+	// worlds' WIT and componentize-go.toml used at build time.
+	_ "go.wasmcloud.dev/component"
 )
 
 const Index = `/error - return a 500 error

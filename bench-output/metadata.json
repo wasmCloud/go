@@ -1,0 +1,21 @@
+{
+  "actor": "",
+  "bench": "http_invoke_go",
+  "event": "",
+  "go_version": "go version go1.26.5 darwin/arm64",
+  "meta": {
+    "sha": "139cf296d4d38f1c0a3b6ffbcc48fedd709bf585",
+    "short_sha": "139cf296d4d3",
+    "ref": "jfleitz/wasmcloud-v2",
+    "run_id": "local",
+    "run_attempt": "1",
+    "timestamp": "2026-08-12T14:30:08Z",
+    "host": "jeremy-MacBook-Pro",
+    "kernel": "25.6.0",
+    "cpus_online": 10,
+    "isolated_cpu": "?"
+  },
+  "repository": "",
+  "wash_version": "wash 2.6.1",
+  "workflow": ""
+}

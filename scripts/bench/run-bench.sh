@@ -12,7 +12,7 @@
 
 set -euo pipefail
 
-bench="${1:?bench name required (e.g. http_invoke)}"
+bench="${1:?bench name required (e.g. http_invoke_go)}"
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 out_dir="${BENCH_OUTPUT_DIR:-${repo_root}/bench-output}"

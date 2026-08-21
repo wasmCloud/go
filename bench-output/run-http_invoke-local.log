@@ -1,0 +1,19 @@
+=== run-bench: http_invoke (example: http-server) ===
+host:   jeremy-MacBook-Pro
+kernel: Darwin 25.5.0 arm64
+cpus:   10
+git:    139cf296d4d38f1c0a3b6ffbcc48fedd709bf585
+ref:    ?
+go:     go version go1.26.5 darwin/arm64
+wash:   wash 2.5.2
+ts:     2026-07-22T12:38:58Z
+
+[2m2026-07-22T12:38:58.802418Z[0m [32m INFO[0m [1mperform_component_build[0m[1m{[0m[3mcommand[0m[2m=[0m"go tool componentize-go build -o build/http_server.wasm"[1m}[0m[2m:[0m building component [3mpath[0m[2m=[0m"/Users/jeremy/source/wasmcloud/go/examples/components/http-server"
+[2m2026-07-22T12:38:58.803339Z[0m [32m INFO[0m [1mperform_component_build[0m[1m{[0m[3mcommand[0m[2m=[0m"go tool componentize-go build -o build/http_server.wasm"[1m}[0m[2m:[0m executing build command [3mcommand[0m[2m=[0m"go tool componentize-go build -o build/http_server.wasm" [3mcomponent_path[0m[2m=[0m"build/http_server.wasm"
+Successfully built component at: /Users/jeremy/source/wasmcloud/go/examples/components/http-server/build/http_server.wasm
+2026/07/22 08:39:01 component ready at http://127.0.0.1:8000
+2026/07/22 08:39:01 scenario get_root: warmup 3s, measure 15s
+2026/07/22 08:39:19 scenario get_root: n=12331 mean=1.22ms p99=1.83ms (822 req/s)
+2026/07/22 08:39:19 scenario post_body: warmup 3s, measure 15s
+2026/07/22 08:39:37 scenario post_body: n=12127 mean=1.24ms p99=1.84ms (808 req/s)
+2026/07/22 08:39:37 wrote /Users/jeremy/source/wasmcloud/go/bench-output/results.jsonl

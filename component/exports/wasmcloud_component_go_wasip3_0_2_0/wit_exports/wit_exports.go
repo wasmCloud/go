@@ -16,16 +16,21 @@
 //     wasi:http@0.3.0
 //     wasi:logging@0.1.0-draft
 //     wasi:sockets@0.3.0
+//     wasmcloud:blobstore@0.1.0
+//     wasmcloud:secrets@2.0.0
+//     wasmcloud:keyvalue@0.1.0
+//     wasmcloud:messaging@0.2.0
+//     wasmcloud:postgres@0.2.0
 //     wasmcloud:component-go@0.2.0
 
 package wit_exports
 
 import (
+	"go.bytecodealliance.org/pkg/imports/wasi_http_0_3_0_types"
 	witAsync "go.bytecodealliance.org/pkg/wit/async"
 	witRuntime "go.bytecodealliance.org/pkg/wit/runtime"
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
 	"go.wasmcloud.dev/component/exports/wasmcloud_component_go_wasip3_0_2_0/export_wasi_http_0_3_0_handler"
-	"go.wasmcloud.dev/component/imports/wasi_http_0_3_0_types"
 	"runtime"
 	"unsafe"
 )

@@ -9,14 +9,18 @@ import (
 	"net/http"
 	"sync"
 
-	"go.wasmcloud.dev/component/net/wasihttp3"
+	"go.bytecodealliance.org/pkg/wasihttp"
+
+	// Anchor go.wasmcloud.dev/component in go.mod: it carries the wasmCloud
+	// worlds' WIT and componentize-go.toml used at build time.
+	_ "go.wasmcloud.dev/component"
 )
 
 func init() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /echo", echoHandler)
 	mux.HandleFunc("GET /fanout", fanoutHandler)
-	wasihttp3.Handle(mux)
+	wasihttp.Handle(mux)
 }
 
 // echoHandler streams the request body straight back to the response —
@@ -54,7 +58,7 @@ func fanoutHandler(w http.ResponseWriter, r *http.Request) {
 			res := result{url: url}
 			defer func() { results[i] = res }()
 
-			resp, err := wasihttp3.DefaultClient.Get(url)
+			resp, err := wasihttp.DefaultClient.Get(url)
 			if err != nil {
 				res.err = err
 				return

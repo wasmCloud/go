@@ -4,8 +4,12 @@ import (
 	"io"
 	"net/http"
 
+	"go.bytecodealliance.org/pkg/wasihttp"
 	"go.opentelemetry.io/otel"
-	"go.wasmcloud.dev/component/net/wasihttp"
+
+	// Anchor go.wasmcloud.dev/component in go.mod: it carries the wasmCloud
+	// worlds' WIT and componentize-go.toml used at build time.
+	_ "go.wasmcloud.dev/component"
 )
 
 const (

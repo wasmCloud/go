@@ -5,7 +5,7 @@
 package export_wasi_http_0_2_8_incoming_handler
 
 import (
-	"go.wasmcloud.dev/component/imports/wasi_http_0_2_8_types"
+	"go.bytecodealliance.org/pkg/imports/wasi_http_0_2_8_types"
 )
 
 var Exports struct {

@@ -6,7 +6,7 @@ package export_wasi_http_0_3_0_handler
 
 import (
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
-	"go.wasmcloud.dev/component/imports/wasi_http_0_3_0_types"
+	"go.bytecodealliance.org/pkg/imports/wasi_http_0_3_0_types"
 )
 
 var Exports struct {

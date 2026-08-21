@@ -1,7 +1,12 @@
 // httpbench drives HTTP load against a Go component served by `wash dev`
 // and emits results in the same JSONL row schema as wasmCloud/wasmCloud's
-// bench-tools, so rows from this repo can join the same history.json
-// aggregate if we ever wire up the S3 push.
+// bench-tools, so rows from this repo join the same history.json
+// aggregate (pushed by .github/scripts/bench-push-results.mjs) and render
+// on https://wasmcloud.github.io/arewefastyet/ alongside the Rust rows.
+//
+// Bench names carry a `_go` suffix (http_invoke_go, ...) because the
+// aggregate is shared with wasmCloud/wasmCloud: the site's timelines key
+// on the `bench` field, and the Rust repo already publishes http_invoke.
 //
 // Measurement model: a closed loop at concurrency 1 — one request at a
 // time, latency recorded per request — matching the sequential-invoke
@@ -43,7 +48,7 @@ type benchDef struct {
 }
 
 var benches = map[string]benchDef{
-	"http_invoke": {
+	"http_invoke_go": {
 		group:   "http-server",
 		example: "http-server",
 		scenarios: []scenario{
@@ -51,7 +56,7 @@ var benches = map[string]benchDef{
 			{param: "post_body", method: "POST", path: "/post", body: "ping"},
 		},
 	},
-	"http_invoke_p3": {
+	"http_invoke_p3_go": {
 		group:   "http-p3-streaming",
 		example: "http-p3-streaming",
 		scenarios: []scenario{
@@ -100,7 +105,7 @@ type stats struct {
 
 func main() {
 	var (
-		benchName = flag.String("bench", "", "bench to run (http_invoke, http_invoke_p3)")
+		benchName = flag.String("bench", "", "bench to run (http_invoke_go, http_invoke_p3_go)")
 		baseURL   = flag.String("url", "http://127.0.0.1:8000", "base URL wash dev serves on")
 		outDir    = flag.String("out", "bench-output", "directory for results.jsonl, summary.md, metadata.json")
 		warmup    = flag.Duration("warmup", 3*time.Second, "warmup duration per scenario")

@@ -13,8 +13,12 @@ import (
 	// by componentize-go.
 	store "github.com/wasmCloud/go/examples/components/http-keyvalue-crud/wasi_keyvalue_store"
 
-	// The wasmCloud wasihttp module enables us to write more idiomatic Go when using wasi:http.
-	"go.wasmcloud.dev/component/net/wasihttp"
+	// The wasihttp package enables us to write more idiomatic Go when using wasi:http.
+	"go.bytecodealliance.org/pkg/wasihttp"
+
+	// Anchor go.wasmcloud.dev/component in go.mod: it carries the wasmCloud
+	// worlds' WIT and componentize-go.toml used at build time.
+	_ "go.wasmcloud.dev/component"
 )
 
 // Types for JSON validation.

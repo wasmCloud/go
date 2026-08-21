@@ -4,7 +4,11 @@ import (
 	"io"
 	"net/http"
 
-	"go.wasmcloud.dev/component/net/wasihttp"
+	"go.bytecodealliance.org/pkg/wasihttp"
+
+	// Anchor go.wasmcloud.dev/component in go.mod: it carries the wasmCloud
+	// worlds' WIT and componentize-go.toml used at build time.
+	_ "go.wasmcloud.dev/component"
 )
 
 var (
