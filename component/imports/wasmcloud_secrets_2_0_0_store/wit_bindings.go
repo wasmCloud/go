@@ -21,6 +21,7 @@
 //     wasmcloud:keyvalue@0.1.0
 //     wasmcloud:messaging@0.2.0
 //     wasmcloud:postgres@0.2.0
+//     wasmcloud:nats@0.1.0
 //     wasmcloud:component-go@0.2.0
 
 package wasmcloud_secrets_2_0_0_store

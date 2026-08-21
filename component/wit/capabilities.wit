@@ -34,6 +34,15 @@ world wasmcloud-capabilities {
   import wasmcloud:blobstore/types@0.1.0;
   import wasmcloud:blobstore/container@0.1.0;
   import wasmcloud:blobstore/blobstore@0.1.0;
+
+  // wasmcloud:nats — NATS-native core pub/sub, JetStream, and KV. Distinct
+  // from wasmcloud:messaging: durable delivery, explicit acknowledgement,
+  // and compare-and-swap on a KV revision, none of which the portable
+  // messaging interface can express.
+  import wasmcloud:nats/types@0.1.0;
+  import wasmcloud:nats/core@0.1.0;
+  import wasmcloud:nats/jetstream@0.1.0;
+  import wasmcloud:nats/kv@0.1.0;
 }
 
 // Export-glue world for the optional wasmcloud:messaging handler callback.
@@ -41,4 +50,20 @@ world wasmcloud-capabilities {
 // world and registers a callback via go.wasmcloud.dev/component/messaging.
 world wasmcloud-messaging-handler {
   export wasmcloud:messaging/handler@0.2.0;
+}
+
+// Export-glue worlds for the wasmcloud:nats handler callbacks. Each is
+// separate so a component exporting only one of them still instantiates —
+// a single world covering all three would force every component to export
+// all three.
+world wasmcloud-nats-core-handler {
+  export wasmcloud:nats/core-handler@0.1.0;
+}
+
+world wasmcloud-nats-jetstream-handler {
+  export wasmcloud:nats/jetstream-handler@0.1.0;
+}
+
+world wasmcloud-nats-kv-handler {
+  export wasmcloud:nats/kv-handler@0.1.0;
 }

@@ -39,11 +39,15 @@ rm -rf imports
   --include-versions
 rm -r imports/wit_exports
 
-# Export glue for the optional wasmcloud:messaging/handler callback. The
-# handwritten trampoline package (export_wasmcloud_messaging_0_2_0_handler)
-# is preserved; only the generated wit_exports directory is refreshed.
+# Export glue for the optional handler callbacks (wasmcloud:messaging and
+# the three wasmcloud:nats handlers). The handwritten trampoline packages
+# (export_*) are preserved; only the generated wit_exports directory is
+# refreshed.
 EXPORT_WORLDS=(
   "wasmcloud:component-go/wasmcloud-messaging-handler@0.2.0"
+  "wasmcloud:component-go/wasmcloud-nats-core-handler@0.2.0"
+  "wasmcloud:component-go/wasmcloud-nats-jetstream-handler@0.2.0"
+  "wasmcloud:component-go/wasmcloud-nats-kv-handler@0.2.0"
 )
 
 for world in "${EXPORT_WORLDS[@]}"; do

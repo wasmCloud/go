@@ -1,0 +1,33 @@
+apiVersion: runtime.wasmcloud.dev/v1alpha1
+kind: WorkloadDeployment
+metadata:
+  name: nats-jetstream-orders
+spec:
+  replicas: 1
+  template:
+    spec:
+      components:
+        - name: processor
+          image: file://./main.wasm
+          maxConcurrency: 4
+          poolSize: 1
+      hostInterfaces:
+        - namespace: wasmcloud
+          package: nats
+          version: "0.1.0"
+          interfaces: [types, jetstream, kv, jetstream-handler]
+          config:
+            servers: nats://nats.default.svc:4222
+            # Deny-by-default, and the grants are separate: publishing to
+            # orders.processed does not carry permission to read the ORDERS
+            # stream, nor to touch the KV bucket.
+            subject-allow: orders.processed
+            stream-allow: ORDERS,PROCESSED
+            bucket-allow: order-totals
+            # STREAM:filter[:policy[:queue]]
+            subscriptions: ORDERS:orders.received:all
+            # The host acks on a nil return and naks on an error.
+            ack-mode: auto
+            max-in-flight: "8"
+          secretFrom:
+            - nats-credentials

@@ -1,0 +1,16 @@
+package wasmcloud:examples@0.1.0;
+
+// A NATS-only component: it serves no HTTP, so it does not merge the SDK's
+// wasip2 world (which mandates a wasi:http/incoming-handler export) and
+// includes the CLI imports directly instead.
+world nats-jetstream-orders {
+  include wasi:cli/imports@0.2.8;
+
+  import wasi:logging/logging@0.1.0-draft;
+
+  import wasmcloud:nats/types@0.1.0;
+  import wasmcloud:nats/jetstream@0.1.0;
+  import wasmcloud:nats/kv@0.1.0;
+
+  export wasmcloud:nats/jetstream-handler@0.1.0;
+}
