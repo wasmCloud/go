@@ -1,0 +1,42 @@
+# Deploys the watcher on wasmCloud v2 (runtime operator >= 2.5.2).
+#
+#   kubectl apply -f deployment.yaml
+apiVersion: runtime.wasmcloud.dev/v1alpha1
+kind: WorkloadDeployment
+metadata:
+  name: nats-kv-watch
+spec:
+  replicas: 1
+  template:
+    spec:
+      components:
+        - name: watcher
+          image: file://./main.wasm
+          maxConcurrency: 4
+          poolSize: 1
+      hostInterfaces:
+        # wasi:logging is a host plugin like any other: a component that
+        # imports it and does not declare it here fails to start with
+        # "a matching implementation was not found in the linker". `wash
+        # dev` derives this entry from the component's imports, so the
+        # omission only shows up on a real host.
+        - namespace: wasi
+          package: logging
+          interfaces: [logging]
+        - namespace: wasmcloud
+          package: nats
+          version: "0.1.0"
+          interfaces: [types, kv, core, kv-handler]
+          config:
+            servers: nats://nats.default.svc:4222
+            # Deny-by-default, and the grants are separate: watching the
+            # bucket does not carry permission to announce the change.
+            bucket-allow: feature-flags
+            subject-allow: flags.changed
+            # bucket:filter, comma separated. The filter is the loop guard
+            # that matters: the component writes `active` into this same
+            # bucket, and delivering that write back would make every change
+            # trigger another one.
+            kv-watches: feature-flags:flag.>
+          secretFrom:
+            - nats-credentials

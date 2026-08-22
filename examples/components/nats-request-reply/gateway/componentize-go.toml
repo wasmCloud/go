@@ -1,0 +1,5 @@
+# Adds this component's extra world (wasmcloud:nats/core) on top of the SDK's
+# default wasip2 world; componentize-go merges worlds from all
+# componentize-go.toml files found in the module graph.
+worlds = ["wasmcloud:examples/nats-request-gateway@0.1.0"]
+wit_paths = ["wit"]

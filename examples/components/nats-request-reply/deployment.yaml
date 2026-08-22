@@ -1,0 +1,124 @@
+# Two workloads, two halves of one round trip: the gateway turns HTTP into a
+# NATS request, and the service answers it.
+#
+#   kubectl apply -f deployment.yaml
+#
+# They are separate workloads on purpose. A single workload subscribing to
+# the subject it also issues requests on would be answering itself, and one
+# blocked on `nats.Request` while its own subscription waits for a free
+# instance deadlocks until the timeout.
+apiVersion: runtime.wasmcloud.dev/v1alpha1
+kind: WorkloadDeployment
+metadata:
+  name: nats-reply-service
+spec:
+  replicas: 1
+  template:
+    spec:
+      components:
+        - name: service
+          image: file://./service/main.wasm
+          maxConcurrency: 8
+          poolSize: 1
+      hostInterfaces:
+        # wasi:logging is a host plugin like any other: a component that
+        # imports it and does not declare it here fails to start with
+        # "a matching implementation was not found in the linker". `wash
+        # dev` derives this entry from the component's imports, so the
+        # omission only shows up on a real host.
+        - namespace: wasi
+          package: logging
+          interfaces: [logging]
+        - namespace: wasmcloud
+          package: nats
+          version: "0.1.0"
+          interfaces: [types, core, core-handler]
+          config:
+            servers: nats://nats.default.svc:4222
+            # subject[:queue], comma separated. The queue group is what makes
+            # `replicas: 2` share the work rather than each handling every
+            # request.
+            core-subscriptions: service.*:service-workers
+            # Three separate things need granting here, and it is easy to
+            # notice only the first:
+            #
+            #  - `service.>` covers the subscription itself. The pattern in
+            #    `core-subscriptions` is checked against this grant before
+            #    the host subscribes, and a workload that cannot name the
+            #    subject cannot be handed messages on it either.
+            #  - `_INBOX_gateway.>` covers the replies, which are publishes
+            #    like any other. That is the prefix the gateway pins below;
+            #    left unset, a workload's inbox prefix is derived from its
+            #    workload *id* — a UUID assigned at schedule time — which no
+            #    grant can name in advance.
+            #  - `_INBOX.>` is the default prefix the `nats` CLI publishes
+            #    from, so `nats req` can reach this service too. Drop it
+            #    once you are past experimenting: a service that can publish
+            #    to every inbox on the server can answer requests that were
+            #    never addressed to it.
+            subject-allow: service.>,_INBOX_gateway.>,_INBOX.>
+          secretFrom:
+            - nats-credentials
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nats-request-gateway
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      protocol: TCP
+---
+apiVersion: runtime.wasmcloud.dev/v1alpha1
+kind: WorkloadDeployment
+metadata:
+  # The inbox prefix the service grants above is derived from this name.
+  # Renaming this workload means updating that grant.
+  name: nats-request-gateway
+spec:
+  replicas: 1
+  template:
+    spec:
+      kubernetes:
+        service:
+          name: nats-request-gateway
+      components:
+        - name: gateway
+          image: file://./gateway/main.wasm
+          maxConcurrency: 8
+          poolSize: 1
+      hostInterfaces:
+        # wasi:logging is a host plugin like any other: a component that
+        # imports it and does not declare it here fails to start with
+        # "a matching implementation was not found in the linker". `wash
+        # dev` derives this entry from the component's imports, so the
+        # omission only shows up on a real host.
+        - namespace: wasi
+          package: logging
+          interfaces: [logging]
+        - namespace: wasi
+          package: http
+          interfaces:
+            - incoming-handler
+          config:
+            host: localhost
+        - namespace: wasmcloud
+          package: nats
+          version: "0.1.0"
+          interfaces: [types, core]
+          config:
+            servers: nats://nats.default.svc:4222
+            # The gateway may request anything under `service.`, and nothing
+            # else. A subject outside this fails host-side with
+            # subject-denied, which the gateway maps to a 403 — the request
+            # never reaches the server.
+            subject-allow: service.>
+            # Replies come back on this prefix. Pinning it is what lets the
+            # service grant it: the default is derived from the workload id,
+            # which is a UUID assigned at schedule time. It still has to be
+            # unique per workload — a shared prefix would let two workloads
+            # race to consume each other's replies.
+            inbox-prefix: _INBOX_gateway
+          secretFrom:
+            - nats-credentials

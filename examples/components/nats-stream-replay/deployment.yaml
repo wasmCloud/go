@@ -1,0 +1,59 @@
+# Deploys the reader on wasmCloud v2 (runtime operator >= 2.5.2).
+#
+#   kubectl apply -f deployment.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nats-stream-replay
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      protocol: TCP
+---
+apiVersion: runtime.wasmcloud.dev/v1alpha1
+kind: WorkloadDeployment
+metadata:
+  name: nats-stream-replay
+spec:
+  replicas: 1
+  template:
+    spec:
+      kubernetes:
+        service:
+          name: nats-stream-replay
+      components:
+        - name: reader
+          image: file://./main.wasm
+          maxConcurrency: 4
+          poolSize: 1
+      hostInterfaces:
+        # wasi:logging is a host plugin like any other: a component that
+        # imports it and does not declare it here fails to start with
+        # "a matching implementation was not found in the linker". `wash
+        # dev` derives this entry from the component's imports, so the
+        # omission only shows up on a real host.
+        - namespace: wasi
+          package: logging
+          interfaces: [logging]
+        - namespace: wasi
+          package: http
+          interfaces:
+            - incoming-handler
+          config:
+            host: localhost
+        - namespace: wasmcloud
+          package: nats
+          version: "0.1.0"
+          # No handler interface: this component is driven by HTTP, so the
+          # host pushes nothing at it and there are no subscriptions to
+          # declare.
+          interfaces: [types, jetstream]
+          config:
+            servers: nats://nats.default.svc:4222
+            # Reads are checked against the stream grant, so a request for a
+            # stream outside this list fails host-side and comes back as a
+            # 403 without reaching the server.
+            stream-allow: ORDERS,EVENTS
+          secretFrom:
+            - nats-credentials
