@@ -22,6 +22,7 @@
 //     wasmcloud:messaging@0.2.0
 //     wasmcloud:postgres@0.2.0
 //     wasmcloud:nats@0.1.0
+//     wasmcloud:nats@0.2.0
 //     wasmcloud:component-go@0.2.0
 
 package wasmcloud_blobstore_0_1_0_container

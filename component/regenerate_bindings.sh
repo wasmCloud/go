@@ -48,6 +48,9 @@ EXPORT_WORLDS=(
   "wasmcloud:component-go/wasmcloud-nats-core-handler@0.2.0"
   "wasmcloud:component-go/wasmcloud-nats-jetstream-handler@0.2.0"
   "wasmcloud:component-go/wasmcloud-nats-kv-handler@0.2.0"
+  "wasmcloud:component-go/wasmcloud-nats-async-core-handler@0.2.0"
+  "wasmcloud:component-go/wasmcloud-nats-async-jetstream-handler@0.2.0"
+  "wasmcloud:component-go/wasmcloud-nats-async-kv-handler@0.2.0"
 )
 
 for world in "${EXPORT_WORLDS[@]}"; do

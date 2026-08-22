@@ -43,6 +43,14 @@ world wasmcloud-capabilities {
   import wasmcloud:nats/core@0.1.0;
   import wasmcloud:nats/jetstream@0.1.0;
   import wasmcloud:nats/kv@0.1.0;
+
+  // The async (WASI P3) revision of the same package: every function is an
+  // `async func`, and the error variant carries a structured denial rather
+  // than a bare subject string.
+  import wasmcloud:nats/types@0.2.0;
+  import wasmcloud:nats/core@0.2.0;
+  import wasmcloud:nats/jetstream@0.2.0;
+  import wasmcloud:nats/kv@0.2.0;
 }
 
 // Export-glue world for the optional wasmcloud:messaging handler callback.
@@ -66,4 +74,18 @@ world wasmcloud-nats-jetstream-handler {
 
 world wasmcloud-nats-kv-handler {
   export wasmcloud:nats/kv-handler@0.1.0;
+}
+
+// The same three callbacks against the async `@0.2.0` package, for P3
+// components.
+world wasmcloud-nats-async-core-handler {
+  export wasmcloud:nats/core-handler@0.2.0;
+}
+
+world wasmcloud-nats-async-jetstream-handler {
+  export wasmcloud:nats/jetstream-handler@0.2.0;
+}
+
+world wasmcloud-nats-async-kv-handler {
+  export wasmcloud:nats/kv-handler@0.2.0;
 }
