@@ -1,0 +1,16 @@
+build:
+  command: go tool componentize-go build -o build/nats_request_gateway.wasm
+  component_path: build/nats_request_gateway.wasm
+
+dev:
+  host_interfaces:
+    - namespace: wasmcloud
+      package: nats
+      version: 0.1.0
+      interfaces: [types, core]
+      config:
+        servers: nats://127.0.0.1:4222
+        subject-allow: service.>
+        # Pinned so the service can grant it; the default is derived from the
+        # workload id, which is a UUID assigned at start.
+        inbox-prefix: _INBOX_gateway

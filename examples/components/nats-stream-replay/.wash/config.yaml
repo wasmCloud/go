@@ -1,0 +1,20 @@
+build:
+  # `-w` is not needed: this component exports wasi:http, so its world merges
+  # on top of the SDK's default wasip2 world.
+  command: go tool componentize-go build -o build/nats_stream_replay.wasm
+  component_path: build/nats_stream_replay.wasm
+
+# `wash dev` has no manifest, so the host interfaces this component would get
+# from deployment.yaml are declared here instead — same shape, same keys. Keep
+# the two in step. wasi:logging is not listed: dev derives it from the
+# component's imports, which is exactly why the manifest has to name it
+# explicitly and this file does not.
+dev:
+  host_interfaces:
+    - namespace: wasmcloud
+      package: nats
+      version: 0.1.0
+      interfaces: [types, jetstream]
+      config:
+        servers: nats://127.0.0.1:4222
+        stream-allow: EVENTS

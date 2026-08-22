@@ -1,0 +1,21 @@
+build:
+  command: go tool componentize-go -w 'wasmcloud:examples/nats-reply-service@0.1.0' build -o build/nats_reply_service.wasm
+  component_path: build/nats_reply_service.wasm
+
+dev:
+  # This component serves no HTTP; the port only keeps its dev host from
+  # colliding with the gateway's session on 8000.
+  address: 0.0.0.0:8001
+  host_interfaces:
+    - namespace: wasmcloud
+      package: nats
+      version: 0.1.0
+      interfaces: [types, core, core-handler]
+      config:
+        servers: nats://127.0.0.1:4222
+        core-subscriptions: service.*:service-workers
+        # `service.>` covers the subscription itself, not just publishing:
+        # the pattern is checked against the grant before the host
+        # subscribes. `_INBOX_gateway.>` is the prefix the gateway pins, and
+        # `_INBOX.>` is what the `nats` CLI publishes from.
+        subject-allow: service.>,_INBOX_gateway.>,_INBOX.>

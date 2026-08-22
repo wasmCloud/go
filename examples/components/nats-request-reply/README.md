@@ -120,8 +120,24 @@ neither can reach the other's inbox prefix.
 
 ## Running it
 
-`wasmcloud:nats` is served by a wasmCloud host plugin, not by `wash dev` —
-the dev host registers `wasmcloud:messaging` and `wasi:keyvalue` but not
-this one yet. So the loop is `componentize-go build`, then deploy
-`deployment.yaml` to a wasmCloud v2 host whose runtime carries the
-`wasmcloud:nats` plugin, pointed at the NATS server above.
+Two components, two dev sessions — one per directory, in two terminals:
+
+```bash
+cd service && wash dev     # binds 8001; serves no HTTP, the port just avoids a clash
+cd gateway && wash dev     # binds 8000; this is the one you curl
+```
+
+`wasmcloud:nats` is a host plugin, and `wash dev` has no manifest to read
+the binding from — so `.wash/config.yaml` carries the same
+`hostInterfaces` shape `deployment.yaml` uses. Change a grant in one and
+change it in the other.
+
+The two are not quite interchangeable, and the difference is worth knowing
+before a component that works in dev fails on deploy: dev derives host
+interfaces from the component's imports, so `wasi:logging` binds there
+whether or not you declare it. A real host binds only what the manifest
+names, which is why `deployment.yaml` lists it and `.wash/config.yaml`
+does not.
+
+For a real host, `componentize-go build` and deploy `deployment.yaml` to a
+wasmCloud v2 host whose runtime carries the `wasmcloud:nats` plugin.
