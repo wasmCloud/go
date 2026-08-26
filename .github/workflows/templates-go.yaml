@@ -36,18 +36,13 @@ jobs:
 
       - name: Generate project from template
         run: |
-          # `wash new` runs the template's `go mod tidy` setup command, which
-          # only succeeds once the required go.wasmcloud.dev/component version
-          # is tagged and published. The project is fully generated before
-          # that command runs, so tolerate its failure here; the next step
-          # re-runs tidy against the in-repo SDK.
           wash new "file://${{ github.workspace }}" \
             --name test-component \
-            --subfolder templates/${{ matrix.template-name }} || true
+            --subfolder templates/${{ matrix.template-name }}
           test -f test-component/go.mod
 
       # Test the template against the SDK in this checkout rather than the
-      # released module, mirroring the replace directive used by the examples.
+      # released module, mirroring what the examples job does.
       - name: Use in-repo SDK
         working-directory: test-component
         run: |
