@@ -70,14 +70,26 @@ jobs:
             skip-dev-test: true
             test-command: "true"
 
-          # `wasmcloud:nats` is not published to a component registry, so the
-          # vendored wit/deps is all there is and `wash build` fails resolving
-          # the package. Drop skip-fetch from these once it is published.
+          # Two separate blockers, each with its own escape hatch:
           #
-          # Each nats-setup block is the README's prerequisite section: streams
-          # and buckets are the operator's to create, never the component's.
+          # skip-fetch: `wasmcloud:nats` is not published to a component
+          # registry, so the vendored wit/deps is all there is and `wash build`
+          # fails resolving the package. Drop it once the package is published.
+          #
+          # skip-dev-test: no released wash serves `wasmcloud:nats` — the
+          # plugin is still unmerged (wasmCloud/wasmCloud#5494), so v2.8.0
+          # starts these workloads with "no plugins found for requested
+          # interfaces" and every smoke test times out. Build-only until a
+          # release ships it; same treatment as http-otel above. Drop
+          # skip-dev-test from all three together and the harness below runs
+          # them unchanged.
+          #
+          # The nats-setup blocks are kept for that day: each one is the
+          # README's prerequisite section, since streams and buckets are the
+          # operator's to create, never the component's.
           - folder: nats-stream-replay
             skip-fetch: true
+            skip-dev-test: true
             nats-setup: |
               nats stream add EVENTS --subjects 'events.>' \
                 --storage file --retention limits --discard old \
@@ -97,6 +109,7 @@ jobs:
           # therefore retry-safe.
           - folder: nats-jetstream-orders
             skip-fetch: true
+            skip-dev-test: true
             nats-setup: |
               nats stream add ORDERS --subjects 'orders.received' \
                 --storage file --retention limits --discard old \
@@ -116,6 +129,7 @@ jobs:
           # the same key/value each attempt keeps it retry-safe.
           - folder: nats-kv-watch
             skip-fetch: true
+            skip-dev-test: true
             nats-setup: |
               nats kv add feature-flags --history 5
             test-command: nats kv put feature-flags flag.dark-mode on >/dev/null && sleep 2 && test "$(nats kv get feature-flags active --raw)" = "dark-mode"
@@ -154,7 +168,7 @@ jobs:
       # sudo; GITHUB_PATH puts it on PATH for the smoke test, and the export
       # covers the nats-setup block running inside this step.
       - name: Start NATS
-        if: ${{ matrix.example.nats-setup }}
+        if: ${{ matrix.example.nats-setup && !matrix.example.skip-dev-test }}
         run: |
           BIN="$RUNNER_TEMP/nats-bin"
           mkdir -p "$BIN"
