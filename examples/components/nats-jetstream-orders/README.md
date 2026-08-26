@@ -26,6 +26,9 @@ Idempotency is the part worth reading. Delivery is at-least-once, so a bare
 
 ## Prerequisites
 
+The server and the CLI are separate packages, and the examples use
+both — `brew install nats-server nats` on macOS.
+
 The stream and bucket are not created by the component — that lifecycle is
 deliberately outside `wasmcloud:nats`, so a workload cannot provision storage
 it was not granted:

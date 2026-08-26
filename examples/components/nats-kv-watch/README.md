@@ -48,6 +48,9 @@ is not defensible is a derived key inside the watched prefix.
 
 ## Prerequisites
 
+The server and the CLI are separate packages, and the examples use
+both — `brew install nats-server nats` on macOS.
+
 The bucket is not created by the component — that lifecycle is deliberately
 outside `wasmcloud:nats`, so a workload cannot provision storage it was not
 granted:
@@ -73,25 +76,6 @@ Every `wasmcloud:nats` function is an `async func`, so this builds a **WASI
 P3** component. componentize-go notices the async world and fetches a patched
 Go toolchain for it on first use; the Go code is unaffected.
 
-## Try it
-
-```bash
-nats sub flags.changed &
-
-nats kv put feature-flags flag.dark-mode on
-nats kv put feature-flags flag.beta-search off
-nats kv get feature-flags active     # -> dark-mode
-
-nats kv put feature-flags flag.beta-search true
-nats kv get feature-flags active     # -> beta-search,dark-mode
-
-nats kv del feature-flags flag.dark-mode
-nats kv get feature-flags active     # -> beta-search
-```
-
-`active` stays sorted, so two rebuilds of the same state produce the same
-bytes and an unrelated flag change does not burn a revision on it.
-
 ## Running it
 
 `wash dev` builds and runs it against the NATS server above:
@@ -116,6 +100,25 @@ interfaces from the component's imports, so `wasi:logging` binds there
 whether or not you declare it. A real host binds only what the manifest
 names, which is why `deployment.yaml` lists it and `.wash/config.yaml`
 does not.
+
+## Try it
+
+```bash
+nats sub flags.changed &
+
+nats kv put feature-flags flag.dark-mode on
+nats kv put feature-flags flag.beta-search off
+nats kv get feature-flags active     # -> dark-mode
+
+nats kv put feature-flags flag.beta-search true
+nats kv get feature-flags active     # -> beta-search,dark-mode
+
+nats kv del feature-flags flag.dark-mode
+nats kv get feature-flags active     # -> beta-search
+```
+
+`active` stays sorted, so two rebuilds of the same state produce the same
+bytes and an unrelated flag change does not burn a revision on it.
 
 ## Declaring the binding host-side
 

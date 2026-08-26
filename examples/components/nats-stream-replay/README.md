@@ -24,6 +24,7 @@ consumer and settles them, so what it reads, nobody else gets.
 | Reading a single message by sequence | `nats.GetBySequence` |
 | Attaching to a consumer that already exists | `nats.OpenPullConsumer` |
 | An empty fetch as an idle result, not a failure | `ErrNoMessages` -> 204 |
+| Telling a short batch from a drained consumer | `FetchedBatch.Stop` |
 | Manual settling: ack, nak with backoff, term | `settle` |
 | Extending ack-wait for slow work | `h.InProgress()` |
 | Mapping JetStream failures onto HTTP status by error type | `writeNatsError` |
@@ -42,6 +43,9 @@ come back with 40 — resume from `next` rather than concluding you reached
 the end.
 
 ## Prerequisites
+
+The server and the CLI are separate packages, and the examples use
+both — `brew install nats-server nats` on macOS.
 
 Neither stream nor consumer is created by the component — that lifecycle is
 deliberately outside `wasmcloud:nats`, so a workload cannot provision
@@ -74,37 +78,6 @@ its own world adds the JetStream imports on top. The `GOFLAGS` prefix selects
 `wasihttp`'s async P3 implementation; componentize-go sets that tag on its own
 from the release after v0.4.1, at which point the prefix can go.
 
-## Try it
-
-```bash
-nats pub events.one 'colour=blue'
-nats pub events.two 'size=large'
-nats pub events.three 'nonsense'          # no '=', so the drain terms it
-nats pub events.four 'retry=fail'         # naks with a backoff
-
-curl 'localhost:8000/streams/EVENTS/messages/1'
-curl 'localhost:8000/streams/EVENTS/replay?from=1&count=2'   # note "next": 3
-curl 'localhost:8000/streams/EVENTS/replay?from=3&count=2'
-
-curl -i -X POST 'localhost:8000/streams/EVENTS/consumers/workers/drain?batch=10'
-```
-
-The drain response names an outcome per message:
-
-```json
-{"sequence":3,"subject":"events.three","deliveryCount":1,"outcome":"term"}
-```
-
-Run it a second time and only the naked message comes back, with
-`deliveryCount` incremented — the acked and termed ones are gone for good.
-Run it once more with nothing pending and it answers `204 No Content`.
-
-Asking for a stream outside `stream-allow` is refused host-side:
-
-```bash
-curl -i 'localhost:8000/streams/SECRETS/replay'   # -> 403, never reaches the server
-```
-
 ## Running it
 
 `wash dev` builds and runs it against the NATS server above:
@@ -112,6 +85,9 @@ curl -i 'localhost:8000/streams/SECRETS/replay'   # -> 403, never reaches the se
 ```bash
 wash dev
 ```
+
+It serves the three routes on `localhost:8000`, which is where the calls
+below are pointed.
 
 `wasmcloud:nats` is a host plugin, and `wash dev` has no manifest to read
 the binding from — so `.wash/config.yaml` carries the binding whole:
@@ -129,6 +105,60 @@ interfaces from the component's imports, so `wasi:logging` binds there
 whether or not you declare it. A real host binds only what the manifest
 names, which is why `deployment.yaml` lists it and `.wash/config.yaml`
 does not.
+
+## Try it
+
+```bash
+nats pub events.one 'colour=blue'
+nats pub events.two 'size=large'
+nats pub events.three 'nonsense'          # no '=', so the drain terms it
+nats pub events.four 'retry=fail'         # naks with a backoff
+
+curl 'localhost:8000/streams/EVENTS/messages/1'
+curl 'localhost:8000/streams/EVENTS/replay?from=1&count=2'   # note "next": 3
+curl 'localhost:8000/streams/EVENTS/replay?from=3&count=2'
+
+curl -i -X POST 'localhost:8000/streams/EVENTS/consumers/workers/drain?batch=10'
+```
+
+The drain response names an outcome per message, under a header saying why
+the batch ended:
+
+```json
+{
+  "stream": "EVENTS",
+  "consumer": "workers",
+  "stop": "drained",
+  "results": [
+    {"sequence":1,"subject":"events.one","deliveryCount":1,"outcome":"ack"},
+    {"sequence":2,"subject":"events.two","deliveryCount":1,"outcome":"ack"},
+    {"sequence":3,"subject":"events.three","deliveryCount":1,"outcome":"term"},
+    {"sequence":4,"subject":"events.four","deliveryCount":1,"outcome":"nak",
+     "detail":"downstream unavailable"}
+  ]
+}
+```
+
+`stop` is the field a real worker loops on. `drained` means the consumer had
+nothing left to give, so four results out of a batch of ten is the whole
+backlog; `batch-filled` or `byte-limit` mean a bound cut the batch short with
+messages still waiting, and the next fetch picks up where this one stopped.
+Without it a short batch and an empty consumer look identical, and a reader
+that stops on a short batch leaves messages behind.
+
+`detail` appears only when there is something to say: the failure that caused
+a nak, or — for any outcome — a settling call the host refused, which is what
+you get under a binding configured `ack-mode: auto`.
+
+Run it a second time and only the naked message comes back, with
+`deliveryCount` incremented — the acked and termed ones are gone for good.
+Run it once more with nothing pending and it answers `204 No Content`.
+
+Asking for a stream outside `stream-allow` is refused host-side:
+
+```bash
+curl -i 'localhost:8000/streams/SECRETS/replay'   # -> 403, never reaches the server
+```
 
 ## Declaring the binding host-side
 

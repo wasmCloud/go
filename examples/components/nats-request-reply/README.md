@@ -32,6 +32,9 @@ work.
 
 ## Prerequisites
 
+The server and the CLI are separate packages, and the examples use
+both — `brew install nats-server nats` on macOS.
+
 Just a NATS server — no JetStream, no streams, no buckets:
 
 ```bash
@@ -54,6 +57,32 @@ that one. The gateway does serve HTTP, so it names the SDK's `wasip3` world
 would put it on P2 `wasi:http` and fail to link. The `GOFLAGS` prefix selects
 `wasihttp`'s async P3 implementation; componentize-go sets that tag on its own
 from the release after v0.4.1.
+
+## Running it
+
+Two components, two dev sessions — one per directory, in two terminals:
+
+```bash
+cd service && wash dev     # binds 8001; serves no HTTP, the port just avoids a clash
+cd gateway && wash dev     # binds 8000; this is the one you curl
+```
+
+`wasmcloud:nats` is a host plugin, and `wash dev` has no manifest to read
+the binding from — so `.wash/config.yaml` carries the binding whole:
+servers, grants, and asks together. It is deliberately *not* a mirror of
+`deployment.yaml` any more. Dev runs
+`--wasmcloud-nats-workload-config=allow` precisely so a checkout is
+runnable on its own, while a real host runs `deny` and keeps the servers,
+the credentials, and the grants on its side. So a grant lives in this file
+for dev and in the host group's `wasmcloudNats` for a cluster — change it
+in both.
+
+The two are not quite interchangeable, and the difference is worth knowing
+before a component that works in dev fails on deploy: dev derives host
+interfaces from the component's imports, so `wasi:logging` binds there
+whether or not you declare it. A real host binds only what the manifest
+names, which is why `deployment.yaml` lists it and `.wash/config.yaml`
+does not.
 
 ## Try it
 
@@ -126,32 +155,6 @@ in one workload would mean a component answering itself. With a bounded
 not available to serve the subscription the request is waiting on — so the
 call deadlocks until it times out. Separate workloads, separate grants, and
 neither can reach the other's inbox prefix.
-
-## Running it
-
-Two components, two dev sessions — one per directory, in two terminals:
-
-```bash
-cd service && wash dev     # binds 8001; serves no HTTP, the port just avoids a clash
-cd gateway && wash dev     # binds 8000; this is the one you curl
-```
-
-`wasmcloud:nats` is a host plugin, and `wash dev` has no manifest to read
-the binding from — so `.wash/config.yaml` carries the binding whole:
-servers, grants, and asks together. It is deliberately *not* a mirror of
-`deployment.yaml` any more. Dev runs
-`--wasmcloud-nats-workload-config=allow` precisely so a checkout is
-runnable on its own, while a real host runs `deny` and keeps the servers,
-the credentials, and the grants on its side. So a grant lives in this file
-for dev and in the host group's `wasmcloudNats` for a cluster — change it
-in both.
-
-The two are not quite interchangeable, and the difference is worth knowing
-before a component that works in dev fails on deploy: dev derives host
-interfaces from the component's imports, so `wasi:logging` binds there
-whether or not you declare it. A real host binds only what the manifest
-names, which is why `deployment.yaml` lists it and `.wash/config.yaml`
-does not.
 
 ## Declaring the binding host-side
 
