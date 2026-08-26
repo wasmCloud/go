@@ -73,8 +73,9 @@ the SDK's default `wasip2` world (which mandates a
 `wit/world.wit` instead.
 
 Every `wasmcloud:nats` function is an `async func`, so this builds a **WASI
-P3** component. componentize-go notices the async world and fetches a patched
-Go toolchain for it on first use; the Go code is unaffected.
+P3** component. componentize-go notices the async world and uses the `go` on
+your `PATH` if it already carries the `runtime.wasiOnIdle` patch, downloading
+a patched toolchain on first use otherwise; the Go code is unaffected.
 
 ## Running it
 

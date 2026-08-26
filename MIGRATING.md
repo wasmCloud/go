@@ -25,24 +25,37 @@ rebuild on big Go (1.25+) and
   build command in `.wash/config.yaml`) instead of TinyGo + wit-bindgen-go.
 - No per-project WIT or generated bindings: the SDK ships its worlds and a
   `componentize-go.toml`; apps need only `go.mod` + code.
-- `net/wasihttp` keeps the same API (`Handle`, `HandleFunc`, `Transport`,
+- The generic WASI packages moved to
+  [`go.bytecodealliance.org/pkg`](https://github.com/bytecodealliance/go-pkg):
+  `net/wasihttp` → `go.bytecodealliance.org/pkg/wasihttp`, `log/wasilog` →
+  `go.bytecodealliance.org/pkg/wasilog`, and config access →
+  `go.bytecodealliance.org/pkg/wasiconfig`.
+- `wasihttp` keeps the same API (`Handle`, `HandleFunc`, `Transport`,
   `DefaultClient`) on the sync WASI P2 world — most handler code ports
   unchanged.
-- `net/wasihttp3` (new) targets the async WASI P3 world
-  (`wasi:http@0.3.0`): streaming bodies, concurrent outbound requests with
-  plain goroutines. Opt in with
-  `go tool componentize-go -w wasmcloud:component-go/wasip3@0.2.0 build`.
-  Requires componentize-go's auto-installed patched Go until
+- The async WASI P3 world (`wasi:http@0.3.0`) — streaming bodies,
+  concurrent outbound requests with plain goroutines — uses the *same*
+  `go.bytecodealliance.org/pkg/wasihttp` API: the P3 implementation is
+  selected at build time by the `componentizego_async` build tag. Opt in
+  with `go tool componentize-go -w wasmcloud:component-go/wasip3@0.2.0
+  build`; componentize-go sets the tag automatically for async worlds
+  (merged upstream, in releases after v0.4.1; with ≤ v0.4.1, prefix the
+  build command with `GOFLAGS=-tags=componentizego_async`). Requires componentize-go's
+  auto-installed patched Go until
   [golang/go#76775](https://github.com/golang/go/pull/76775) merges.
 - `wasmcloud.SetLinkName` / `CallTargetInterface` (bus) and
   `wasmcloud/secret.go` are removed (see concept map).
-- `wasilog` and `wasmcloud.GetConfigOrDefault` work as before.
+- `wasmcloud.GetConfigOrDefault` is removed — use
+  `go.bytecodealliance.org/pkg/wasiconfig.GetOrDefault` (same semantics).
 
 ## Removed from this repo
 
 - `provider/` + provider examples/templates — no v2 equivalent; the last
   v1 releases stay importable (`go.wasmcloud.dev/provider@v0.x`).
 - `x/wasmbus` + example — v1 lattice RPC.
+- `x/wasitel` — the TinyGo-era OTLP-over-`wasi:http` exporters. Its
+  published tags remain importable. wasmCloud v2 serves telemetry through
+  `wasi:otel` instead — see the `http-otel` example.
 - `examples/component/invoke` — demonstrated `wasmcloud:bus`.
 - `examples/component/sqldb-postgres-query` — to return rebuilt on the v2
   async PostgreSQL backend.

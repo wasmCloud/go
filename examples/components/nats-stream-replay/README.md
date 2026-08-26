@@ -76,7 +76,8 @@ Both worlds are named because this is a **WASI P3** component: every
 world (`wasi:http/handler@0.3.0`) rather than the default `wasip2` one, and
 its own world adds the JetStream imports on top. The `GOFLAGS` prefix selects
 `wasihttp`'s async P3 implementation; componentize-go sets that tag on its own
-from the release after v0.4.1, at which point the prefix can go.
+for async worlds, but the `go tool` wrapper still fetches the v0.4.1 binary,
+which predates that. The prefix can go once a later release ships.
 
 ## Running it
 

@@ -10,11 +10,11 @@ what the P3 world adds over sync P2:
 
 ## Toolchain note
 
-Async worlds currently require a patched Go runtime
-(`runtime.wasiOnIdle`); componentize-go downloads it automatically. Once
-[golang/go#76775](https://github.com/golang/go/pull/76775) merges, stock Go
-will work. Sync components (see the other examples) build with stock Go
-today.
+Async worlds require a Go runtime carrying `runtime.wasiOnIdle`
+([golang/go#76775](https://github.com/golang/go/pull/76775)).
+componentize-go uses the `go` on your `PATH` when it already has the patch
+and downloads a patched toolchain otherwise, so no setup is needed either
+way. Sync components (see the other examples) build with stock Go today.
 
 ## Develop
 

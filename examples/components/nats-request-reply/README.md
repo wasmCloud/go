@@ -56,7 +56,8 @@ that one. The gateway does serve HTTP, so it names the SDK's `wasip3` world
 (`wasi:http/handler@0.3.0`) alongside its own — the default `wasip2` world
 would put it on P2 `wasi:http` and fail to link. The `GOFLAGS` prefix selects
 `wasihttp`'s async P3 implementation; componentize-go sets that tag on its own
-from the release after v0.4.1.
+for async worlds, but the `go tool` wrapper still fetches the v0.4.1 binary,
+which predates that.
 
 ## Running it
 
