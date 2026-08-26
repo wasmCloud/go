@@ -7,7 +7,7 @@ require (
 	go.opentelemetry.io/otel v1.36.0
 	go.opentelemetry.io/otel/sdk v1.36.0
 	go.opentelemetry.io/otel/trace v1.36.0
-	go.wasmcloud.dev/component v0.0.0
+	go.wasmcloud.dev/component v0.1.0
 )
 
 require (
@@ -22,6 +22,8 @@ require (
 	golang.org/x/sys v0.37.0 // indirect
 )
 
-replace go.wasmcloud.dev/component => ../../../component
+// NOTE: Uncomment to build against the SDK in this repository instead of the
+// released module. CI applies this replace automatically.
+//replace go.wasmcloud.dev/component => ../../../component
 
 tool github.com/bytecodealliance/componentize-go

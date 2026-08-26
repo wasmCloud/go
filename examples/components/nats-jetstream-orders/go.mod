@@ -2,7 +2,7 @@ module github.com/wasmCloud/go/examples/components/nats-jetstream-orders
 
 go 1.25
 
-require go.wasmcloud.dev/component v0.2.0
+require go.wasmcloud.dev/component v0.1.0
 
 require (
 	github.com/apparentlymart/go-userdirs v0.0.0-20200915174352-b0c018a67c13 // indirect
@@ -14,5 +14,6 @@ require (
 
 tool github.com/bytecodealliance/componentize-go
 
-// NOTE: Remove this line if running outside of the wasmCloud/go repository
-replace go.wasmcloud.dev/component => ../../../component
+// NOTE: Uncomment to build against the SDK in this repository instead of the
+// released module. CI applies this replace automatically.
+//replace go.wasmcloud.dev/component => ../../../component

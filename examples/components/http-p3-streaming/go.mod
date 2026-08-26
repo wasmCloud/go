@@ -4,7 +4,7 @@ go 1.25
 
 require (
 	go.bytecodealliance.org/pkg v0.2.4-0.20260806154504-91f6c4863e67
-	go.wasmcloud.dev/component v0.2.0
+	go.wasmcloud.dev/component v0.1.0
 )
 
 require (
@@ -16,5 +16,6 @@ require (
 
 tool github.com/bytecodealliance/componentize-go
 
-// NOTE: Remove this line if running outside of the wasmCloud/go repository
-replace go.wasmcloud.dev/component => ../../../component
+// NOTE: Uncomment to build against the SDK in this repository instead of the
+// released module. CI applies this replace automatically.
+//replace go.wasmcloud.dev/component => ../../../component
