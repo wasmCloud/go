@@ -1,0 +1,201 @@
+name: bench
+
+# Modeled on wasmCloud/wasmCloud's .github/workflows/bench.yml at the same
+# level of rigor: dedicated Hetzner bench host, pre-flight baseline checks,
+# and results pushed to the shared S3 bucket + history.json aggregate that
+# https://wasmcloud.github.io/arewefastyet/ renders. Bench names carry a
+# `_go` suffix (http_invoke_go, ...) so rows from this repo are distinct
+# from the Rust repo's benches in the shared aggregate.
+#
+# Requirements on this repo (mirroring the Rust repo's setup):
+#   - access to the org's self-hosted bench runner group
+#     ([self-hosted, bench, hetzner])
+#   - vars.WASMCLOUD_BENCH_HOSTNAME
+#   - secrets WASMCLOUD_BENCH_AWS_ROLE_ARN / WASMCLOUD_BENCH_S3_REGION /
+#     WASMCLOUD_BENCH_S3_BUCKET / WASMCLOUD_BENCH_CF_DISTRIBUTION_ID
+#   - the AWS role's OIDC trust policy must include repo:wasmCloud/go:*
+
+on:
+  workflow_dispatch:
+    inputs:
+      bench:
+        description: which bench to run
+        type: choice
+        default: http_invoke_go
+        options:
+          - http_invoke_go
+          - http_invoke_p3_go
+      ref:
+        description: "git ref to bench (branch, tag, sha, or #PR; default = the workflow ref)"
+        type: string
+        default: ""
+  # This repo publishes a GitHub release per Go module tag
+  # (component/vX.Y.Z, plugin/vX.Y.Z, ...). Only component/* releases can
+  # move these benches, so the matrix job filters the rest out.
+  release:
+    types: [published]
+
+defaults:
+  run:
+    shell: bash
+
+# Queue rather than cancel so an in-flight bench finishes its sampling.
+# GitHub additionally serializes jobs on the single physical runner, which
+# is also what keeps this repo's benches from overlapping the Rust repo's.
+concurrency:
+  group: bench-host
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  # Compute the matrix shape from the trigger:
+  #   - workflow_dispatch: a one-element matrix (just inputs.bench)
+  #   - release:           $RELEASE_BENCHES for component/* tags, empty
+  #                        (skip) for plugin/templates releases
+  matrix:
+    name: build matrix
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    outputs:
+      benches: ${{ steps.set.outputs.benches }}
+      # `ref` is the label recorded on each data row; `checkout_ref` is what
+      # actions/checkout is given. They differ only for a pull-request ref,
+      # where the row says `pull/123` but the checkout needs the full
+      # refs/pull/123/head.
+      ref: ${{ steps.set.outputs.ref }}
+      checkout_ref: ${{ steps.set.outputs.checkout_ref }}
+    env:
+      # Subset of inputs.bench.options to run automatically when a
+      # component SDK release is published.
+      RELEASE_BENCHES: '["http_invoke_go"]'
+    steps:
+      - id: set
+        env:
+          EVENT: ${{ github.event_name }}
+          INPUT_BENCH: ${{ inputs.bench }}
+          INPUT_REF: ${{ inputs.ref }}
+          DEFAULT_REF: ${{ github.ref }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = "release" ]; then
+            case "$RELEASE_TAG" in
+              component/v*) benches="${RELEASE_BENCHES}" ;;
+              *)            benches="[]" ;;
+            esac
+            ref="${RELEASE_TAG}"
+            checkout_ref="${RELEASE_TAG}"
+          else
+            benches="[\"${INPUT_BENCH}\"]"
+            ref="${INPUT_REF:-${DEFAULT_REF}}"
+            # Normalize to the short name so it matches GITHUB_REF_NAME's
+            # style on the emitted rows.
+            ref="${ref#refs/heads/}"; ref="${ref#refs/tags/}"
+            checkout_ref="${ref}"
+            case "$ref" in
+              '#'* | pull/* | pr/*)
+                # GitHub publishes refs/pull/N/head on the base repo for
+                # fork PRs too, so actions/checkout fetches it directly —
+                # no API call, keeping this job checkout-free at
+                # `permissions: {}`.
+                num="${ref#\#}"; num="${num#pull/}"; num="${num#pr/}"
+                if ! [[ "$num" =~ ^[0-9]+$ ]]; then
+                  echo "invalid pull-request ref '${ref}' (expected #N, pull/N, or pr/N)" >&2
+                  exit 1
+                fi
+                ref="pull/${num}"
+                checkout_ref="refs/pull/${num}/head"
+                ;;
+            esac
+          fi
+          {
+            echo "benches=${benches}"
+            echo "ref=${ref}"
+            echo "checkout_ref=${checkout_ref}"
+          } >> "$GITHUB_OUTPUT"
+
+  bench:
+    needs: matrix
+    if: needs.matrix.outputs.benches != '[]'
+    name: ${{ matrix.bench }}
+    runs-on: [self-hosted, bench, hetzner]
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      id-token: write   # OIDC token for AWS role assumption
+    strategy:
+      fail-fast: false
+      # Redundant with the single-runner serialization, but documents intent.
+      max-parallel: 1
+      matrix:
+        bench: ${{ fromJSON(needs.matrix.outputs.benches) }}
+    env:
+      GO_VERSION: "1.25"
+      WASMCLOUD_BENCH_NAME: ${{ matrix.bench }}
+      # The ref recorded on each data row — httpbench reads this as the
+      # single source of truth for what was benched (the tag for a
+      # release, the checked-out ref for a dispatch). GITHUB_REF_NAME is
+      # deliberately not used: it's the *dispatch* ref (e.g. `main` even
+      # when the `ref` input is component/v0.2.0).
+      WASMCLOUD_BENCH_REF: ${{ needs.matrix.outputs.ref }}
+      BENCH_OUTPUT_DIR: ${{ github.workspace }}/bench-run-output
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          ref: ${{ needs.matrix.outputs.checkout_ref }}
+          fetch-depth: 0
+          # The runner executes the component under test; don't leave the
+          # GITHUB_TOKEN in .git/config where that code could read it.
+          persist-credentials: false
+
+      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: false
+
+      - uses: wasmcloud/setup-wash-action@v2.1.0
+
+      - name: pre-flight host checks
+        env:
+          # Expected hostname of the dedicated bench host. Set as a repo
+          # variable; kept out of the repo so the box's identity isn't
+          # broadcast.
+          WASMCLOUD_BENCH_HOSTNAME: ${{ vars.WASMCLOUD_BENCH_HOSTNAME }}
+        run: node .github/scripts/bench-preflight.mjs
+
+      - name: run bench
+        run: ./scripts/bench/run-bench.sh "${WASMCLOUD_BENCH_NAME}"
+
+      # Subsequent steps inherit the implicit `if: success()` — they only
+      # run when every preceding step succeeded.
+      - name: render markdown summary
+        run: cat "${BENCH_OUTPUT_DIR}/summary.md" >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: upload bench artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: bench-${{ matrix.bench }}-${{ github.run_id }}
+          path: ${{ env.BENCH_OUTPUT_DIR }}
+          retention-days: 90
+          # A run that produced no output is a bug worth flagging loudly.
+          if-no-files-found: error
+
+      # A pull-request ref is benched for its step summary and artifact
+      # only — it never reaches S3 (same policy and reasoning as the Rust
+      # repo: the trends timeline tracks merged history, and the run has
+      # by now executed the ref's code on a persistent host, so the AWS
+      # role is kept out of the same run).
+      - name: configure aws credentials
+        if: ${{ success() && !startsWith(needs.matrix.outputs.ref, 'pull/') }}
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+        with:
+          role-to-assume: ${{ secrets.WASMCLOUD_BENCH_AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.WASMCLOUD_BENCH_S3_REGION }}
+
+      - name: push results to s3 + invalidate CloudFront
+        if: ${{ success() && !startsWith(needs.matrix.outputs.ref, 'pull/') }}
+        env:
+          WASMCLOUD_BENCH_S3_BUCKET: ${{ secrets.WASMCLOUD_BENCH_S3_BUCKET }}
+          WASMCLOUD_BENCH_CF_DISTRIBUTION_ID: ${{ secrets.WASMCLOUD_BENCH_CF_DISTRIBUTION_ID }}
+        run: node .github/scripts/bench-push-results.mjs

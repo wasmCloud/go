@@ -1,120 +1,101 @@
-# Go Component SDK
+# wasmCloud Component SDK for Go
 
-[![Go Reference](https://pkg.go.dev/badge/go.wasmcloud.dev/component.svg)](https://pkg.go.dev/go.wasmcloud.dev/component)
+`go.wasmcloud.dev/component` builds WebAssembly components from standard Go
+(1.25+) using
+[componentize-go](https://github.com/bytecodealliance/componentize-go).
 
-The Go Component SDK provides a set of packages to simplify the development of WebAssembly components targeting the [wasmCloud](https://wasmcloud.com) host runtime.
+## Worlds
 
-Writing a wasmCloud Capability Provider? Check out the [Go Provider SDK](https://github.com/wasmCloud/go/tree/main/provider).
+The SDK ships two worlds (see [wit/world.wit](./wit/world.wit)); apps pick
+one at build time — the default comes from the SDK's
+[componentize-go.toml](./componentize-go.toml):
 
-# Setup
+| World | Target | Toolchain |
+|---|---|---|
+| `wasip2` (default) | sync WASI P2, `wasi:http/incoming-handler@0.2.8` | stock Go |
+| `wasip3` (opt-in) | async WASI P3, `wasi:http/handler@0.3.0` — streaming bodies, native goroutine concurrency | patched Go, auto-installed by componentize-go until [golang/go#76775](https://github.com/golang/go/pull/76775) lands |
 
-Requires:
+Both worlds use the same
+[`go.bytecodealliance.org/pkg/wasihttp`](https://github.com/bytecodealliance/go-pkg)
+package: the P3 implementation is selected by the `componentizego_async`
+build tag, which componentize-go sets automatically when building an async
+world (merged upstream; with released componentize-go ≤ v0.4.1, set it via
+`GOFLAGS=-tags=componentizego_async`).
 
-- [`tinygo`](https://tinygo.org/getting-started/install/) 0.33.0 or above.
-- [`wasm-tools`](https://github.com/bytecodealliance/wasm-tools?tab=readme-ov-file#installation) 1.220.0 - 1.225.0 (1.226.0+ depends on unreleased versions of `go.bytecodealliance.org/cmd/wit-bindgen-go`).
-
-Import `go.wasmcloud.dev/component` in your Go module.
-
-```bash
-go get go.wasmcloud.dev/component@v0.0.6
-```
-
-Import the SDK WIT. In `wit/deps.toml`:
-
-```toml
-
-wasmcloud-component = "https://github.com/wasmCloud/component-sdk-go/archive/v0.0.6.tar.gz"
-
-```
-
-Run `wit-deps` to update your wit dependencies.
-
-And in your world definition:
-
-```
-
-include wasmcloud:component-go/imports@0.1.0;
-
-```
-
-# Adapters
-
-## net/wasihttp
-
-The `wasihttp` package provides an implementation of `http.Handler` backed by `wasi:http`, as well as a `http.RoundTripper` backed by `wasi:http`.
-
-### http.Handler
-
-`wasihttp.Handle` registers an `http.Handler` to be served at a given path, converting `wasi:http` requests/responses into standard `http.Request` and `http.ResponseWriter` objects.
+## Usage
 
 ```go
 package main
 
 import (
 	"net/http"
-	"go.wasmcloud.dev/component/net/wasihttp"
-)
 
-func httpServe(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello, world!"))
-}
+	"go.bytecodealliance.org/pkg/wasihttp"
+
+	// Anchors the SDK in go.mod: it carries the wasmCloud worlds' WIT and
+	// componentize-go.toml used at build time.
+	_ "go.wasmcloud.dev/component"
+)
 
 func init() {
-	// request will be fulfilled via wasi:http/incoming-handler
-	wasihttp.HandleFunc(httpServe)
+	wasihttp.HandleFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Hello!"))
+	})
 }
+
+func main() {}
 ```
 
-### http.RoundTripper
+Build with `go tool componentize-go build` (add
+`tool github.com/bytecodealliance/componentize-go` to go.mod), or via
+`wash build` with the command in `.wash/config.yaml`. To target the async
+P3 world: `go tool componentize-go -w wasmcloud:component-go/wasip3@0.2.0 build`
+— the same wasihttp API, switched to the P3 implementation by the
+`componentizego_async` build tag.
 
-```go
-package main
+## Packages
 
-import (
-	"net/http"
-	"go.wasmcloud.dev/component/net/wasihttp"
-)
+Everything vendor-neutral lives in
+[`go.bytecodealliance.org/pkg`](https://github.com/bytecodealliance/go-pkg) —
+import it directly (there are no wrappers or re-exports here):
 
-var (
-	wasiTransport = &wasihttp.Transport{}
-	httpClient    = &http.Client{Transport: wasiTransport}
-)
+| Need | Import |
+|---|---|
+| Serve HTTP (`http.Handler`), outbound HTTP (`http.RoundTripper`) | `go.bytecodealliance.org/pkg/wasihttp` |
+| Structured logging (`slog.Handler` over `wasi:logging`) | `go.bytecodealliance.org/pkg/wasilog` |
+| Runtime config (`wasi:config/store`) | `go.bytecodealliance.org/pkg/wasiconfig` |
 
-func httpClient() {
-	// request will be fulfilled via wasi:http/outgoing-handler
-	httpClient.Get("http://example.com")
-}
-```
+Earlier drafts of this branch had `net/wasihttp`, `net/wasihttp3`,
+`log/wasilog`, and `wasmcloud.GetConfigOrDefault` in this module; they are
+gone — use the go-pkg imports above (`wasiconfig.GetOrDefault` replaces
+`GetConfigOrDefault`).
 
-## log/wasilog
+This module carries what is wasmCloud-specific:
 
-The `wasilog` package provides an implementation of `slog.Handler` backed by `wasi:logging`.
+- the wasmCloud worlds' WIT (`wit/`) and `componentize-go.toml`
+- Go packages for the wasmCloud host-plugin interfaces
+  (`wasmcloud:secrets`, `wasmcloud:keyvalue`, `wasmcloud:messaging`,
+  `wasmcloud:postgres`, `wasmcloud:blobstore`)
+- host-component support (authoring and calling host components) lives in
+  the sibling `go.wasmcloud.dev/plugin` module
 
-Sample usage:
+Telemetry: the former `x/wasitel` OTLP exporters are retired; wasmCloud v2
+serves telemetry through `wasi:otel` — see the
+[http-otel example](../examples/components/http-otel).
 
-```go
-package main
+Components needing more interfaces (e.g. `wasi:keyvalue`) declare an
+app-local world merged at build time — see the
+[http-keyvalue-crud example](../examples/components/http-keyvalue-crud).
 
-import (
-	"log/slog"
-	"go.wasmcloud.dev/component/log/wasilog"
-)
+## Bindings
 
-func wasilog() {
-	logger := slog.New(wasilog.DefaultOptions().NewHandler())
+The shared wasi:* import bindings live in
+`go.bytecodealliance.org/pkg/imports` and are regenerated there. The
+per-world export glue under `exports/` is generated by
+[regenerate_bindings.sh](./regenerate_bindings.sh) — do not edit by hand.
 
-	logger.Info("Hello")
-	logger.Info("Hello", "planet", "Earth")
-	logger.Info("Hello", slog.String("planet", "Earth"))
-}
-```
+## Previous TinyGo SDK
 
-See `wasilog.Options` for log level & other configuration options.
-
-## Community
-
-Similar projects:
-
-- [rajatjindal/wasi-go-sdk](https://github.com/rajatjindal/wasi-go-sdk)
-- [dev-wasm/dev-wasm-go](https://github.com/dev-wasm/dev-wasm-go)
-- [Mossaka/hello-wasi-http-tinygo](https://github.com/Mossaka/hello-wasi-http-tinygo)
+Versions `v0.0.8` and earlier were a TinyGo + `wit-bindgen-go` SDK; those
+tags remain importable for existing projects. See
+[MIGRATING.md](../MIGRATING.md).

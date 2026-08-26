@@ -1,0 +1,38 @@
+# Deploys this component on wasmCloud v2 (runtime operator >= 2.5.2).
+#
+#   kubectl apply -f deployment.yaml
+#
+# See https://wasmcloud.com/docs/quickstart/deploy-a-webassembly-workload/
+apiVersion: v1
+kind: Service
+metadata:
+  name: http-server
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      protocol: TCP
+---
+apiVersion: runtime.wasmcloud.dev/v1alpha1
+kind: WorkloadDeployment
+metadata:
+  name: http-server
+spec:
+  replicas: 1
+  template:
+    spec:
+      hostSelector:
+        hostgroup: default
+      kubernetes:
+        service:
+          name: http-server
+      components:
+        - name: http-server
+          image: ghcr.io/[your-org]/http-server:0.1.0
+      hostInterfaces:
+        - namespace: wasi
+          package: http
+          interfaces:
+            - incoming-handler
+          config:
+            host: localhost

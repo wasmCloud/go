@@ -13,62 +13,13 @@ on:
       - "templates/**"
 
 env:
-  TINYGO_VERSION: "0.39.0"
-  GOLANGCI_VERSION: "v2.1.6"
-  WASH_VERSION: "0.37.0"
-  WASM_TOOLS_VERSION: "1.240.0"
-  WRPC_VERSION: "0.11.1"
+  GO_VERSION: "1.25"
 
 permissions:
   contents: read
 
 jobs:
-  provider:
-    # Context: https://github.com/golangci/golangci-lint-action/blob/v6.1.1/README.md#annotations
-    permissions:
-      # Required: allow read access to the content for analysis.
-      contents: read
-      # Optional: allow write access to checks to allow the action to annotate code in the PR.
-      checks: write
-    strategy:
-      fail-fast: false
-      matrix:
-        template-name:
-          - keyvalue-inmemory
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-      - uses: taiki-e/install-action@542cebaaed782771e619bd5609d97659d109c492 # v2.66.7
-        with:
-          tool: ${{ format('wash@{0},wasm-tools@{1},wrpc@{2}', env.WASH_VERSION, env.WASM_TOOLS_VERSION, env.WRPC_VERSION) }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
-        with:
-          go-version-file: "templates/provider/${{ matrix.template-name }}/go.mod"
-      - name: wash new
-        working-directory: "${{ runner.temp }}"
-        run: |
-          rm -rf sample-provider || true
-          wash new provider --silent --path $GITHUB_WORKSPACE/templates/provider/${{ matrix.template-name }} sample-provider
-      - name: wash build
-        run: wash build
-        working-directory: "${{ runner.temp }}/sample-provider"
-      - name: Go Lint
-        uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9.2.0
-        with:
-          version: ${{ env.GOLANGCI_VERSION }}
-          working-directory: "${{ runner.temp }}/sample-provider"
-          args: --config=${{ github.workspace }}/.golangci.yml
-      - name: Go Test
-        run: go test -v ./...
-        working-directory: "${{ runner.temp }}/sample-provider"
-
   component:
-    # Context: https://github.com/golangci/golangci-lint-action/blob/v6.1.1/README.md#annotations
-    permissions:
-      # Required: allow read access to the content for analysis.
-      contents: read
-      # Optional: allow write access to checks to allow the action to annotate code in the PR.
-      checks: write
     strategy:
       fail-fast: false
       matrix:
@@ -77,29 +28,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-      - uses: taiki-e/install-action@542cebaaed782771e619bd5609d97659d109c492 # v2.66.7
-        with:
-          tool: ${{ format('wash@{0},wasm-tools@{1}', env.WASH_VERSION, env.WASM_TOOLS_VERSION) }}
       - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
         with:
-          go-version-file: "templates/component/${{ matrix.template-name }}/go.mod"
-      - uses: acifani/setup-tinygo@db56321a62b9a67922bb9ac8f9d085e218807bb3 # v2.0.1
-        with:
-          tinygo-version: ${{ env.TINYGO_VERSION }}
-      - name: wash new
-        working-directory: ${{ runner.temp }}
+          go-version: ${{ env.GO_VERSION }}
+          cache: false
+      - uses: wasmcloud/setup-wash-action@v2.1.0
+
+      - name: Generate project from template
         run: |
-          rm -rf sample-component || true
-          wash new component --silent --path $GITHUB_WORKSPACE/templates/component/${{ matrix.template-name }} sample-component
-      - name: wash build
+          # `wash new` runs the template's `go mod tidy` setup command, which
+          # only succeeds once the required go.wasmcloud.dev/component version
+          # is tagged and published. The project is fully generated before
+          # that command runs, so tolerate its failure here; the next step
+          # re-runs tidy against the in-repo SDK.
+          wash new "file://${{ github.workspace }}" \
+            --name test-component \
+            --subfolder templates/${{ matrix.template-name }} || true
+          test -f test-component/go.mod
+
+      # Test the template against the SDK in this checkout rather than the
+      # released module, mirroring the replace directive used by the examples.
+      - name: Use in-repo SDK
+        working-directory: test-component
+        run: |
+          go mod edit -replace go.wasmcloud.dev/component=${{ github.workspace }}/component
+          go mod tidy
+
+      - name: Build project
+        working-directory: test-component
         run: wash build
-        working-directory: "${{ runner.temp }}/sample-component"
-      - name: Go Lint
-        uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9.2.0
-        with:
-          version: ${{ env.GOLANGCI_VERSION }}
-          working-directory: "${{ runner.temp }}/sample-component"
-          args: --config=${{ github.workspace }}/.golangci.yml
-      - name: Go Test
-        run: go test -v ./...
-        working-directory: "${{ runner.temp }}/sample-component"

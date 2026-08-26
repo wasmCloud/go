@@ -6,145 +6,97 @@ on:
     paths:
       - ".github/workflows/component-go.yaml"
       - "component/**"
-      - "examples/component/**"
+      - "examples/components/**"
   pull_request:
     branches: ["main"]
     paths:
       - ".github/workflows/component-go.yaml"
       - "component/**"
-      - "examples/component/**"
+      - "examples/components/**"
 
 env:
-  TINYGO_VERSION: "0.39.0"
-  GOLANGCI_VERSION: "v2.1.6"
-  WASH_VERSION: "0.37.0"
-  WASM_TOOLS_VERSION: "1.240.0"
+  GO_VERSION: "1.25"
 
 permissions:
   contents: read
 
-defaults:
-  run:
-    working-directory: ./component
-
 jobs:
-  lint:
-    # Context: https://github.com/golangci/golangci-lint-action/blob/v6.1.1/README.md#annotations
-    permissions:
-      # Required: allow read access to the content for analysis.
-      contents: read
-      # Optional: allow write access to checks to allow the action to annotate code in the PR.
-      checks: write
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-      - uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9.2.0
-        with:
-          version: ${{ env.GOLANGCI_VERSION }}
-          working-directory: ./component
-          args: --config=${{ github.workspace }}/.golangci.yml
-      - uses: taiki-e/install-action@542cebaaed782771e619bd5609d97659d109c492 # v2.66.7
-        with:
-          tool: ${{ format('wasm-tools@{0}', env.WASM_TOOLS_VERSION) }}
-
-      - name: Go generate
-        run: |
-          go generate ./...
-          if ! test -z "$(git status --porcelain)"; then
-            echo "Go generate modified files. Please run go generate and commit the changes."
-            git status
-            exit 1
-          fi
-
-  sdk-build:
+  sdk:
+    name: SDK build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
         with:
-          go-version-file: "./component/go.mod"
-      - uses: acifani/setup-tinygo@db56321a62b9a67922bb9ac8f9d085e218807bb3 # v2.0.1
-        with:
-          tinygo-version: ${{ env.TINYGO_VERSION }}
-
-      - name: Build
-        run: go build -v ./...
-
-      - name: Test
-        run: go test -v ./...
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: component/go.sum
+      # Generated bindings only compile for the wasm target.
+      - name: Build SDK
+        working-directory: ./component
+        run: GOOS=wasip1 GOARCH=wasm go build ./...
+      # The generated componentize-go bindings trip the unsafeptr and
+      # composites analyzers, so only handwritten packages are vetted; the
+      # generated ones are still compile-checked by the build step above.
+      - name: Vet SDK
+        working-directory: ./component
+        run: GOOS=wasip1 GOARCH=wasm go vet $(go list ./... | grep -vE '/(imports|exports)/')
 
   examples:
-    # Context: https://github.com/golangci/golangci-lint-action/blob/v6.1.1/README.md#annotations
-    permissions:
-      # Required: allow read access to the content for analysis.
-      contents: read
-      # Optional: allow write access to checks to allow the action to annotate code in the PR.
-      checks: write
+    name: Example (${{ matrix.example.folder }})
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         example:
-          - http-server
-          - http-client
-          - http-password-checker
-          - invoke
-          - sqldb-postgres-query
-          - wasitel-http
-    runs-on: ubuntu-latest
+          - folder: http-server
+            test-command: curl -sf 127.0.0.1:8000/ && curl -sf -X POST -d 'ping' 127.0.0.1:8000/post
+          - folder: http-client
+            test-command: curl -sf 127.0.0.1:8000/
+          # The checker requires >= 60 bits of entropy, so the smoke test
+          # needs a genuinely strong password ("hunter2" scores ~36 and
+          # is rejected with a 400).
+          - folder: http-password-checker
+            test-command: curl -sf -X POST 127.0.0.1:8000/api/v1/check -d '{"value":"Tr0ub4dor&3xplor3r!"}'
+          - folder: http-keyvalue-crud
+            test-command: curl -sf -X POST 127.0.0.1:8000/crud/ci -d '{"a":"b"}' && curl -sf 127.0.0.1:8000/crud/ci && curl -sf -X DELETE 127.0.0.1:8000/crud/ci
+          - folder: http-p3-streaming
+            test-command: test "$(curl -sf -X POST --data-binary 'echo' 127.0.0.1:8000/echo)" = "echo"
+          # Build-only: released wash does not serve wasi:otel yet; drop
+          # skip-dev-test once a wash release ships the wasi_otel plugin.
+          - folder: http-otel
+            skip-dev-test: true
+            test-command: "true"
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
         with:
-          go-version-file: "./examples/component/${{ matrix.example }}/go.mod"
-      - uses: acifani/setup-tinygo@db56321a62b9a67922bb9ac8f9d085e218807bb3 # v2.0.1
-        with:
-          tinygo-version: ${{ env.TINYGO_VERSION }}
-      - uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9.2.0
-        with:
-          version: ${{ env.GOLANGCI_VERSION }}
-          working-directory: "./examples/component/${{ matrix.example }}"
-          args: --config=${{ github.workspace }}/.golangci.yml
-      - uses: taiki-e/install-action@542cebaaed782771e619bd5609d97659d109c492 # v2.66.7
-        with:
-          tool: ${{ format('wash@{0},wasm-tools@{1}', env.WASH_VERSION, env.WASM_TOOLS_VERSION) }}
+          go-version: ${{ env.GO_VERSION }}
+          cache: false
+      - uses: wasmcloud/setup-wash-action@v2.1.0
 
-      - name: Go generate
+      - name: Build component
+        working-directory: examples/components/${{ matrix.example.folder }}
+        run: wash build
+
+      - name: Smoke test with wash dev
+        if: ${{ !matrix.example.skip-dev-test }}
+        working-directory: examples/components/${{ matrix.example.folder }}
         run: |
-          go generate ./...
-          if ! test -z "$(git status --porcelain)"; then
-            echo "Go generate modified files. Please run go generate and commit the changes."
-            git status
+          wash dev --non-interactive &
+          DEV_PID=$!
+          # wash serves HTTP before the component is deployed (requests fail
+          # with "no workload registered"), so waiting for the port to open is
+          # not enough: retry the actual test until the component responds.
+          smoke_test() {
+            ${{ matrix.example.test-command }}
+          }
+          ok=""
+          for i in $(seq 1 60); do
+            sleep 2
+            if smoke_test; then ok=1; break; fi
+          done
+          kill $DEV_PID || true
+          if [ -z "$ok" ]; then
+            echo "Smoke test did not pass within 120s" >&2
             exit 1
           fi
-
-      - name: wash build
-        working-directory: "./examples/component/${{ matrix.example }}"
-        run: |
-          wash build
-
-      - name: run tests
-        working-directory: "./examples/component/${{ matrix.example }}"
-        run: go test ./...
-
-      # Run the wadm file and make sure it deploys
-      - name: test component load
-        shell: bash
-        working-directory: "./examples/component/${{ matrix.example }}"
-        # TODO: Add a test to the matrix for testing the running component (i.e. with `curl` or `wash call`)
-        run: |
-          set -xe
-          wash up -d --wadm-manifest wadm.yaml;
-          sleep 1;
-          TRIES=0
-          while [[ $(wash get inventory --output=json | jq '.inventories[0].components | length') -eq 0 ]] ; do
-            if [[ $TRIES -gt 10 ]]; then
-              echo "❌ failed to find component in inventory output after deploying example manifest";
-              exit -1;
-            fi
-            TRIES=$((TRIES+1));
-            sleep 1;
-          done;
-          echo "✅ successfully started at least one component";
-          wash app delete wadm.yaml;
-          wash down --all;
-          exit 0;

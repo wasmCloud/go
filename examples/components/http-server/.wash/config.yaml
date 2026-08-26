@@ -1,0 +1,3 @@
+build:
+  command: go tool componentize-go build -o build/http_server.wasm
+  component_path: build/http_server.wasm

@@ -1,0 +1,5 @@
+new:
+  command: go mod tidy
+build:
+  command: go tool componentize-go build -o build/http_hello_world.wasm
+  component_path: build/http_hello_world.wasm

@@ -1,0 +1,2 @@
+worlds = ["wasmcloud:examples/nats-kv-watch@0.1.0"]
+wit_paths = ["wit"]

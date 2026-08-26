@@ -1,0 +1,32 @@
+build:
+  # Both worlds, named explicitly: `wasmcloud:nats` is async throughout, so
+  # this is a WASI P3 component and takes the SDK's wasip3 world
+  # (wasi:http/handler@0.3.0) rather than the default wasip2 one. Its own
+  # world adds the JetStream imports on top.
+  #
+  # GOFLAGS selects go.bytecodealliance.org/pkg/wasihttp's async P3
+  # implementation. componentize-go emits the componentizego_async tag on its
+  # own for async worlds since bytecodealliance/componentize-go#71, but the
+  # `go tool` wrapper hard-codes `release := "v0.4.1"` and so always fetches
+  # the v0.4.1 binary, which predates it. Drop the env prefix once a release
+  # after v0.4.1 ships and the wrapper points at it.
+  command: GOFLAGS=-tags=componentizego_async go tool componentize-go -w 'wasmcloud:component-go/wasip3@0.2.0' -w 'wasmcloud:examples/nats-stream-replay@0.1.0' build -o build/nats_stream_replay.wasm
+  component_path: build/nats_stream_replay.wasm
+
+# `wash dev` has no manifest, so the host interfaces this component would get
+# from deployment.yaml are declared here instead — same shape, same keys. Keep
+# the two in step. wasi:logging is not listed: dev derives it from the
+# component's imports, which is exactly why the manifest has to name it
+# explicitly and this file does not.
+dev:
+  host_interfaces:
+    - namespace: wasmcloud
+      package: nats
+      version: 0.1.0
+      interfaces: [types, jetstream]
+      config:
+        servers: nats://127.0.0.1:4222
+        stream-allow: EVENTS
+        # Reads are filtered by the subject grant too: `get-by-sequence` and
+        # `scan` only return messages whose stored subject is inside it.
+        subject-allow: events.>

@@ -1,0 +1,2 @@
+worlds = ["wasmcloud:examples/nats-jetstream-orders@0.1.0"]
+wit_paths = ["wit"]

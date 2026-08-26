@@ -1,0 +1,24 @@
+package wasmcloud:plugin-go@0.1.0;
+
+// Bindings-generation worlds for the wasmcloud:host@0.1.0 interfaces a host
+// component plugin interacts with (vendored under deps/ from wasmCloud
+// v2.6.1). These worlds exist only so regenerate_bindings.sh can generate
+// the import bindings under imports/ and the export glue under exports/;
+// they are NOT build targets. A plugin author defines their own world that
+// exports their capability interface and imports/exports the wasmcloud:host
+// interfaces they use.
+
+// Host-provided imports available to a plugin: caller identity attribution
+// and cooperative cancellation of the plugin's own in-flight invocations.
+world host-imports {
+  import wasmcloud:host/identity@0.1.0;
+  import wasmcloud:host/cancel@0.1.0;
+}
+
+// Optional export through which the host tells the plugin about workloads
+// binding to and unbinding from it. Plugins opt in by exporting
+// wasmcloud:host/workload-lifecycle from their own world and registering
+// hooks via go.wasmcloud.dev/plugin/lifecycle.
+world lifecycle {
+  export wasmcloud:host/workload-lifecycle@0.1.0;
+}

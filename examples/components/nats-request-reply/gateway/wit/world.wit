@@ -1,0 +1,9 @@
+package wasmcloud:examples@0.1.0;
+
+// Extra interfaces this component needs beyond the SDK's wasip2 world.
+// The component is built with both worlds merged: the SDK world provides
+// wasi:http, this world adds the core NATS client used to issue requests.
+world nats-request-gateway {
+  import wasmcloud:nats/types@0.1.0;
+  import wasmcloud:nats/core@0.1.0;
+}

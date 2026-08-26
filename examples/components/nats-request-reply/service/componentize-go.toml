@@ -1,0 +1,2 @@
+worlds = ["wasmcloud:examples/nats-reply-service@0.1.0"]
+wit_paths = ["wit"]

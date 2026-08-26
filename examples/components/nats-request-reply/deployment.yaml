@@ -1,0 +1,127 @@
+# Needs a runtime >= 2.7.0: this manifest uses `maxConcurrency`, which
+# 2.6.x rejects outright.
+#
+# Connection settings and grants are not here. Under `wash host`'s default
+# `--wasmcloud-nats-workload-config=deny` they are the host's to declare, and
+# a manifest that sets one is refused at bind. Both workloads below want the
+# same thing from the host — `subject-allow: service.>` — so one unnamed
+# binding serves them; see "Declaring the binding host-side" in the README.
+#
+# Two workloads, two halves of one round trip: the gateway turns HTTP into a
+# NATS request, and the service answers it.
+#
+#   kubectl apply -f deployment.yaml
+#
+# They are separate workloads on purpose. A single workload subscribing to
+# the subject it also issues requests on would be answering itself, and one
+# blocked on `nats.Request` while its own subscription waits for a free
+# instance deadlocks until the timeout.
+apiVersion: runtime.wasmcloud.dev/v1alpha1
+kind: WorkloadDeployment
+metadata:
+  name: nats-reply-service
+spec:
+  replicas: 1
+  template:
+    spec:
+      components:
+        - name: service
+          image: ghcr.io/[your-org]/nats-reply-service:0.1.0
+          maxConcurrency: 8
+          poolSize: 1
+      hostInterfaces:
+        # wasi:logging is a host plugin like any other: a component that
+        # imports it and does not declare it here fails to start with
+        # "a matching implementation was not found in the linker". `wash
+        # dev` derives this entry from the component's imports, so the
+        # omission only shows up on a real host.
+        - namespace: wasi
+          package: logging
+          interfaces: [logging]
+        - namespace: wasmcloud
+          package: nats
+          version: "0.1.0"
+          interfaces: [types, core, core-handler]
+          config:
+            # subject[:queue], comma separated. The queue group is what makes
+            # `replicas: 2` share the work rather than each handling every
+            # request.
+            #
+            # This is the only nats key left here, and it is an ask: the
+            # pattern is checked against the host's `subject-allow` before
+            # the host subscribes, so it can narrow that grant but never
+            # reach past it.
+            core-subscriptions: service.*:service-workers
+          # No inbox grant, and none is needed. Answering a request means
+          # publishing to a random `_INBOX` no grant could name in advance,
+          # so the host authorizes exactly one publish to the `reply-to` it
+          # just handed the guest — single use, 30s TTL. A responder that
+          # asked for `_INBOX.>` instead would be able to read and answer
+          # every other reply on the server.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nats-request-gateway
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      protocol: TCP
+---
+apiVersion: runtime.wasmcloud.dev/v1alpha1
+kind: WorkloadDeployment
+metadata:
+  # The inbox prefix the service grants above is derived from this name.
+  # Renaming this workload means updating that grant.
+  name: nats-request-gateway
+spec:
+  replicas: 1
+  template:
+    spec:
+      kubernetes:
+        service:
+          name: nats-request-gateway
+      components:
+        - name: gateway
+          image: ghcr.io/[your-org]/nats-request-gateway:0.1.0
+          maxConcurrency: 8
+          poolSize: 1
+      hostInterfaces:
+        # wasi:logging is a host plugin like any other: a component that
+        # imports it and does not declare it here fails to start with
+        # "a matching implementation was not found in the linker". `wash
+        # dev` derives this entry from the component's imports, so the
+        # omission only shows up on a real host.
+        - namespace: wasi
+          package: logging
+          interfaces: [logging]
+        - namespace: wasi
+          package: http
+          interfaces:
+            - incoming-handler
+          config:
+            # The host routes incoming requests by `Host` header, and the
+            # table is keyed by hostname across every workload on the host —
+            # two workloads naming the same host become replicas of one
+            # route and split its traffic at random. Name the Service, not
+            # `localhost`, so co-deployed examples do not steal each other's
+            # requests.
+            host: nats-request-gateway
+        - namespace: wasmcloud
+          package: nats
+          version: "0.1.0"
+          interfaces: [types, core]
+          # No `config`: the gateway asks for nothing to be pushed at it, and
+          # what it may request — `service.>` — is the host's to grant. A
+          # subject outside that grant still fails host-side with
+          # subject-denied, which the gateway maps to a 403.
+          #
+          # `inbox-prefix` is deliberately not pinned. It is a connection
+          # key, so under `deny` only the host could set it — and the host's
+          # declaration covers every workload on the group, which would hand
+          # the gateway and the service *the same* inbox prefix and let them
+          # race for each other's replies. Left unset, each workload's inbox
+          # is derived from its own workload id, which is what keeps them
+          # apart. Nothing needs to name it: the service replies under the
+          # one-shot reply grant described above.

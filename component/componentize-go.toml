@@ -1,0 +1,9 @@
+# Default world for components built against this SDK. componentize-go
+# discovers this file via `go list -m all`, so `go tool componentize-go
+# build` needs no flags in consuming apps.
+#
+# The default is the sync WASI P2 world, which builds with stock Go. To
+# target the async WASI P3 world instead, build with:
+#   componentize-go -w wasmcloud:component-go/wasip3 build
+worlds = ["wasmcloud:component-go/wasip2@0.2.0"]
+wit_paths = ["wit"]
