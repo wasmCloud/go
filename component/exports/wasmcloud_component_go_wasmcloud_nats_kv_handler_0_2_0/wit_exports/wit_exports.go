@@ -22,12 +22,12 @@
 //     wasmcloud:messaging@0.2.0
 //     wasmcloud:postgres@0.2.0
 //     wasmcloud:nats@0.1.0
-//     wasmcloud:nats@0.2.0
 //     wasmcloud:component-go@0.2.0
 
 package wit_exports
 
 import (
+	witAsync "go.bytecodealliance.org/pkg/wit/async"
 	witRuntime "go.bytecodealliance.org/pkg/wit/runtime"
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
 	"go.wasmcloud.dev/component/exports/wasmcloud_component_go_wasmcloud_nats_kv_handler_0_2_0/export_wasmcloud_nats_0_1_0_kv_handler"
@@ -37,40 +37,48 @@ import (
 )
 
 var staticPinner = runtime.Pinner{}
-var exportReturnArea = uintptr(witRuntime.Allocate(&staticPinner, (3 * 4), 4))
+var exportReturnArea = uintptr(witRuntime.Allocate(&staticPinner, 0, 1))
 var syncExportPinner = runtime.Pinner{}
 
-//go:wasmexport wasmcloud:nats/kv-handler@0.1.0#handle-event
-func wasm_export_wasmcloud_nats_0_1_0_kv_handler_handle_event(arg0 uintptr, arg1 uint32, arg2 uintptr, arg3 uint32, arg4 uintptr, arg5 uint32, arg6 int64, arg7 int64, arg8 int32) uintptr {
+//go:wasmexport [async-lift]wasmcloud:nats/kv-handler@0.1.0#handle-event
+func wasm_export_wasmcloud_nats_0_1_0_kv_handler_handle_event(arg0 uintptr, arg1 uint32, arg2 uintptr, arg3 uint32, arg4 uintptr, arg5 uint32, arg6 int64, arg7 int64, arg8 int32) int32 {
+	return int32(witAsync.Run(func() {
+		pinner := &runtime.Pinner{}
+		defer pinner.Unpin()
+		value := unsafe.String((*uint8)(unsafe.Pointer(arg0)), arg1)
+		value0 := unsafe.String((*uint8)(unsafe.Pointer(arg2)), arg3)
+		value1 := unsafe.Slice((*uint8)(unsafe.Pointer(arg4)), arg5)
+		witRuntime.Unpin()
+		result := export_wasmcloud_nats_0_1_0_kv_handler.HandleEvent(value, wasmcloud_nats_0_1_0_kv.Entry{value0, value1, uint64(arg6), uint64(arg7), uint8(arg8)})
+		var option int32
+		var option2 uintptr
+		var option3 uint32
+		switch result.Tag() {
+		case witTypes.ResultOk:
 
-	pinner := &syncExportPinner
-	value := unsafe.String((*uint8)(unsafe.Pointer(arg0)), arg1)
-	value0 := unsafe.String((*uint8)(unsafe.Pointer(arg2)), arg3)
-	value1 := unsafe.Slice((*uint8)(unsafe.Pointer(arg4)), arg5)
-	witRuntime.Unpin()
-	result := export_wasmcloud_nats_0_1_0_kv_handler.HandleEvent(value, wasmcloud_nats_0_1_0_kv.Entry{value0, value1, uint64(arg6), uint64(arg7), uint8(arg8)})
+			option = int32(0)
+			option2 = 0
+			option3 = 0
+		case witTypes.ResultErr:
+			payload := result.Err()
+			utf8 := unsafe.Pointer(unsafe.StringData(payload))
+			pinner.Pin(utf8)
 
-	switch result.Tag() {
-	case witTypes.ResultOk:
+			option = int32(1)
+			option2 = uintptr(utf8)
+			option3 = uint32(len(payload))
+		default:
+			panic("unreachable")
+		}
+		wasm_export_task_return_wasmcloud_nats_0_1_0_kv_handler_handle_event(option, option2, option3)
 
-		*(*int8)(unsafe.Add(unsafe.Pointer(exportReturnArea), 0)) = int8(int32(0))
-
-	case witTypes.ResultErr:
-		payload := result.Err()
-		*(*int8)(unsafe.Add(unsafe.Pointer(exportReturnArea), 0)) = int8(int32(1))
-		utf8 := unsafe.Pointer(unsafe.StringData(payload))
-		pinner.Pin(utf8)
-		*(*uint32)(unsafe.Add(unsafe.Pointer(exportReturnArea), (2 * 4))) = uint32(uint32(len(payload)))
-		*(*uint32)(unsafe.Add(unsafe.Pointer(exportReturnArea), 4)) = uint32(uintptr(uintptr(utf8)))
-
-	default:
-		panic("unreachable")
-	}
-	return exportReturnArea
-
+	}))
 }
 
-//go:wasmexport cabi_post_wasmcloud:nats/kv-handler@0.1.0#handle-event
-func wasm_export_post_return_wasmcloud_nats_0_1_0_kv_handler_handle_event(result uintptr) {
-	syncExportPinner.Unpin()
+//go:wasmexport [callback][async-lift]wasmcloud:nats/kv-handler@0.1.0#handle-event
+func wasm_export_callback_wasmcloud_nats_0_1_0_kv_handler_handle_event(event0 uint32, event1 uint32, event2 uint32) uint32 {
+	return witAsync.Callback(event0, event1, event2)
 }
+
+//go:wasmimport [export]wasmcloud:nats/kv-handler@0.1.0 [task-return]handle-event
+func wasm_export_task_return_wasmcloud_nats_0_1_0_kv_handler_handle_event(arg0 int32, arg1 uintptr, arg2 uint32)

@@ -1,4 +1,7 @@
 build:
+  # `-w` is required: this component serves no HTTP and declares its own
+  # world. `wasmcloud:nats` is async throughout, so the result is a WASI P3
+  # component — componentize-go fetches the patched Go toolchain for it.
   command: go tool componentize-go -w 'wasmcloud:examples/nats-kv-watch@0.1.0' build -o build/nats_kv_watch.wasm
   component_path: build/nats_kv_watch.wasm
 

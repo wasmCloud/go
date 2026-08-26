@@ -112,8 +112,11 @@ func handleOrder(h *nats.MessageHandle) error {
 		return fmt.Errorf("publish notification: %w", err)
 	}
 
-	fmt.Printf("order %s +%d -> %d (stream seq %d, duplicate: %t)\n",
-		orderID, amount, running, ack.Sequence, ack.Duplicate)
+	// `ack` describes the notification just published to PROCESSED, not the
+	// order that triggered it: `ack.Sequence` is a PROCESSED sequence, while
+	// the ORDERS sequence stored alongside the total is `sequence`.
+	fmt.Printf("order %s +%d -> %d (orders seq %d, processed seq %d, duplicate: %t)\n",
+		orderID, amount, running, sequence, ack.Sequence, ack.Duplicate)
 
 	// Returning nil acks under `ack-mode: auto`.
 	return nil
@@ -122,7 +125,14 @@ func handleOrder(h *nats.MessageHandle) error {
 // accumulate adds amount to the order's total exactly once per sequence.
 func accumulate(bucket *nats.Bucket, key string, amount, sequence uint64) (uint64, error) {
 	for attempt := 0; attempt < maxCASAttempts; attempt++ {
-		entry, found, err := bucket.Get(key)
+		// A key that was never written is `ErrKeyNotFound`, not an
+		// absent-but-ok result: the first order for a customer takes the
+		// `Create` path below, every later one takes `Update`.
+		entry, err := bucket.Get(key)
+		found := true
+		if errors.Is(err, nats.ErrKeyNotFound) {
+			found, err = false, nil
+		}
 		if err != nil {
 			return 0, err
 		}

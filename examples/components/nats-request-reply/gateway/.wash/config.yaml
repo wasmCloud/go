@@ -1,5 +1,15 @@
 build:
-  command: go tool componentize-go build -o build/nats_request_gateway.wasm
+  # Both worlds, named explicitly: `wasmcloud:nats` is async throughout, so
+  # this is a WASI P3 component and takes the SDK's wasip3 world
+  # (wasi:http/handler@0.3.0) rather than the default wasip2 one. Its own
+  # world adds the core NATS imports on top.
+  #
+  # GOFLAGS selects go.bytecodealliance.org/pkg/wasihttp's async P3
+  # implementation. componentize-go emits the componentizego_async tag
+  # automatically for async worlds from the release after v0.4.1
+  # (bytecodealliance/componentize-go#71); drop the env prefix once the tool
+  # pin in go.mod is bumped to it.
+  command: GOFLAGS=-tags=componentizego_async go tool componentize-go -w 'wasmcloud:component-go/wasip3@0.2.0' -w 'wasmcloud:examples/nats-request-gateway@0.1.0' build -o build/nats_request_gateway.wasm
   component_path: build/nats_request_gateway.wasm
 
 dev:

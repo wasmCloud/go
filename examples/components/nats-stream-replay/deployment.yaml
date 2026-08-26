@@ -1,6 +1,12 @@
-# Deploys the reader on wasmCloud v2 (runtime operator >= 2.5.2).
+# Deploys the reader on wasmCloud v2. Needs a runtime >= 2.7.0: this
+# manifest uses `maxConcurrency`, which 2.6.x rejects outright.
 #
 #   kubectl apply -f deployment.yaml
+#
+# The stream and subject grants are not here on purpose. Under `wash host`'s
+# default `--wasmcloud-nats-workload-config=deny` they are the host's to
+# declare, and a manifest that sets one is refused at bind. See "Declaring
+# the binding host-side" in the README for the operator half.
 apiVersion: v1
 kind: Service
 metadata:
@@ -24,7 +30,7 @@ spec:
           name: nats-stream-replay
       components:
         - name: reader
-          image: file://./main.wasm
+          image: ghcr.io/[your-org]/nats-stream-replay:0.1.0
           maxConcurrency: 4
           poolSize: 1
       hostInterfaces:
@@ -41,7 +47,13 @@ spec:
           interfaces:
             - incoming-handler
           config:
-            host: localhost
+            # The host routes incoming requests by `Host` header, and the
+            # table is keyed by hostname across every workload on the host —
+            # two workloads naming the same host become replicas of one
+            # route and split its traffic at random. Name the Service, not
+            # `localhost`, so co-deployed examples do not steal each other's
+            # requests.
+            host: nats-stream-replay
         - namespace: wasmcloud
           package: nats
           version: "0.1.0"
@@ -49,11 +61,9 @@ spec:
           # host pushes nothing at it and there are no subscriptions to
           # declare.
           interfaces: [types, jetstream]
-          config:
-            servers: nats://nats.default.svc:4222
-            # Reads are checked against the stream grant, so a request for a
-            # stream outside this list fails host-side and comes back as a
-            # 403 without reaching the server.
-            stream-allow: ORDERS,EVENTS
-          secretFrom:
-            - nats-credentials
+          # No `config` at all, and that is the whole shape of this example
+          # under `deny`: every stream and subject this component reads is
+          # the host's to grant, and the component asks for nothing to be
+          # pushed at it. A request for a stream outside the host's
+          # `stream-allow` still fails host-side and comes back as a 403
+          # without reaching the server — the grant just lives elsewhere now.

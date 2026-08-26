@@ -105,7 +105,7 @@ func ask(w http.ResponseWriter, r *http.Request) {
 // thing. Each case is a typed error from the SDK, so none of this is string
 // matching.
 func statusFor(subject string, err error) (int, string) {
-	var denied *nats.SubjectDeniedError
+	var denied *nats.DeniedError
 	var tooBig *nats.MaxPayloadExceededError
 
 	switch {
@@ -115,10 +115,10 @@ func statusFor(subject string, err error) (int, string) {
 		return http.StatusServiceUnavailable, "no responders on " + subject
 
 	case errors.As(err, &denied):
-		// The subject is outside this workload's grant, so the message
-		// never left the host. Widening `subject-allow` is a deployment
-		// change, never something to work around here.
-		return http.StatusForbidden, "subject " + denied.Subject + " is not permitted"
+		// The name is outside this workload's grant, so the message never
+		// left the host. The host declares the grants, so widening one is
+		// the operator's call and never something to work around here.
+		return http.StatusForbidden, fmt.Sprintf("%s %s is not permitted", denied.Target, denied.Name)
 
 	case errors.As(err, &tooBig):
 		return http.StatusRequestEntityTooLarge,

@@ -39,9 +39,11 @@ type Entry struct {
 	Operation Operation
 }
 
-// BucketStatus is a snapshot of a bucket's state.
+// BucketStatus is a snapshot of a bucket's state, read fresh from the server.
 type BucketStatus struct {
-	Bucket  string
+	Bucket string
+	// Values is the stored message count — live values plus retained
+	// history, matching what `nats kv status` reports.
 	Values  uint64
 	History uint8
 	TTL     time.Duration
@@ -56,7 +58,7 @@ type Bucket struct{ inner *kv.Bucket }
 // It never creates one: bucket lifecycle is deliberately outside this
 // interface, so provision it out-of-band. A missing bucket returns a
 // [NotFoundError]; one outside the workload's `bucket-allow` grant returns a
-// [SubjectDeniedError].
+// [DeniedError].
 func OpenBucket(bucket string) (*Bucket, error) {
 	res := kv.Open(bucket)
 	if res.IsErr() {
@@ -68,18 +70,14 @@ func OpenBucket(bucket string) (*Bucket, error) {
 // Close releases the bucket handle. The bucket itself is untouched.
 func (b *Bucket) Close() { b.inner.Drop() }
 
-// Get returns the latest entry for key. A missing key returns ok=false with
-// a nil error, so an absent key is not an error condition.
-func (b *Bucket) Get(key string) (entry Entry, ok bool, err error) {
+// Get returns the latest entry for key. An absent, deleted, or purged key
+// returns [ErrKeyNotFound]; test for it with errors.Is.
+func (b *Bucket) Get(key string) (Entry, error) {
 	res := b.inner.Get(key)
 	if res.IsErr() {
-		return Entry{}, false, convertError(res.Err())
+		return Entry{}, convertError(res.Err())
 	}
-	opt := res.Ok()
-	if opt.IsNone() {
-		return Entry{}, false, nil
-	}
-	return fromWitEntry(opt.Some()), true, nil
+	return fromWitEntry(res.Ok()), nil
 }
 
 // Put writes value unconditionally, last-write-wins, and returns the new
@@ -107,7 +105,7 @@ func (b *Bucket) Create(key string, value []byte) (uint64, error) {
 // the current revision, so a retry can reapply without re-reading:
 //
 //	for {
-//	    entry, ok, err := b.Get(key)
+//	    entry, err := b.Get(key)
 //	    // ...
 //	    _, err = b.Update(key, next, entry.Revision)
 //	    var mismatch *nats.RevisionMismatchError
@@ -140,17 +138,32 @@ func (b *Bucket) Purge(key string) error {
 	return nil
 }
 
-// Keys lists every key in the bucket.
-func (b *Bucket) Keys() ([]string, error) {
+// KeyPage is a listing of a bucket's keys, and whether it is the whole of it.
+type KeyPage struct {
+	Keys []string
+	// Truncated reports that the bucket holds more keys than this page
+	// carries. The listing is capped host-side, so a large bucket cannot be
+	// enumerated in full through this call — treat a truncated page as a
+	// signal to reach for a narrower access pattern, not as a complete set.
+	Truncated bool
+}
+
+// Keys lists the bucket's keys.
+//
+// The listing is capped host-side; check [KeyPage.Truncated] before treating
+// it as the whole bucket.
+func (b *Bucket) Keys() (KeyPage, error) {
 	res := b.inner.Keys()
 	if res.IsErr() {
-		return nil, convertError(res.Err())
+		return KeyPage{}, convertError(res.Err())
 	}
-	return res.Ok(), nil
+	page := res.Ok()
+	return KeyPage{Keys: page.Keys, Truncated: page.Truncated}, nil
 }
 
 // History returns every retained revision of key, oldest first, including
 // delete and purge tombstones. How much is retained is bucket configuration.
+// A key with no history at all returns [ErrKeyNotFound].
 func (b *Bucket) History(key string) ([]Entry, error) {
 	res := b.inner.History(key)
 	if res.IsErr() {

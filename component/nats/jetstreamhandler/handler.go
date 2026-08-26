@@ -1,15 +1,15 @@
 // Package jetstreamhandler wires up the optional
-// wasmcloud:nats/jetstream-handler@0.1.0 export so a component receives
+// wasmcloud:nats/jetstream-handler@0.2.0 export so a component receives
 // JetStream deliveries pushed by the host.
 //
 // Importing this package links the `handle-message` wasm export into the
 // component, so import it only from apps whose world exports the interface:
 //
 //	world app {
-//	  include wasmcloud:component-go/wasip2@0.2.0;
-//	  import wasmcloud:nats/types@0.1.0;
-//	  import wasmcloud:nats/jetstream@0.1.0;
-//	  export wasmcloud:nats/jetstream-handler@0.1.0;
+//	  include wasmcloud:component-go/wasip3@0.2.0;
+//	  import wasmcloud:nats/types@0.2.0;
+//	  import wasmcloud:nats/jetstream@0.2.0;
+//	  export wasmcloud:nats/jetstream-handler@0.2.0;
 //	}
 //
 // Register a callback during init:

@@ -1,6 +1,20 @@
-# Deploys the watcher on wasmCloud v2 (runtime operator >= 2.5.2).
+# Deploys the watcher on wasmCloud v2. Needs a runtime >= 2.7.0: this
+# manifest uses `maxConcurrency`, which 2.6.x rejects outright.
 #
 #   kubectl apply -f deployment.yaml
+#
+# What is *not* here is the point. `wash host` runs
+# `--wasmcloud-nats-workload-config=deny`, which splits a binding in two: the
+# host declares what it is — servers, credentials, TLS, and the subject,
+# stream, and bucket grants — and the workload declares only what it wants
+# delivered within that grant. A manifest that sets `servers`, `creds`,
+# `tls-*`, or a `*-allow` is refused at bind, so a workload can ask for a
+# capability but never widen one.
+#
+# The operator side of this example lives in the README, under "Declaring the
+# binding host-side". `wash dev` runs the other way round (`allow`), so
+# `.wash/config.yaml` still carries the whole binding and a checkout stays
+# runnable on its own.
 apiVersion: runtime.wasmcloud.dev/v1alpha1
 kind: WorkloadDeployment
 metadata:
@@ -11,7 +25,7 @@ spec:
     spec:
       components:
         - name: watcher
-          image: file://./main.wasm
+          image: ghcr.io/[your-org]/nats-kv-watch:0.1.0
           maxConcurrency: 4
           poolSize: 1
       hostInterfaces:
@@ -28,15 +42,11 @@ spec:
           version: "0.1.0"
           interfaces: [types, kv, core, kv-handler]
           config:
-            servers: nats://nats.default.svc:4222
-            # Deny-by-default, and the grants are separate: watching the
-            # bucket does not carry permission to announce the change.
-            bucket-allow: feature-flags
-            subject-allow: flags.changed
-            # bucket:filter, comma separated. The filter is the loop guard
-            # that matters: the component writes `active` into this same
-            # bucket, and delivering that write back would make every change
-            # trigger another one.
+            # bucket:filter, comma separated. This is an ask, not a grant:
+            # the bucket has to be in the host's `bucket-allow` before this
+            # can name it, and naming it here reaches nothing extra.
+            #
+            # The filter is the loop guard that matters: the component writes
+            # `active` into this same bucket, and delivering that write back
+            # would make every change trigger another one.
             kv-watches: feature-flags:flag.>
-          secretFrom:
-            - nats-credentials

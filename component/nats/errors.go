@@ -14,7 +14,8 @@ var (
 	// distinct from a timeout: retrying immediately fails the same way
 	// until a responder appears, so back off or fail fast rather than spin.
 	ErrNoResponders = errors.New("nats: no responders on subject")
-	// ErrKeyNotFound is returned by KV reads for an absent key.
+	// ErrKeyNotFound is returned by KV reads for an absent, deleted, or
+	// purged key.
 	ErrKeyNotFound = errors.New("nats: key not found")
 	// ErrNoMessages means a pull-consumer fetch returned empty within its
 	// timeout. It is an ordinary idle result, not a failure.
@@ -24,14 +25,80 @@ var (
 	ErrDisconnected = errors.New("nats: disconnected")
 )
 
-// SubjectDeniedError reports a subject outside the grant the workload was
-// bound with. The check happens host-side, so the message never reaches the
-// server. Widen `subject-allow` on the interface binding to permit it.
-type SubjectDeniedError struct{ Subject string }
+// DenialReason is why the host refused a name.
+type DenialReason uint8
 
-func (e *SubjectDeniedError) Error() string {
-	return fmt.Sprintf("nats: subject %q is outside this workload's grant", e.Subject)
+const (
+	// DenialReserved means the name is in a space the host keeps for
+	// itself — the JetStream API, the KV/object-store key spaces, $SYS, or
+	// the host's own lattice. No grant widens it.
+	DenialReserved DenialReason = iota
+	// DenialNotGranted means no grant on this binding covers the name.
+	DenialNotGranted
+	// DenialWildcardNotAllowed means a publish or request subject
+	// contained * or >, which would let it satisfy a narrower grant.
+	DenialWildcardNotAllowed
+)
+
+func (r DenialReason) String() string {
+	switch r {
+	case DenialReserved:
+		return "reserved"
+	case DenialNotGranted:
+		return "not granted"
+	case DenialWildcardNotAllowed:
+		return "wildcard not allowed"
+	default:
+		return "unknown"
+	}
 }
+
+// DeniedTarget is what kind of name was refused, and so which grant to
+// widen: `subject-allow`, `stream-allow`, or `bucket-allow`.
+type DeniedTarget uint8
+
+const (
+	DeniedSubject DeniedTarget = iota
+	DeniedStream
+	DeniedBucket
+)
+
+func (t DeniedTarget) String() string {
+	switch t {
+	case DeniedSubject:
+		return "subject"
+	case DeniedStream:
+		return "stream"
+	case DeniedBucket:
+		return "bucket"
+	default:
+		return "unknown"
+	}
+}
+
+// DeniedError reports a name outside the grant the workload was bound with,
+// or in a space the host reserves. The check happens host-side, so nothing
+// reaches the server.
+//
+// Which grant to widen follows from Target: `subject-allow` for a subject or
+// subscription, `stream-allow` for a stream, `bucket-allow` for a bucket. A
+// Reason of [DenialReserved] cannot be widened by any grant.
+type DeniedError struct {
+	Reason DenialReason
+	Target DeniedTarget
+	Name   string
+}
+
+func (e *DeniedError) Error() string {
+	return fmt.Sprintf("nats: %s %q denied: %s", e.Target, e.Name, e.Reason)
+}
+
+// InvalidHeaderError reports a header name or value that cannot go on the
+// NATS wire: names must be printable ASCII without ':', and values may not
+// contain CR or LF.
+type InvalidHeaderError struct{ Detail string }
+
+func (e *InvalidHeaderError) Error() string { return "nats: invalid header: " + e.Detail }
 
 // MaxPayloadExceededError reports a payload larger than the connected
 // server's advertised maximum, carrying that limit in bytes.
@@ -62,6 +129,19 @@ type UnsupportedByServerError struct{ Detail string }
 
 func (e *UnsupportedByServerError) Error() string { return "nats: unsupported by server: " + e.Detail }
 
+// LimitExceededError means the server refused a pull request outright because
+// it asks for more than the consumer was provisioned to allow — a batch over
+// MaxRequestBatch, a byte bound over MaxRequestMaxBytes, or too many waiting
+// pulls.
+//
+// Nothing was delivered, and retrying unchanged fails the same way. It is
+// distinct from [ErrNoMessages], which means the request ran against an idle
+// consumer. [PullConsumer.Info] reports the limits to size the next request
+// against.
+type LimitExceededError struct{ Detail string }
+
+func (e *LimitExceededError) Error() string { return "nats: limit exceeded: " + e.Detail }
+
 // convertError maps a generated nats-error onto a Go error.
 func convertError(e types.NatsError) error {
 	switch e.Tag() {
@@ -71,10 +151,17 @@ func convertError(e types.NatsError) error {
 		return fmt.Errorf("nats: timeout: %s", e.Timeout())
 	case types.NatsErrorNoResponders:
 		return ErrNoResponders
-	case types.NatsErrorSubjectDenied:
-		return &SubjectDeniedError{Subject: e.SubjectDenied()}
+	case types.NatsErrorDenied:
+		d := e.Denied()
+		return &DeniedError{
+			Reason: DenialReason(d.Reason),
+			Target: DeniedTarget(d.Target),
+			Name:   d.Name,
+		}
 	case types.NatsErrorMaxPayloadExceeded:
 		return &MaxPayloadExceededError{Limit: e.MaxPayloadExceeded()}
+	case types.NatsErrorInvalidHeader:
+		return &InvalidHeaderError{Detail: e.InvalidHeader()}
 	case types.NatsErrorJetstream:
 		return fmt.Errorf("nats: jetstream: %s", e.Jetstream())
 	case types.NatsErrorKeyNotFound:
@@ -83,6 +170,8 @@ func convertError(e types.NatsError) error {
 		return &RevisionMismatchError{Current: e.RevisionMismatch()}
 	case types.NatsErrorNoMessages:
 		return ErrNoMessages
+	case types.NatsErrorLimitExceeded:
+		return &LimitExceededError{Detail: e.LimitExceeded()}
 	case types.NatsErrorNotFound:
 		return &NotFoundError{Resource: e.NotFound()}
 	case types.NatsErrorUnsupportedByServer:

@@ -62,12 +62,17 @@ nats consumer add EVENTS workers --pull --ack explicit \
 ## Build
 
 ```bash
-componentize-go build
+GOFLAGS=-tags=componentizego_async componentize-go \
+  -w 'wasmcloud:component-go/wasip3@0.2.0' \
+  -w 'wasmcloud:examples/nats-stream-replay@0.1.0' build
 ```
 
-No `-w` flag here: this component exports `wasi:http/incoming-handler`, so
-its world merges on top of the SDK's default `wasip2` world rather than
-replacing it.
+Both worlds are named because this is a **WASI P3** component: every
+`wasmcloud:nats` function is an `async func`, so it takes the SDK's `wasip3`
+world (`wasi:http/handler@0.3.0`) rather than the default `wasip2` one, and
+its own world adds the JetStream imports on top. The `GOFLAGS` prefix selects
+`wasihttp`'s async P3 implementation; componentize-go sets that tag on its own
+from the release after v0.4.1, at which point the prefix can go.
 
 ## Try it
 
@@ -109,9 +114,14 @@ wash dev
 ```
 
 `wasmcloud:nats` is a host plugin, and `wash dev` has no manifest to read
-the binding from — so `.wash/config.yaml` carries the same
-`hostInterfaces` shape `deployment.yaml` uses. Change a grant in one and
-change it in the other.
+the binding from — so `.wash/config.yaml` carries the binding whole:
+servers, grants, and asks together. It is deliberately *not* a mirror of
+`deployment.yaml` any more. Dev runs
+`--wasmcloud-nats-workload-config=allow` precisely so a checkout is
+runnable on its own, while a real host runs `deny` and keeps the servers,
+the credentials, and the grants on its side. So a grant lives in this file
+for dev and in the host group's `wasmcloudNats` for a cluster — change it
+in both.
 
 The two are not quite interchangeable, and the difference is worth knowing
 before a component that works in dev fails on deploy: dev derives host
@@ -120,5 +130,65 @@ whether or not you declare it. A real host binds only what the manifest
 names, which is why `deployment.yaml` lists it and `.wash/config.yaml`
 does not.
 
-For a real host, `componentize-go build` and deploy `deployment.yaml` to a
-wasmCloud v2 host whose runtime carries the `wasmcloud:nats` plugin.
+## Declaring the binding host-side
+
+`wash host` runs `--wasmcloud-nats-workload-config=deny`, which splits a
+`wasmcloud:nats` binding between two people. The host declares what the
+binding *is* — the servers it dials, the credentials it dials them with, and
+the subject, stream, and bucket grants it carries. The workload declares only
+what it wants delivered within that grant. A manifest that sets `servers`,
+`creds`, `jwt`/`nkey-seed`, `username`/`password`, `token`, `tls-*`,
+`jetstream-domain`, `inbox-prefix`, or any `*-allow` is refused at bind:
+
+```
+wasmcloud:nats binding `<unnamed>` sets `subject-allow`, which this host does
+not accept from a workload.
+```
+
+That refusal is the feature. A workload can ask for a capability; it can
+never widen one.
+
+In the chart, the declaration goes on the host group:
+
+```yaml
+runtime:
+  hostGroups:
+    - name: default
+      # Omit `servers` to take the cluster's own NATS (`dataNatsUrl`), so the
+      # same manifest runs under `wash dev` and here.
+      wasmcloudNats:
+        config:
+          stream-allow: ORDERS,EVENTS
+          # Reads are filtered by the subject grant too: `scan` and
+          # `get-by-sequence` only return a message whose stored
+          # subject falls inside it.
+          subject-allow: events.>,orders.>
+        # NATS credentials reach the host this way rather than through a
+        # workload manifest or a CLI arg — the rendered `wash host` config
+        # file never appears in `kubectl describe pod`.
+        secretFrom:
+          - events-nats-creds
+```
+
+`wash dev` runs the other way round (`allow`): the host's declaration is a
+default a manifest may override, so `.wash/config.yaml` still carries the
+whole binding and a checkout stays runnable on its own.
+
+## Deploy to wasmCloud on Kubernetes
+
+The target is a wasmCloud v2 host whose runtime carries the `wasmcloud:nats`
+plugin — the plugin ships with the host, not with the component, so a host
+built without it rejects the binding at placement — and whose host group
+declares the binding above.
+
+Push the component and apply the manifest:
+
+```shell
+wash oci push ghcr.io/<your-org>/nats-stream-replay:0.1.0 build/nats_stream_replay.wasm
+kubectl apply -f deployment.yaml
+```
+
+See [deployment.yaml](./deployment.yaml) for the `WorkloadDeployment`
+definition and the wasmCloud [workload deployment
+quickstart](https://wasmcloud.com/docs/quickstart/deploy-a-webassembly-workload/)
+for cluster setup.

@@ -1,0 +1,32 @@
+build:
+  # `-w` is required: this component serves no HTTP, so it cannot use the
+  # SDK's default wasip2 world (which mandates a wasi:http/incoming-handler
+  # export) and declares its own world in wit/world.wit instead.
+  #
+  # `wasmcloud:nats` is async throughout, so this builds a WASI P3 component.
+  # componentize-go notices the async world on its own and fetches a patched
+  # Go toolchain for it; nothing else here changes.
+  command: go tool componentize-go -w 'wasmcloud:examples/nats-jetstream-orders@0.1.0' build -o build/nats_jetstream_orders.wasm
+  component_path: build/nats_jetstream_orders.wasm
+
+# See the note in nats-stream-replay/.wash/config.yaml: this mirrors
+# deployment.yaml's hostInterfaces for `wash dev`.
+dev:
+  host_interfaces:
+    - namespace: wasmcloud
+      package: nats
+      version: 0.1.0
+      interfaces: [types, jetstream, kv, jetstream-handler]
+      config:
+        servers: nats://127.0.0.1:4222
+        # `orders.received` is granted here as well as in `stream-allow`:
+        # a JetStream subscription's filter is checked against the subject
+        # grant before the consumer is created.
+        subject-allow: orders.processed,orders.received
+        stream-allow: ORDERS,PROCESSED
+        bucket-allow: order-totals
+        # STREAM:filter[:policy[:queue]]
+        subscriptions: ORDERS:orders.received:all
+        # The host acks on a nil return and naks on an error.
+        ack-mode: auto
+        max-in-flight: "8"

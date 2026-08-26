@@ -89,11 +89,12 @@ func handleChange(bucket string, entry nats.Entry) error {
 		Body:    fmt.Appendf(nil, "%s %s", entry.Key, entry.Operation),
 		Headers: []nats.Header{{Name: "Kv-Revision", Value: fmt.Sprint(entry.Revision)}},
 	}); err != nil {
-		// A denied subject is a deployment problem, not a transient one:
-		// say so plainly rather than burying it in a generic message.
-		var denied *nats.SubjectDeniedError
+		// A denial is a deployment problem, not a transient one: say so
+		// plainly rather than burying it in a generic message. The host
+		// declares the grants, so the fix is the operator's.
+		var denied *nats.DeniedError
 		if errors.As(err, &denied) {
-			return fmt.Errorf("announce: %w (add it to subject-allow)", err)
+			return fmt.Errorf("announce: %w (ask the operator to grant it)", err)
 		}
 		return fmt.Errorf("announce: %w", err)
 	}
@@ -106,23 +107,32 @@ func handleChange(bucket string, entry nats.Entry) error {
 // the stored value is stable and two concurrent rebuilds of the same state
 // produce the same bytes.
 func rebuildActive(b *nats.Bucket) ([]string, error) {
-	keys, err := b.Keys()
+	page, err := b.Keys()
 	if err != nil {
 		return nil, err
 	}
+	// The listing is capped host-side. A bucket of feature flags is far
+	// under that cap, but say so rather than silently rebuilding from a
+	// partial set if it ever is not.
+	if page.Truncated {
+		return nil, fmt.Errorf("bucket holds more keys than one listing returns (%d); rebuild would be partial", len(page.Keys))
+	}
 
 	var active []string
-	for _, key := range keys {
+	for _, key := range page.Keys {
 		if !strings.HasPrefix(key, flagPrefix) {
 			continue
 		}
-		entry, found, err := b.Get(key)
+		// Keys() can name a key that a concurrent delete has already
+		// removed, so an absent key here is ordinary, not an error.
+		entry, err := b.Get(key)
+		if errors.Is(err, nats.ErrKeyNotFound) {
+			continue
+		}
 		if err != nil {
 			return nil, fmt.Errorf("get %s: %w", key, err)
 		}
-		// Keys() can name a key that a concurrent delete has already
-		// removed, so an absent key here is ordinary, not an error.
-		if !found || entry.Operation != nats.OperationPut {
+		if entry.Operation != nats.OperationPut {
 			continue
 		}
 		if enabled(entry.Value) {
@@ -148,7 +158,11 @@ func storeActive(b *nats.Bucket, active []string) error {
 	value := []byte(strings.Join(active, ","))
 
 	for attempt := range maxCASAttempts {
-		entry, found, err := b.Get(activeKey)
+		entry, err := b.Get(activeKey)
+		found := true
+		if errors.Is(err, nats.ErrKeyNotFound) {
+			found, err = false, nil
+		}
 		if err != nil {
 			return err
 		}

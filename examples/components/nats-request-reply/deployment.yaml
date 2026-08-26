@@ -1,3 +1,12 @@
+# Needs a runtime >= 2.7.0: this manifest uses `maxConcurrency`, which
+# 2.6.x rejects outright.
+#
+# Connection settings and grants are not here. Under `wash host`'s default
+# `--wasmcloud-nats-workload-config=deny` they are the host's to declare, and
+# a manifest that sets one is refused at bind. Both workloads below want the
+# same thing from the host — `subject-allow: service.>` — so one unnamed
+# binding serves them; see "Declaring the binding host-side" in the README.
+#
 # Two workloads, two halves of one round trip: the gateway turns HTTP into a
 # NATS request, and the service answers it.
 #
@@ -17,7 +26,7 @@ spec:
     spec:
       components:
         - name: service
-          image: file://./service/main.wasm
+          image: ghcr.io/[your-org]/nats-reply-service:0.1.0
           maxConcurrency: 8
           poolSize: 1
       hostInterfaces:
@@ -34,31 +43,21 @@ spec:
           version: "0.1.0"
           interfaces: [types, core, core-handler]
           config:
-            servers: nats://nats.default.svc:4222
             # subject[:queue], comma separated. The queue group is what makes
             # `replicas: 2` share the work rather than each handling every
             # request.
-            core-subscriptions: service.*:service-workers
-            # Three separate things need granting here, and it is easy to
-            # notice only the first:
             #
-            #  - `service.>` covers the subscription itself. The pattern in
-            #    `core-subscriptions` is checked against this grant before
-            #    the host subscribes, and a workload that cannot name the
-            #    subject cannot be handed messages on it either.
-            #  - `_INBOX_gateway.>` covers the replies, which are publishes
-            #    like any other. That is the prefix the gateway pins below;
-            #    left unset, a workload's inbox prefix is derived from its
-            #    workload *id* — a UUID assigned at schedule time — which no
-            #    grant can name in advance.
-            #  - `_INBOX.>` is the default prefix the `nats` CLI publishes
-            #    from, so `nats req` can reach this service too. Drop it
-            #    once you are past experimenting: a service that can publish
-            #    to every inbox on the server can answer requests that were
-            #    never addressed to it.
-            subject-allow: service.>,_INBOX_gateway.>,_INBOX.>
-          secretFrom:
-            - nats-credentials
+            # This is the only nats key left here, and it is an ask: the
+            # pattern is checked against the host's `subject-allow` before
+            # the host subscribes, so it can narrow that grant but never
+            # reach past it.
+            core-subscriptions: service.*:service-workers
+          # No inbox grant, and none is needed. Answering a request means
+          # publishing to a random `_INBOX` no grant could name in advance,
+          # so the host authorizes exactly one publish to the `reply-to` it
+          # just handed the guest — single use, 30s TTL. A responder that
+          # asked for `_INBOX.>` instead would be able to read and answer
+          # every other reply on the server.
 ---
 apiVersion: v1
 kind: Service
@@ -85,7 +84,7 @@ spec:
           name: nats-request-gateway
       components:
         - name: gateway
-          image: file://./gateway/main.wasm
+          image: ghcr.io/[your-org]/nats-request-gateway:0.1.0
           maxConcurrency: 8
           poolSize: 1
       hostInterfaces:
@@ -102,23 +101,27 @@ spec:
           interfaces:
             - incoming-handler
           config:
-            host: localhost
+            # The host routes incoming requests by `Host` header, and the
+            # table is keyed by hostname across every workload on the host —
+            # two workloads naming the same host become replicas of one
+            # route and split its traffic at random. Name the Service, not
+            # `localhost`, so co-deployed examples do not steal each other's
+            # requests.
+            host: nats-request-gateway
         - namespace: wasmcloud
           package: nats
           version: "0.1.0"
           interfaces: [types, core]
-          config:
-            servers: nats://nats.default.svc:4222
-            # The gateway may request anything under `service.`, and nothing
-            # else. A subject outside this fails host-side with
-            # subject-denied, which the gateway maps to a 403 — the request
-            # never reaches the server.
-            subject-allow: service.>
-            # Replies come back on this prefix. Pinning it is what lets the
-            # service grant it: the default is derived from the workload id,
-            # which is a UUID assigned at schedule time. It still has to be
-            # unique per workload — a shared prefix would let two workloads
-            # race to consume each other's replies.
-            inbox-prefix: _INBOX_gateway
-          secretFrom:
-            - nats-credentials
+          # No `config`: the gateway asks for nothing to be pushed at it, and
+          # what it may request — `service.>` — is the host's to grant. A
+          # subject outside that grant still fails host-side with
+          # subject-denied, which the gateway maps to a 403.
+          #
+          # `inbox-prefix` is deliberately not pinned. It is a connection
+          # key, so under `deny` only the host could set it — and the host's
+          # declaration covers every workload on the group, which would hand
+          # the gateway and the service *the same* inbox prefix and let them
+          # race for each other's replies. Left unset, each workload's inbox
+          # is derived from its own workload id, which is what keeps them
+          # apart. Nothing needs to name it: the service replies under the
+          # one-shot reply grant described above.

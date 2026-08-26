@@ -22,12 +22,12 @@
 //     wasmcloud:messaging@0.2.0
 //     wasmcloud:postgres@0.2.0
 //     wasmcloud:nats@0.1.0
-//     wasmcloud:nats@0.2.0
 //     wasmcloud:component-go@0.2.0
 
 package wasmcloud_nats_0_1_0_core
 
 import (
+	witAsync "go.bytecodealliance.org/pkg/wit/async"
 	witRuntime "go.bytecodealliance.org/pkg/wit/runtime"
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
 	"go.wasmcloud.dev/component/imports/wasmcloud_nats_0_1_0_types"
@@ -38,77 +38,76 @@ import (
 type NatsMessage = wasmcloud_nats_0_1_0_types.NatsMessage
 type NatsError = wasmcloud_nats_0_1_0_types.NatsError
 
-//go:wasmimport wasmcloud:nats/core@0.1.0 publish
-func wasm_import_publish(arg0 uintptr, arg1 uint32, arg2 uintptr, arg3 uint32, arg4 int32, arg5 uintptr, arg6 uint32, arg7 int32, arg8 uintptr, arg9 uint32, arg10 uintptr)
+//go:wasmimport wasmcloud:nats/core@0.1.0 [async-lower]publish
+func wasm_import_publish(arg0 uintptr, arg1 uintptr) int32
 
 func Publish(msg wasmcloud_nats_0_1_0_types.NatsMessage) witTypes.Result[witTypes.Unit, wasmcloud_nats_0_1_0_types.NatsError] {
 	pinner := &runtime.Pinner{}
 	defer pinner.Unpin()
 
-	returnArea := uintptr(witRuntime.Allocate(pinner, (16 + 2*4), 8))
+	returnArea := uintptr(witRuntime.Allocate(pinner, (24 + 2*4), 8))
+	params := witRuntime.Allocate(pinner, (10 * 4), 4)
 	utf8 := unsafe.Pointer(unsafe.StringData((msg).Subject))
 	pinner.Pin(utf8)
+	*(*uint32)(unsafe.Add(unsafe.Pointer(unsafe.Add(unsafe.Pointer(params), 0)), 4)) = uint32(uint32(len((msg).Subject)))
+	*(*uint32)(unsafe.Add(unsafe.Pointer(unsafe.Add(unsafe.Pointer(params), 0)), 0)) = uint32(uintptr(uintptr(utf8)))
 	data := unsafe.Pointer(unsafe.SliceData((msg).Body))
 	pinner.Pin(data)
-	var option int32
-	var option1 uintptr
-	var option2 uint32
+	*(*uint32)(unsafe.Add(unsafe.Pointer(unsafe.Add(unsafe.Pointer(params), 0)), (3 * 4))) = uint32(uint32(len((msg).Body)))
+	*(*uint32)(unsafe.Add(unsafe.Pointer(unsafe.Add(unsafe.Pointer(params), 0)), (2 * 4))) = uint32(uintptr(uintptr(data)))
+
 	switch (msg).ReplyTo.Tag() {
 	case witTypes.OptionNone:
+		*(*int8)(unsafe.Add(unsafe.Pointer(unsafe.Add(unsafe.Pointer(params), 0)), (4 * 4))) = int8(int32(0))
 
-		option = int32(0)
-		option1 = 0
-		option2 = 0
 	case witTypes.OptionSome:
 		payload := (msg).ReplyTo.Some()
+		*(*int8)(unsafe.Add(unsafe.Pointer(unsafe.Add(unsafe.Pointer(params), 0)), (4 * 4))) = int8(int32(1))
 		utf80 := unsafe.Pointer(unsafe.StringData(payload))
 		pinner.Pin(utf80)
+		*(*uint32)(unsafe.Add(unsafe.Pointer(unsafe.Add(unsafe.Pointer(params), 0)), (6 * 4))) = uint32(uint32(len(payload)))
+		*(*uint32)(unsafe.Add(unsafe.Pointer(unsafe.Add(unsafe.Pointer(params), 0)), (5 * 4))) = uint32(uintptr(uintptr(utf80)))
 
-		option = int32(1)
-		option1 = uintptr(utf80)
-		option2 = uint32(len(payload))
 	default:
 		panic("unreachable")
 	}
-	var option5 int32
-	var option6 uintptr
-	var option7 uint32
+
 	switch (msg).Headers.Tag() {
 	case witTypes.OptionNone:
+		*(*int8)(unsafe.Add(unsafe.Pointer(unsafe.Add(unsafe.Pointer(params), 0)), (7 * 4))) = int8(int32(0))
 
-		option5 = int32(0)
-		option6 = 0
-		option7 = 0
 	case witTypes.OptionSome:
 		payload := (msg).Headers.Some()
+		*(*int8)(unsafe.Add(unsafe.Pointer(unsafe.Add(unsafe.Pointer(params), 0)), (7 * 4))) = int8(int32(1))
 		slice := payload
 		length := uint32(len(slice))
 		result := witRuntime.Allocate(pinner, uintptr(length*(4*4)), 4)
 		for index, element := range slice {
 			base := unsafe.Add(result, index*(4*4))
-			utf83 := unsafe.Pointer(unsafe.StringData((element).Name))
-			pinner.Pin(utf83)
+			utf81 := unsafe.Pointer(unsafe.StringData((element).Name))
+			pinner.Pin(utf81)
 			*(*uint32)(unsafe.Add(unsafe.Pointer(base), 4)) = uint32(uint32(len((element).Name)))
-			*(*uint32)(unsafe.Add(unsafe.Pointer(base), 0)) = uint32(uintptr(uintptr(utf83)))
-			utf84 := unsafe.Pointer(unsafe.StringData((element).Value))
-			pinner.Pin(utf84)
+			*(*uint32)(unsafe.Add(unsafe.Pointer(base), 0)) = uint32(uintptr(uintptr(utf81)))
+			utf82 := unsafe.Pointer(unsafe.StringData((element).Value))
+			pinner.Pin(utf82)
 			*(*uint32)(unsafe.Add(unsafe.Pointer(base), (3 * 4))) = uint32(uint32(len((element).Value)))
-			*(*uint32)(unsafe.Add(unsafe.Pointer(base), (2 * 4))) = uint32(uintptr(uintptr(utf84)))
+			*(*uint32)(unsafe.Add(unsafe.Pointer(base), (2 * 4))) = uint32(uintptr(uintptr(utf82)))
 
 		}
 
-		option5 = int32(1)
-		option6 = uintptr(result)
-		option7 = length
+		*(*uint32)(unsafe.Add(unsafe.Pointer(unsafe.Add(unsafe.Pointer(params), 0)), (9 * 4))) = uint32(length)
+		*(*uint32)(unsafe.Add(unsafe.Pointer(unsafe.Add(unsafe.Pointer(params), 0)), (8 * 4))) = uint32(uintptr(uintptr(result)))
+
 	default:
 		panic("unreachable")
 	}
-	wasm_import_publish(uintptr(utf8), uint32(len((msg).Subject)), uintptr(data), uint32(len((msg).Body)), option, option1, option2, option5, option6, option7, returnArea)
-	var result14 witTypes.Result[witTypes.Unit, wasmcloud_nats_0_1_0_types.NatsError]
+
+	witAsync.SubtaskWait(uint32(wasm_import_publish(uintptr(params), returnArea)))
+	var result11 witTypes.Result[witTypes.Unit, wasmcloud_nats_0_1_0_types.NatsError]
 	switch uint8(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 0))) {
 	case 0:
 
-		result14 = witTypes.Ok[witTypes.Unit, wasmcloud_nats_0_1_0_types.NatsError](witTypes.Unit{})
+		result11 = witTypes.Ok[witTypes.Unit, wasmcloud_nats_0_1_0_types.NatsError](witTypes.Unit{})
 	case 1:
 		var variant wasmcloud_nats_0_1_0_types.NatsError
 		switch uint8(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 8))) {
@@ -118,247 +117,267 @@ func Publish(msg wasmcloud_nats_0_1_0_types.NatsMessage) witTypes.Result[witType
 			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorConnection(value)
 
 		case 1:
-			value8 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
+			value3 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorTimeout(value8)
+			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorTimeout(value3)
 
 		case 2:
 
 			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorNoResponders()
 
 		case 3:
-			value9 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
+			value4 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4)))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 2*4))))
 
-			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorSubjectDenied(value9)
+			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorDenied(wasmcloud_nats_0_1_0_types.Denial{uint8(uint8(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16)))), uint8(uint8(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 17)))), value4})
 
 		case 4:
 
 			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorMaxPayloadExceeded(uint64(*(*int64)(unsafe.Add(unsafe.Pointer(returnArea), 16))))
 
 		case 5:
-			value10 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
+			value5 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorJetstream(value10)
+			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorInvalidHeader(value5)
 
 		case 6:
+			value6 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorKeyNotFound()
+			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorJetstream(value6)
 
 		case 7:
 
-			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorRevisionMismatch(uint64(*(*int64)(unsafe.Add(unsafe.Pointer(returnArea), 16))))
+			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorKeyNotFound()
 
 		case 8:
 
-			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorNoMessages()
+			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorRevisionMismatch(uint64(*(*int64)(unsafe.Add(unsafe.Pointer(returnArea), 16))))
 
 		case 9:
-			value11 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorNotFound(value11)
+			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorNoMessages()
 
 		case 10:
-			value12 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
+			value7 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorUnsupportedByServer(value12)
+			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorLimitExceeded(value7)
 
 		case 11:
+			value8 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
+
+			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorNotFound(value8)
+
+		case 12:
+			value9 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
+
+			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorUnsupportedByServer(value9)
+
+		case 13:
 
 			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorDisconnected()
 
-		case 12:
-			value13 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
+		case 14:
+			value10 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorUnexpected(value13)
+			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorUnexpected(value10)
 
 		default:
 			panic("unreachable")
 		}
 
-		result14 = witTypes.Err[witTypes.Unit, wasmcloud_nats_0_1_0_types.NatsError](variant)
+		result11 = witTypes.Err[witTypes.Unit, wasmcloud_nats_0_1_0_types.NatsError](variant)
 	default:
 		panic("unreachable")
 	}
-	result15 := result14
-	return result15
+
+	return result11
 
 }
 
-//go:wasmimport wasmcloud:nats/core@0.1.0 request
-func wasm_import_request(arg0 uintptr, arg1 uint32, arg2 uintptr, arg3 uint32, arg4 int32, arg5 uintptr, arg6 uint32, arg7 int32, arg8 uintptr, arg9 uint32, arg10 int32, arg11 uintptr)
+//go:wasmimport wasmcloud:nats/core@0.1.0 [async-lower]request
+func wasm_import_request(arg0 uintptr, arg1 uintptr) int32
 
 func Request(msg wasmcloud_nats_0_1_0_types.NatsMessage, timeoutMs uint32) witTypes.Result[wasmcloud_nats_0_1_0_types.NatsMessage, wasmcloud_nats_0_1_0_types.NatsError] {
 	pinner := &runtime.Pinner{}
 	defer pinner.Unpin()
 
 	returnArea := uintptr(witRuntime.Allocate(pinner, (8 + 10*4), 8))
+	params := witRuntime.Allocate(pinner, (11 * 4), 4)
 	utf8 := unsafe.Pointer(unsafe.StringData((msg).Subject))
 	pinner.Pin(utf8)
+	*(*uint32)(unsafe.Add(unsafe.Pointer(unsafe.Add(unsafe.Pointer(params), 0)), 4)) = uint32(uint32(len((msg).Subject)))
+	*(*uint32)(unsafe.Add(unsafe.Pointer(unsafe.Add(unsafe.Pointer(params), 0)), 0)) = uint32(uintptr(uintptr(utf8)))
 	data := unsafe.Pointer(unsafe.SliceData((msg).Body))
 	pinner.Pin(data)
-	var option int32
-	var option1 uintptr
-	var option2 uint32
+	*(*uint32)(unsafe.Add(unsafe.Pointer(unsafe.Add(unsafe.Pointer(params), 0)), (3 * 4))) = uint32(uint32(len((msg).Body)))
+	*(*uint32)(unsafe.Add(unsafe.Pointer(unsafe.Add(unsafe.Pointer(params), 0)), (2 * 4))) = uint32(uintptr(uintptr(data)))
+
 	switch (msg).ReplyTo.Tag() {
 	case witTypes.OptionNone:
+		*(*int8)(unsafe.Add(unsafe.Pointer(unsafe.Add(unsafe.Pointer(params), 0)), (4 * 4))) = int8(int32(0))
 
-		option = int32(0)
-		option1 = 0
-		option2 = 0
 	case witTypes.OptionSome:
 		payload := (msg).ReplyTo.Some()
+		*(*int8)(unsafe.Add(unsafe.Pointer(unsafe.Add(unsafe.Pointer(params), 0)), (4 * 4))) = int8(int32(1))
 		utf80 := unsafe.Pointer(unsafe.StringData(payload))
 		pinner.Pin(utf80)
+		*(*uint32)(unsafe.Add(unsafe.Pointer(unsafe.Add(unsafe.Pointer(params), 0)), (6 * 4))) = uint32(uint32(len(payload)))
+		*(*uint32)(unsafe.Add(unsafe.Pointer(unsafe.Add(unsafe.Pointer(params), 0)), (5 * 4))) = uint32(uintptr(uintptr(utf80)))
 
-		option = int32(1)
-		option1 = uintptr(utf80)
-		option2 = uint32(len(payload))
 	default:
 		panic("unreachable")
 	}
-	var option5 int32
-	var option6 uintptr
-	var option7 uint32
+
 	switch (msg).Headers.Tag() {
 	case witTypes.OptionNone:
+		*(*int8)(unsafe.Add(unsafe.Pointer(unsafe.Add(unsafe.Pointer(params), 0)), (7 * 4))) = int8(int32(0))
 
-		option5 = int32(0)
-		option6 = 0
-		option7 = 0
 	case witTypes.OptionSome:
 		payload := (msg).Headers.Some()
+		*(*int8)(unsafe.Add(unsafe.Pointer(unsafe.Add(unsafe.Pointer(params), 0)), (7 * 4))) = int8(int32(1))
 		slice := payload
 		length := uint32(len(slice))
 		result := witRuntime.Allocate(pinner, uintptr(length*(4*4)), 4)
 		for index, element := range slice {
 			base := unsafe.Add(result, index*(4*4))
-			utf83 := unsafe.Pointer(unsafe.StringData((element).Name))
-			pinner.Pin(utf83)
+			utf81 := unsafe.Pointer(unsafe.StringData((element).Name))
+			pinner.Pin(utf81)
 			*(*uint32)(unsafe.Add(unsafe.Pointer(base), 4)) = uint32(uint32(len((element).Name)))
-			*(*uint32)(unsafe.Add(unsafe.Pointer(base), 0)) = uint32(uintptr(uintptr(utf83)))
-			utf84 := unsafe.Pointer(unsafe.StringData((element).Value))
-			pinner.Pin(utf84)
+			*(*uint32)(unsafe.Add(unsafe.Pointer(base), 0)) = uint32(uintptr(uintptr(utf81)))
+			utf82 := unsafe.Pointer(unsafe.StringData((element).Value))
+			pinner.Pin(utf82)
 			*(*uint32)(unsafe.Add(unsafe.Pointer(base), (3 * 4))) = uint32(uint32(len((element).Value)))
-			*(*uint32)(unsafe.Add(unsafe.Pointer(base), (2 * 4))) = uint32(uintptr(uintptr(utf84)))
+			*(*uint32)(unsafe.Add(unsafe.Pointer(base), (2 * 4))) = uint32(uintptr(uintptr(utf82)))
 
 		}
 
-		option5 = int32(1)
-		option6 = uintptr(result)
-		option7 = length
+		*(*uint32)(unsafe.Add(unsafe.Pointer(unsafe.Add(unsafe.Pointer(params), 0)), (9 * 4))) = uint32(length)
+		*(*uint32)(unsafe.Add(unsafe.Pointer(unsafe.Add(unsafe.Pointer(params), 0)), (8 * 4))) = uint32(uintptr(uintptr(result)))
+
 	default:
 		panic("unreachable")
 	}
-	wasm_import_request(uintptr(utf8), uint32(len((msg).Subject)), uintptr(data), uint32(len((msg).Body)), option, option1, option2, option5, option6, option7, int32(timeoutMs), returnArea)
-	var result22 witTypes.Result[wasmcloud_nats_0_1_0_types.NatsMessage, wasmcloud_nats_0_1_0_types.NatsError]
+	*(*int32)(unsafe.Add(unsafe.Pointer(unsafe.Add(unsafe.Pointer(params), (10*4))), 0)) = int32(timeoutMs)
+
+	witAsync.SubtaskWait(uint32(wasm_import_request(uintptr(params), returnArea)))
+	var result18 witTypes.Result[wasmcloud_nats_0_1_0_types.NatsMessage, wasmcloud_nats_0_1_0_types.NatsError]
 	switch uint8(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 0))) {
 	case 0:
 		value := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 8))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 1*4))))
-		value8 := unsafe.Slice((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 2*4)))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 3*4))))
-		var option10 witTypes.Option[string]
+		value3 := unsafe.Slice((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 2*4)))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 3*4))))
+		var option witTypes.Option[string]
 		switch uint8(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 4*4)))) {
 		case 0:
 
-			option10 = witTypes.None[string]()
+			option = witTypes.None[string]()
 		case 1:
-			value9 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 5*4)))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 6*4))))
+			value4 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 5*4)))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 6*4))))
 
-			option10 = witTypes.Some[string](value9)
+			option = witTypes.Some[string](value4)
 		default:
 			panic("unreachable")
 		}
-		var option14 witTypes.Option[[]wasmcloud_nats_0_1_0_types.HeaderEntry]
+		var option8 witTypes.Option[[]wasmcloud_nats_0_1_0_types.HeaderEntry]
 		switch uint8(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 7*4)))) {
 		case 0:
 
-			option14 = witTypes.None[[]wasmcloud_nats_0_1_0_types.HeaderEntry]()
+			option8 = witTypes.None[[]wasmcloud_nats_0_1_0_types.HeaderEntry]()
 		case 1:
-			result13 := make([]wasmcloud_nats_0_1_0_types.HeaderEntry, 0, *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 9*4))))
+			result7 := make([]wasmcloud_nats_0_1_0_types.HeaderEntry, 0, *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 9*4))))
 			for index := 0; index < int(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 9*4)))); index++ {
 				base := unsafe.Add(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 8*4))))), index*(4*4))
-				value11 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(base), 0))))), *(*uint32)(unsafe.Add(unsafe.Pointer(base), 4)))
-				value12 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(base), (2 * 4)))))), *(*uint32)(unsafe.Add(unsafe.Pointer(base), (3 * 4))))
+				value5 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(base), 0))))), *(*uint32)(unsafe.Add(unsafe.Pointer(base), 4)))
+				value6 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(base), (2 * 4)))))), *(*uint32)(unsafe.Add(unsafe.Pointer(base), (3 * 4))))
 
-				result13 = append(result13, wasmcloud_nats_0_1_0_types.HeaderEntry{value11, value12})
+				result7 = append(result7, wasmcloud_nats_0_1_0_types.HeaderEntry{value5, value6})
 			}
 
-			option14 = witTypes.Some[[]wasmcloud_nats_0_1_0_types.HeaderEntry](result13)
+			option8 = witTypes.Some[[]wasmcloud_nats_0_1_0_types.HeaderEntry](result7)
 		default:
 			panic("unreachable")
 		}
 
-		result22 = witTypes.Ok[wasmcloud_nats_0_1_0_types.NatsMessage, wasmcloud_nats_0_1_0_types.NatsError](wasmcloud_nats_0_1_0_types.NatsMessage{value, value8, option10, option14})
+		result18 = witTypes.Ok[wasmcloud_nats_0_1_0_types.NatsMessage, wasmcloud_nats_0_1_0_types.NatsError](wasmcloud_nats_0_1_0_types.NatsMessage{value, value3, option, option8})
 	case 1:
 		var variant wasmcloud_nats_0_1_0_types.NatsError
 		switch uint8(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 8))) {
 		case 0:
-			value15 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
+			value9 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorConnection(value15)
+			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorConnection(value9)
 
 		case 1:
-			value16 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
+			value10 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorTimeout(value16)
+			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorTimeout(value10)
 
 		case 2:
 
 			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorNoResponders()
 
 		case 3:
-			value17 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
+			value11 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4)))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 2*4))))
 
-			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorSubjectDenied(value17)
+			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorDenied(wasmcloud_nats_0_1_0_types.Denial{uint8(uint8(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16)))), uint8(uint8(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 17)))), value11})
 
 		case 4:
 
 			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorMaxPayloadExceeded(uint64(*(*int64)(unsafe.Add(unsafe.Pointer(returnArea), 16))))
 
 		case 5:
-			value18 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
+			value12 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorJetstream(value18)
+			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorInvalidHeader(value12)
 
 		case 6:
+			value13 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorKeyNotFound()
+			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorJetstream(value13)
 
 		case 7:
 
-			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorRevisionMismatch(uint64(*(*int64)(unsafe.Add(unsafe.Pointer(returnArea), 16))))
+			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorKeyNotFound()
 
 		case 8:
 
-			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorNoMessages()
+			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorRevisionMismatch(uint64(*(*int64)(unsafe.Add(unsafe.Pointer(returnArea), 16))))
 
 		case 9:
-			value19 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorNotFound(value19)
+			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorNoMessages()
 
 		case 10:
-			value20 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
+			value14 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorUnsupportedByServer(value20)
+			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorLimitExceeded(value14)
 
 		case 11:
+			value15 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
+
+			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorNotFound(value15)
+
+		case 12:
+			value16 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
+
+			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorUnsupportedByServer(value16)
+
+		case 13:
 
 			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorDisconnected()
 
-		case 12:
-			value21 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
+		case 14:
+			value17 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorUnexpected(value21)
+			variant = wasmcloud_nats_0_1_0_types.MakeNatsErrorUnexpected(value17)
 
 		default:
 			panic("unreachable")
 		}
 
-		result22 = witTypes.Err[wasmcloud_nats_0_1_0_types.NatsMessage, wasmcloud_nats_0_1_0_types.NatsError](variant)
+		result18 = witTypes.Err[wasmcloud_nats_0_1_0_types.NatsMessage, wasmcloud_nats_0_1_0_types.NatsError](variant)
 	default:
 		panic("unreachable")
 	}
-	result23 := result22
-	return result23
+
+	return result18
 
 }

@@ -160,7 +160,7 @@ func drain(w http.ResponseWriter, r *http.Request) {
 	}
 	defer c.Close()
 
-	handles, err := c.Fetch(uint32(batch), fetchTimeout)
+	batchResult, err := c.Fetch(uint32(batch), fetchTimeout)
 	if errors.Is(err, nats.ErrNoMessages) {
 		// An idle consumer, not a failure.
 		w.WriteHeader(http.StatusNoContent)
@@ -173,17 +173,25 @@ func drain(w http.ResponseWriter, r *http.Request) {
 
 	// Every handle has to be settled — ack, nak, or term — or the consumer
 	// stalls until ack-wait expires and redelivers the whole batch.
-	results := make([]result, 0, len(handles))
-	for _, h := range handles {
+	results := make([]result, 0, len(batchResult.Messages))
+	for _, h := range batchResult.Messages {
 		results = append(results, settle(h))
 	}
 
-	log.Info("drained", "stream", stream, "consumer", consumer, "messages", len(results))
+	// Why the batch ended is the difference between "that is all there is"
+	// and "come back for more": a byte limit cut it short with messages
+	// still waiting, and the next fetch picks up where this one stopped.
+	log.Info("drained",
+		"stream", stream,
+		"consumer", consumer,
+		"messages", len(results),
+		"stop", batchResult.Stop)
 	writeJSON(w, http.StatusOK, struct {
 		Stream   string   `json:"stream"`
 		Consumer string   `json:"consumer"`
+		Stop     string   `json:"stop"`
 		Results  []result `json:"results"`
-	}{stream, consumer, results})
+	}{stream, consumer, batchResult.Stop.String(), results})
 }
 
 type result struct {
@@ -296,7 +304,7 @@ func toJSON(m nats.StoredMessage) storedMessage {
 // on message text.
 func writeNatsError(w http.ResponseWriter, err error) {
 	var notFound *nats.NotFoundError
-	var denied *nats.SubjectDeniedError
+	var denied *nats.DeniedError
 	var unsupported *nats.UnsupportedByServerError
 
 	switch {
@@ -305,7 +313,9 @@ func writeNatsError(w http.ResponseWriter, err error) {
 	case errors.Is(err, nats.ErrKeyNotFound):
 		http.Error(w, err.Error(), http.StatusNotFound)
 	case errors.As(err, &denied):
-		// Outside `stream-allow`; the read never reached the server.
+		// Outside the binding's grant; the read never reached the server.
+		// `denied.Target` says which grant — a stored message is checked
+		// against `subject-allow`, not just `stream-allow`.
 		http.Error(w, err.Error(), http.StatusForbidden)
 	case errors.As(err, &unsupported):
 		// Reading by sequence needs NATS server 2.9 or newer.
