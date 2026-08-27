@@ -152,6 +152,18 @@ func GetStreamInfo(stream string) (StreamInfo, error) {
 
 // ListStreamSubjects returns the subjects a stream currently holds messages
 // on, with per-subject counts. Pass ">" for the whole stream.
+//
+// The result is complete or it is an error; it is never a partial list. A
+// stream with more matching subjects than one call can enumerate returns a
+// [LimitExceededError] rather than a truncated slice, because a truncated
+// slice read as authoritative is worse than no answer — narrow subjectFilter
+// and call again.
+//
+// Subjects outside the workload's `subject-allow` grant are omitted: a
+// `stream-allow` grant is authority over the stream, not over every subject
+// stored in it. If *every* matching subject is outside the grant the call
+// returns a [DeniedError] rather than an empty slice, so "you may not see what
+// this stream holds" is never mistaken for "this stream holds nothing".
 func ListStreamSubjects(stream, subjectFilter string) ([]SubjectCount, error) {
 	res := js.ListStreamSubjects(stream, subjectFilter)
 	if res.IsErr() {
@@ -223,9 +235,11 @@ const (
 	// FetchStopDrained means the consumer had no more to give before the
 	// timeout elapsed. What came back is everything that was there.
 	FetchStopDrained FetchStop = FetchStop(js.FetchStopDrained)
-	// FetchStopByteLimit means a byte bound ended the batch early — maxBytes
-	// on the call, or the consumer's MaxRequestMaxBytes. More messages are
-	// waiting, and the next fetch picks up where this one stopped.
+	// FetchStopByteLimit means a byte bound ended the batch early: maxBytes on
+	// the call, the consumer's MaxRequestMaxBytes, or — when maxBytes is 0 —
+	// what is left of the binding's `subscription-capacity-bytes` after the
+	// handles this component still holds. More messages are waiting, and the
+	// next fetch picks up where this one stopped.
 	FetchStopByteLimit FetchStop = FetchStop(js.FetchStopByteLimit)
 )
 
@@ -275,6 +289,33 @@ func (b FetchedBatch) Close() {
 // consumer stalls until ack-wait expires, and must be released with Close, or
 // the host holds its payload for the life of the component. `defer
 // batch.Close()` covers the whole batch.
+//
+// # One Fetch does not drain the backlog
+//
+// The host bounds each batch by what is left of the binding's
+// `subscription-capacity-bytes` after the handles this component still holds,
+// so a single Fetch returns what fits in that budget and no more — for 5 MiB
+// messages against a 32 MiB budget, six of them, however large batch was.
+//
+// Check the returned [FetchStop]. A handler that fetches once per trigger and
+// assumes it has drained the consumer will fall behind silently on any stream
+// whose messages are large. Loop until Stop reports Drained, closing each
+// batch as you go:
+//
+//	for {
+//	  batch, err := consumer.Fetch(100, time.Second)
+//	  if errors.Is(err, nats.ErrNoMessages) {
+//	    break
+//	  }
+//	  if err != nil {
+//	    return err
+//	  }
+//	  process(batch)
+//	  batch.Close()
+//	  if batch.Stop == nats.FetchStopDrained {
+//	    break
+//	  }
+//	}
 func (c *PullConsumer) Fetch(batch uint32, timeout time.Duration) (FetchedBatch, error) {
 	return fetched(c.inner.Fetch(batch, uint32(timeout.Milliseconds())))
 }
