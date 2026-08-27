@@ -24,6 +24,17 @@
 // names the subjects to deliver, and whose `subject-allow` grant covers them.
 // Core delivery has no acknowledgement: a returned error is logged by the
 // host, and the message is not redelivered.
+//
+// # Instance reuse
+//
+// Whether consecutive messages share one component instance is decided by the
+// workload manifest (`poolSize` on the component), not by this package. Under
+// the default every message gets a fresh instance and package-level state
+// resets between messages; with `poolSize` set, state in package-level
+// variables survives from one message to the next until the instance is
+// recycled (`maxInvocations`). Write handlers that are correct either way:
+// treat package-level state as a cache, never as a guarantee of freshness or
+// of persistence.
 package corehandler
 
 import (

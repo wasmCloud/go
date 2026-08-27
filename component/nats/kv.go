@@ -164,6 +164,12 @@ func (b *Bucket) Keys() (KeyPage, error) {
 // History returns every retained revision of key, oldest first, including
 // delete and purge tombstones. How much is retained is bucket configuration.
 // A key with no history at all returns [ErrKeyNotFound].
+//
+// The call is bounded: the host probes for the key before opening the history
+// consumer, and the drain runs under the binding's `request-timeout-ms` (ten
+// seconds if it names none), returning a [TimeoutError] rather than blocking.
+// It cannot pin the instance's admission permit indefinitely, which an earlier
+// revision could.
 func (b *Bucket) History(key string) ([]Entry, error) {
 	res := b.inner.History(key)
 	if res.IsErr() {
