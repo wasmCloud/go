@@ -8,4 +8,10 @@ require (
 	go.wasmcloud.dev/component v0.1.0
 )
 
+require (
+	// Pseudo-version of componentize-go main (post-#72, wit-bindgen 0.61.1);
+	// bump to the next tagged release.
+	github.com/bytecodealliance/componentize-go v0.4.2-0.20260827144128-20f3b0c2a412 // indirect
+)
+
 tool github.com/bytecodealliance/componentize-go
