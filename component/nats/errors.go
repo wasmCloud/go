@@ -23,6 +23,9 @@ var (
 	// ErrDisconnected means the connection is down, as opposed to a
 	// transport error on a live connection.
 	ErrDisconnected = errors.New("nats: disconnected")
+	// ErrHandleClosed means a method was called on a [MessageHandle] whose
+	// host-side resource has already been released by Close.
+	ErrHandleClosed = errors.New("nats: message handle is closed")
 )
 
 // DenialReason is why the host refused a name.

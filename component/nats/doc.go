@@ -17,7 +17,40 @@
 //
 // # Declaring the capability
 //
-// A component opts in by importing the interfaces in its own world:
+// A component opts in by importing the interfaces in its own world. Which
+// world it builds on depends on whether it also serves HTTP.
+//
+// A component that serves no HTTP — which is every pure NATS component —
+// must not include `wasip2` or `wasip3`: both worlds mandate an HTTP handler
+// export (`wasi:http/incoming-handler@0.2.8` and `wasi:http/service@0.3.0`
+// respectively), so a component that never wrote one fails to build with
+//
+//	failed to decode world from module
+//	  module was not valid
+//	  failed to find export of interface `wasi:http/incoming-handler@0.2.8` function `handle`
+//
+// naming an export it never asked for. Include the CLI imports directly
+// instead:
+//
+//	world app {
+//	  include wasi:cli/imports@0.2.8;
+//
+//	  import wasi:logging/logging@0.1.0-draft;
+//	  import wasmcloud:nats/types@0.1.0;
+//	  import wasmcloud:nats/jetstream@0.1.0;
+//	  import wasmcloud:nats/kv@0.1.0;
+//	}
+//
+// The SDK ships that shape as a world of its own — `headless` — for a project
+// that resolves the SDK's wit/ directory:
+//
+//	world app {
+//	  include wasmcloud:component-go/headless@0.2.0;
+//	  import wasmcloud:nats/types@0.1.0;
+//	}
+//
+// A component that *does* serve HTTP as well as NATS includes the HTTP world
+// it wants and adds the NATS imports to it:
 //
 //	world app {
 //	  include wasmcloud:component-go/wasip3@0.2.0;
@@ -26,7 +59,15 @@
 //	  import wasmcloud:nats/kv@0.1.0;
 //	}
 //
-// and the workload manifest must declare the matching hostInterfaces entry.
+// In both cases the workload manifest must declare the matching
+// hostInterfaces entry.
+//
+// # Generating bindings
+//
+// Use componentize-go, not wit-bindgen-go. Every function in
+// `wasmcloud:nats@0.1.0` is an `async func`, and wit-bindgen-go does not
+// support the component-model async ABI: it exits 0 and generates a package
+// with all 30 async functions silently missing.
 //
 // # Grants
 //

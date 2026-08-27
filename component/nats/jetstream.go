@@ -248,6 +248,20 @@ type FetchedBatch struct {
 	Stop     FetchStop
 }
 
+// Close releases every handle in the batch.
+//
+// Settling a message does not release it: the host holds the delivered
+// payload until the handle is dropped, and a worker that loops Fetch while
+// only acking grows the host's memory by everything it has ever been
+// delivered. `defer batch.Close()` after a successful Fetch is the safe
+// shape; Close is idempotent and safe to call after settling each message
+// individually.
+func (b FetchedBatch) Close() {
+	for _, h := range b.Messages {
+		h.Close()
+	}
+}
+
 // Fetch reads up to batch messages, waiting at most timeout for the first.
 // It returns [ErrNoMessages] when the timeout elapses with none available,
 // which is an idle result rather than a failure, and a [LimitExceededError]
@@ -258,7 +272,9 @@ type FetchedBatch struct {
 // batch must be at least 1.
 //
 // Every returned handle must be settled — Ack, Nak, or Term — or the
-// consumer stalls until ack-wait expires.
+// consumer stalls until ack-wait expires, and must be released with Close, or
+// the host holds its payload for the life of the component. `defer
+// batch.Close()` covers the whole batch.
 func (c *PullConsumer) Fetch(batch uint32, timeout time.Duration) (FetchedBatch, error) {
 	return fetched(c.inner.Fetch(batch, uint32(timeout.Milliseconds())))
 }
@@ -307,12 +323,53 @@ func (c *PullConsumer) Close() { c.inner.Drop() }
 // Delivery is at-least-once: the same message arrives again after any
 // failure downstream of processing it, so the work must be idempotent.
 // Settling is one-shot — a second Ack, Nak, or Term reports an error.
-type MessageHandle struct{ inner *js.MessageHandle }
+type MessageHandle struct {
+	inner *js.MessageHandle
+	// Set once the underlying host resource has been dropped, so Close is
+	// idempotent and a use-after-close is caught here rather than trapping
+	// on a dangling resource index.
+	closed bool
+}
 
 // NewMessageHandle wraps a generated handle. It is exported for the
 // nats/jetstreamhandler subpackage; applications should not need it.
 func NewMessageHandle(inner *js.MessageHandle) *MessageHandle {
 	return &MessageHandle{inner: inner}
+}
+
+// Close releases the handle's host-side resource.
+//
+// This is not the same as settling. Ack, Nak, and Term tell the *server* what
+// to do with the message; Close tells the *host* it may free the delivered
+// payload. Until it is called the payload stays resident in the host, so a
+// pull worker that loops Fetch and only acks walks the host's memory up by
+// every byte it has ever been delivered, and eventually the host refuses
+// further fetches (or is OOM-killed). Close after settling:
+//
+//	batch, err := consumer.Fetch(10, time.Second)
+//	if err != nil {
+//	  return err
+//	}
+//	defer batch.Close()
+//	for _, h := range batch.Messages {
+//	  if err := process(h.Message()); err != nil {
+//	    _ = h.Nak(time.Second)
+//	    continue
+//	  }
+//	  _ = h.Ack()
+//	}
+//
+// Calling Close twice is a no-op. Any other method on a closed handle
+// reports [ErrHandleClosed] rather than reaching the host.
+//
+// A handle delivered to a jetstreamhandler callback is owned by the host and
+// does not need closing; Close on one is harmless but unnecessary.
+func (h *MessageHandle) Close() {
+	if h.closed {
+		return
+	}
+	h.closed = true
+	h.inner.Drop()
 }
 
 // Message returns the delivered message.
@@ -327,6 +384,9 @@ func (h *MessageHandle) DeliveryCount() uint32 { return h.inner.DeliveryCount() 
 
 // Ack acknowledges successful processing, so the message is not redelivered.
 func (h *MessageHandle) Ack() error {
+	if h.closed {
+		return ErrHandleClosed
+	}
 	if res := h.inner.Ack(); res.IsErr() {
 		return convertError(res.Err())
 	}
@@ -338,6 +398,9 @@ func (h *MessageHandle) Ack() error {
 // One round trip slower than Ack, and the only way to know the delivery will
 // not be repeated after a server or client failure.
 func (h *MessageHandle) AckSync() error {
+	if h.closed {
+		return ErrHandleClosed
+	}
 	if res := h.inner.AckSync(); res.IsErr() {
 		return convertError(res.Err())
 	}
@@ -348,6 +411,9 @@ func (h *MessageHandle) AckSync() error {
 // server can, which spins if the failure is permanent — prefer a delay, or
 // Term for something that can never succeed.
 func (h *MessageHandle) Nak(delay time.Duration) error {
+	if h.closed {
+		return ErrHandleClosed
+	}
 	d := witTypes.None[uint32]()
 	if delay > 0 {
 		d = witTypes.Some(uint32(delay.Milliseconds()))
@@ -361,6 +427,9 @@ func (h *MessageHandle) Nak(delay time.Duration) error {
 // InProgress resets the ack-wait timer while work continues. Unlike the
 // settling methods it may be called repeatedly.
 func (h *MessageHandle) InProgress() error {
+	if h.closed {
+		return ErrHandleClosed
+	}
 	if res := h.inner.InProgress(); res.IsErr() {
 		return convertError(res.Err())
 	}
@@ -374,6 +443,9 @@ func (h *MessageHandle) InProgress() error {
 // acknowledgement and this reports an error; use `ack-mode: manual` to settle
 // from the guest.
 func (h *MessageHandle) Term() error {
+	if h.closed {
+		return ErrHandleClosed
+	}
 	if res := h.inner.Term(); res.IsErr() {
 		return convertError(res.Err())
 	}
