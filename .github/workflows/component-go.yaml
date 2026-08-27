@@ -162,7 +162,16 @@ jobs:
         working-directory: examples/components/${{ matrix.example.folder }}
         run: |
           go mod edit -replace go.wasmcloud.dev/component=${{ github.workspace }}/component
-          go mod tidy
+          # proxy.golang.org intermittently cuts a module zip mid-transfer
+          # (the download dies with an HTTP/2 INTERNAL_ERROR), which fails one
+          # matrix leg while the rest of the run fetches the same module fine.
+          # Retry before giving up so a bad moment upstream is not a red build.
+          for attempt in 1 2 3; do
+            if go mod tidy; then exit 0; fi
+            echo "::warning::go mod tidy failed (attempt $attempt/3), retrying" >&2
+            sleep 10
+          done
+          exit 1
 
       # Installed into RUNNER_TEMP rather than /usr/local/bin so no step needs
       # sudo; GITHUB_PATH puts it on PATH for the smoke test, and the export

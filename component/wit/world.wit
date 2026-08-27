@@ -11,6 +11,30 @@ world wasip2 {
   export wasi:http/incoming-handler@0.2.8;
 }
 
+// Opt-in world for a component that serves no HTTP.
+//
+// Every pure-capability component is one — a NATS handler, a KV watcher, a
+// queue worker — and neither `wasip2` nor `wasip3` fits it: both mandate an
+// HTTP handler export, so a component that never wrote one fails to build
+// with "failed to find export of interface `wasi:http/incoming-handler`",
+// naming an export the developer never asked for. This is the same world
+// minus that export: the CLI imports a Go runtime needs, and nothing else.
+//
+// Add the capability imports and handler exports the component actually uses
+// to its own world alongside this include, e.g.
+//
+//   world app {
+//     include wasmcloud:component-go/headless@0.2.0;
+//     import wasmcloud:nats/types@0.1.0;
+//     export wasmcloud:nats/core-handler@0.1.0;
+//   }
+world headless {
+  include wasi:cli/imports@0.2.8;
+
+  import wasi:config/store@0.2.0-rc.1;
+  import wasi:logging/logging@0.1.0-draft;
+}
+
 // Opt-in world: async WASI P3 HTTP handler. Building this world requires a
 // Go toolchain with runtime.wasiOnIdle (auto-installed by componentize-go)
 // until golang/go#76775 lands.
