@@ -62,6 +62,17 @@
 // In both cases the workload manifest must declare the matching
 // hostInterfaces entry.
 //
+// # Timers
+//
+// Do not call [time.Sleep] (or anything that parks a goroutine on a Go
+// runtime timer — [time.After], tickers, timer-based context deadlines)
+// inside a handler: an async-lifted export whose goroutine parks on the Go
+// runtime traps with "async-lifted export failed to produce a result", on
+// every delivery. Use [go.wasmcloud.dev/component/sleep.Sleep] instead, which
+// awaits the host's clock through the same async-import mechanism every
+// wasmcloud:nats call uses. The `wasmcloud:nats-guest@0.1.0` worlds import
+// the clock it needs already.
+//
 // # Generating bindings
 //
 // Use componentize-go, not wit-bindgen-go. Every function in
