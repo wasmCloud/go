@@ -1,6 +1,6 @@
 // Package blobstore is an idiomatic Go wrapper for the wasmCloud
 // wasmcloud:blobstore@0.1.0 host-plugin interfaces (`types`, `container`,
-// and `blobstore`, vendored from wasmCloud v2.6.1 under
+// and `blobstore`, vendored from wasmCloud v2.8.0 under
 // wit/deps/wasmcloud-blobstore-0.1.0).
 //
 // Containers are collections of byte objects. [CreateContainer] and

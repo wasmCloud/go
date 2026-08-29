@@ -141,19 +141,22 @@ func (b *Bucket) Purge(key string) error {
 // KeyPage is a listing of a bucket's keys, and whether it is the whole of it.
 type KeyPage struct {
 	Keys []string
-	// Truncated reports that the bucket holds more keys than this page
+	// Truncated reports that more keys match the filter than this page
 	// carries. The listing is capped host-side, so a large bucket cannot be
-	// enumerated in full through this call — treat a truncated page as a
-	// signal to reach for a narrower access pattern, not as a complete set.
+	// enumerated in full through one call — treat a truncated page as a
+	// signal to narrow the filter, not as a complete set.
 	Truncated bool
 }
 
-// Keys lists the bucket's keys.
+// Keys lists the bucket's keys matching filter, which is a NATS subject
+// pattern over the key space — pass ">" for all of them.
 //
-// The listing is capped host-side; check [KeyPage.Truncated] before treating
-// it as the whole bucket.
-func (b *Bucket) Keys() (KeyPage, error) {
-	res := b.inner.Keys()
+// The listing is capped host-side, and it is key cardinality rather than
+// value size that the cap bounds: check [KeyPage.Truncated] before treating a
+// page as the whole bucket, and pass a narrower filter to walk one that holds
+// more than a page.
+func (b *Bucket) Keys(filter string) (KeyPage, error) {
+	res := b.inner.Keys(filter)
 	if res.IsErr() {
 		return KeyPage{}, convertError(res.Err())
 	}

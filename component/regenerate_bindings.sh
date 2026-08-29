@@ -43,6 +43,15 @@ rm -r imports/wit_exports
 # the three wasmcloud:nats handlers). The handwritten trampoline packages
 # (export_*) are preserved; only the generated wit_exports directory is
 # refreshed.
+#
+# An export world can also need an import-side helper package that the
+# capabilities world does not produce: an interface with a `stream` parameter
+# (wasmcloud:messaging/handler@0.3.0) generates the stream ABI intrinsics for
+# its own export under imports/, and the generated wit_exports glue calls
+# them. Those are copied across below, chosen by what the generated glue
+# actually imports so the alias-only packages the other handler worlds emit
+# are not committed; a package the capabilities world already generated is
+# left alone, so its version stays authoritative.
 EXPORT_WORLDS=(
   "wasmcloud:component-go/wasmcloud-messaging-handler@0.2.0"
   "wasmcloud:component-go/wasmcloud-nats-core-handler@0.2.0"
@@ -66,6 +75,13 @@ for world in "${EXPORT_WORLDS[@]}"; do
     --pkg-name "$MODULE/imports" \
     --include-versions
   cp -r tmp/wit_exports "$dir/"
+
+  for name in $(grep -hoE "\"$MODULE/imports/[a-z0-9_]+\"" tmp/wit_exports/*.go \
+      | sed -e "s|.*/imports/||" -e 's|"$||' | sort -u); do
+    if [ ! -d "imports/$name" ] && [ -d "tmp/$name" ]; then
+      cp -r "tmp/$name" imports/
+    fi
+  done
   rm -rf tmp
 
   # Allow the package to compile on non-wasm hosts despite bodyless

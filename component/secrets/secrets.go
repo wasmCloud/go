@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	reveal "go.wasmcloud.dev/component/imports/wasmcloud_secrets_2_0_0_reveal"
-	store "go.wasmcloud.dev/component/imports/wasmcloud_secrets_2_0_0_store"
+	reveal "go.wasmcloud.dev/component/imports/wasmcloud_secrets_2_1_0_reveal"
+	store "go.wasmcloud.dev/component/imports/wasmcloud_secrets_2_1_0_store"
 )
 
 // ErrNotFound is returned by [Get] when no secret exists at the requested

@@ -5,7 +5,7 @@
 // interfaces they export.
 //
 // A plugin defines its own WIT world that exports its capability interface
-// and may use the wasmcloud:host@0.1.0 interfaces (vendored under wit/):
+// and may use the wasmcloud:host@0.1.3 interfaces (vendored under wit/):
 //
 //   - [go.wasmcloud.dev/plugin/hostidentity] wraps the
 //     wasmcloud:host/identity import: the calling workload/component id.

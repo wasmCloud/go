@@ -26,6 +26,17 @@ var (
 	// ErrHandleClosed means a method was called on a [MessageHandle] whose
 	// host-side resource has already been released by Close.
 	ErrHandleClosed = errors.New("nats: message handle is closed")
+	// ErrAlreadySettled means Ack, Nak, or Term was called on a
+	// [MessageHandle] the server has already settled. It reports that the
+	// work was done, not that a retry is pointless: a settle the server
+	// rejected leaves the handle usable, so only an accepted one produces
+	// this.
+	ErrAlreadySettled = errors.New("nats: message already settled")
+	// ErrAckOwnedByHost means the binding runs `ack-mode: auto`, so the host
+	// acks on a handler's success and naks on its error or trap, and a guest
+	// settle is refused. [MessageHandle.InProgress] still works in that mode;
+	// everything else needs `ack-mode: manual` in the manifest.
+	ErrAckOwnedByHost = errors.New("nats: acknowledgement is owned by the host")
 )
 
 // DenialReason is why the host refused a name.
@@ -64,6 +75,14 @@ const (
 	DeniedSubject DeniedTarget = iota
 	DeniedStream
 	DeniedBucket
+	// DeniedMessage is a stored JetStream message. Reading one is checked
+	// against the subject grant, but the refusal names the stream
+	// ([DeniedError.Name]) and the sequence ([DeniedError.Sequence]) rather
+	// than the subject the message was stored on — naming that subject
+	// would let a caller walk sequences to enumerate subjects it was never
+	// granted. Widen `subject-allow` to cover the subject the stream stores
+	// those messages on.
+	DeniedMessage
 )
 
 func (t DeniedTarget) String() string {
@@ -74,6 +93,8 @@ func (t DeniedTarget) String() string {
 		return "stream"
 	case DeniedBucket:
 		return "bucket"
+	case DeniedMessage:
+		return "message"
 	default:
 		return "unknown"
 	}
@@ -84,15 +105,25 @@ func (t DeniedTarget) String() string {
 // reaches the server.
 //
 // Which grant to widen follows from Target: `subject-allow` for a subject or
-// subscription, `stream-allow` for a stream, `bucket-allow` for a bucket. A
-// Reason of [DenialReserved] cannot be widened by any grant.
+// subscription, `stream-allow` for a stream, `bucket-allow` for a bucket, and
+// `subject-allow` again for a stored message, which is checked against the
+// subject the stream holds it on. A Reason of [DenialReserved] cannot be
+// widened by any grant.
 type DeniedError struct {
 	Reason DenialReason
 	Target DeniedTarget
-	Name   string
+	// Name is the refused subject, stream, or bucket. For
+	// [DeniedMessage] it is the stream the message is stored in.
+	Name string
+	// Sequence is the stored message's stream sequence. It is set only when
+	// Target is [DeniedMessage].
+	Sequence uint64
 }
 
 func (e *DeniedError) Error() string {
+	if e.Target == DeniedMessage {
+		return fmt.Sprintf("nats: message %d in stream %q denied: %s", e.Sequence, e.Name, e.Reason)
+	}
 	return fmt.Sprintf("nats: %s %q denied: %s", e.Target, e.Name, e.Reason)
 }
 
@@ -132,15 +163,22 @@ type UnsupportedByServerError struct{ Detail string }
 
 func (e *UnsupportedByServerError) Error() string { return "nats: unsupported by server: " + e.Detail }
 
-// LimitExceededError means the server refused a pull request outright because
-// it asks for more than the consumer was provisioned to allow — a batch over
-// MaxRequestBatch, a byte bound over MaxRequestMaxBytes, or too many waiting
-// pulls.
+// LimitExceededError means a pull request was refused before anything was
+// delivered. There are two causes, with different fixes:
 //
-// Nothing was delivered, and retrying unchanged fails the same way. It is
-// distinct from [ErrNoMessages], which means the request ran against an idle
-// consumer. [PullConsumer.Info] reports the limits to size the next request
-// against.
+//   - The server refused it outright because it asks for more than the
+//     consumer was provisioned to allow — a batch over MaxRequestBatch, a
+//     byte bound over MaxRequestMaxBytes, or too many waiting pulls.
+//     [PullConsumer.Info] reports those limits, to size the next request
+//     against.
+//   - The host refused it because this binding's already-fetched messages
+//     hold its whole memory budget. Info says nothing about this one: call
+//     [MessageHandle.Close] on the handles from earlier batches, since
+//     acking one does not release it.
+//
+// Either way nothing was delivered, and retrying unchanged fails the same
+// way. It is distinct from [ErrNoMessages], which means the request ran
+// against an idle consumer.
 type LimitExceededError struct{ Detail string }
 
 func (e *LimitExceededError) Error() string { return "nats: limit exceeded: " + e.Detail }
@@ -156,11 +194,15 @@ func convertError(e types.NatsError) error {
 		return ErrNoResponders
 	case types.NatsErrorDenied:
 		d := e.Denied()
-		return &DeniedError{
+		denied := &DeniedError{
 			Reason: DenialReason(d.Reason),
-			Target: DeniedTarget(d.Target),
+			Target: DeniedTarget(d.Target.Tag()),
 			Name:   d.Name,
 		}
+		if d.Target.Tag() == types.DeniedResourceMessage {
+			denied.Sequence = d.Target.Message()
+		}
+		return denied
 	case types.NatsErrorMaxPayloadExceeded:
 		return &MaxPayloadExceededError{Limit: e.MaxPayloadExceeded()}
 	case types.NatsErrorInvalidHeader:
@@ -181,6 +223,10 @@ func convertError(e types.NatsError) error {
 		return &UnsupportedByServerError{Detail: e.UnsupportedByServer()}
 	case types.NatsErrorDisconnected:
 		return ErrDisconnected
+	case types.NatsErrorAlreadySettled:
+		return ErrAlreadySettled
+	case types.NatsErrorAckOwnedByHost:
+		return ErrAckOwnedByHost
 	case types.NatsErrorUnexpected:
 		return fmt.Errorf("nats: %s", e.Unexpected())
 	default:

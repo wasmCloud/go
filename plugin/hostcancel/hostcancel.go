@@ -1,6 +1,6 @@
 // Package hostcancel is an idiomatic Go wrapper for the
-// wasmcloud:host/cancel@0.1.0 interface (vendored from wasmCloud v2.6.1
-// under wit/deps/wasmcloud-host-0.1.0), provided by the wasmCloud host so a
+// wasmcloud:host/cancel@0.1.3 interface (vendored from wasmCloud v2.8.0
+// under wit/deps/wasmcloud-host-0.1.3), provided by the wasmCloud host so a
 // host component plugin can cooperatively cancel one of its own in-flight
 // invocations.
 //
@@ -13,7 +13,7 @@
 // The plugin's world must import the interface:
 //
 //	world plugin {
-//	  import wasmcloud:host/cancel@0.1.0;
+//	  import wasmcloud:host/cancel@0.1.3;
 //	  export acme:kv/store@0.1.0; // the plugin's own capability
 //	}
 //
@@ -22,7 +22,7 @@
 package hostcancel
 
 import (
-	cancel "go.wasmcloud.dev/plugin/imports/wasmcloud_host_0_1_0_cancel"
+	cancel "go.wasmcloud.dev/plugin/imports/wasmcloud_host_0_1_3_cancel"
 )
 
 // JobID is an opaque, host-minted identifier for one in-flight invocation.
