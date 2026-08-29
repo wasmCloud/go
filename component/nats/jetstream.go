@@ -363,13 +363,22 @@ func (c *PullConsumer) Close() { c.inner.Drop() }
 //
 // Delivery is at-least-once: the same message arrives again after any
 // failure downstream of processing it, so the work must be idempotent.
-// Settling is one-shot — a second Ack, Nak, or Term reports an error.
+//
+// Settling is one-shot, but only on success: an Ack, Nak, or Term the server
+// accepted retires the handle, and a later settle reports [ErrAlreadySettled].
+// A settle that failed on the wire leaves the handle usable, so retrying that
+// one is correct rather than a lost message.
 type MessageHandle struct {
 	inner *js.MessageHandle
 	// Set once the underlying host resource has been dropped, so Close is
 	// idempotent and a use-after-close is caught here rather than trapping
 	// on a dangling resource index.
 	closed bool
+	// The message as lowered on the first Message call. Each lowering copies
+	// the whole payload into guest memory, and a Go linear memory never
+	// shrinks, so re-lowering per call ratchets the heap by the payload size.
+	message Message
+	lowered bool
 }
 
 // NewMessageHandle wraps a generated handle. It is exported for the
@@ -414,7 +423,17 @@ func (h *MessageHandle) Close() {
 }
 
 // Message returns the delivered message.
-func (h *MessageHandle) Message() Message { return FromWitMessage(h.inner.Message()) }
+//
+// The payload is copied out of the host once, on the first call; later calls
+// return the same [Message], so calling this repeatedly costs nothing. The
+// copy survives Close.
+func (h *MessageHandle) Message() Message {
+	if !h.lowered {
+		h.message = FromWitMessage(h.inner.Message())
+		h.lowered = true
+	}
+	return h.message
+}
 
 // Sequence returns the message's position in the stream.
 func (h *MessageHandle) Sequence() uint64 { return h.inner.Sequence() }
@@ -424,6 +443,9 @@ func (h *MessageHandle) Sequence() uint64 { return h.inner.Sequence() }
 func (h *MessageHandle) DeliveryCount() uint32 { return h.inner.DeliveryCount() }
 
 // Ack acknowledges successful processing, so the message is not redelivered.
+//
+// Reports [ErrAlreadySettled] if the server already settled this handle, and
+// [ErrAckOwnedByHost] under a binding running `ack-mode: auto`.
 func (h *MessageHandle) Ack() error {
 	if h.closed {
 		return ErrHandleClosed
@@ -437,7 +459,8 @@ func (h *MessageHandle) Ack() error {
 // AckSync acknowledges and waits for the server to confirm it (double-ack).
 //
 // One round trip slower than Ack, and the only way to know the delivery will
-// not be repeated after a server or client failure.
+// not be repeated after a server or client failure. It reports the same
+// refusals as Ack.
 func (h *MessageHandle) AckSync() error {
 	if h.closed {
 		return ErrHandleClosed
@@ -451,6 +474,8 @@ func (h *MessageHandle) AckSync() error {
 // Nak asks for redelivery after delay. A zero delay redelivers as soon as the
 // server can, which spins if the failure is permanent — prefer a delay, or
 // Term for something that can never succeed.
+//
+// It reports the same refusals as Ack.
 func (h *MessageHandle) Nak(delay time.Duration) error {
 	if h.closed {
 		return ErrHandleClosed
@@ -466,7 +491,8 @@ func (h *MessageHandle) Nak(delay time.Duration) error {
 }
 
 // InProgress resets the ack-wait timer while work continues. Unlike the
-// settling methods it may be called repeatedly.
+// settling methods it may be called repeatedly, and it is the one method that
+// still works under `ack-mode: auto`, where the host owns the settle.
 func (h *MessageHandle) InProgress() error {
 	if h.closed {
 		return ErrHandleClosed
@@ -481,8 +507,9 @@ func (h *MessageHandle) InProgress() error {
 // the right answer for a malformed payload that no retry can fix.
 //
 // Under a binding configured with `ack-mode: auto` the host owns the
-// acknowledgement and this reports an error; use `ack-mode: manual` to settle
-// from the guest.
+// acknowledgement and this reports [ErrAckOwnedByHost]; use `ack-mode: manual`
+// to settle from the guest. A handle the server already settled reports
+// [ErrAlreadySettled].
 func (h *MessageHandle) Term() error {
 	if h.closed {
 		return ErrHandleClosed

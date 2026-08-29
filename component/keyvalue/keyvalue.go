@@ -4,11 +4,11 @@ import (
 	"time"
 
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
-	atomics "go.wasmcloud.dev/component/imports/wasmcloud_keyvalue_0_1_0_atomics"
-	batch "go.wasmcloud.dev/component/imports/wasmcloud_keyvalue_0_1_0_batch"
-	cas "go.wasmcloud.dev/component/imports/wasmcloud_keyvalue_0_1_0_cas"
-	store "go.wasmcloud.dev/component/imports/wasmcloud_keyvalue_0_1_0_store"
-	types "go.wasmcloud.dev/component/imports/wasmcloud_keyvalue_0_1_0_types"
+	atomics "go.wasmcloud.dev/component/imports/wasmcloud_keyvalue_0_2_0_atomics"
+	batch "go.wasmcloud.dev/component/imports/wasmcloud_keyvalue_0_2_0_batch"
+	cas "go.wasmcloud.dev/component/imports/wasmcloud_keyvalue_0_2_0_cas"
+	store "go.wasmcloud.dev/component/imports/wasmcloud_keyvalue_0_2_0_store"
+	types "go.wasmcloud.dev/component/imports/wasmcloud_keyvalue_0_2_0_types"
 )
 
 // Bucket is a collection of key-value pairs provided by the host.
@@ -117,7 +117,7 @@ func (b *Bucket) ListKeys(prefix, cursor string) (keys []string, next string, er
 // value at key, creating the entry with value delta if it does not exist,
 // and returns the new value.
 //
-// Requires the app's world to import wasmcloud:keyvalue/atomics@0.1.0.
+// Requires the app's world to import wasmcloud:keyvalue/atomics@0.2.0.
 func (b *Bucket) Increment(key string, delta int64) (int64, error) {
 	res := atomics.Increment(b.inner, key, delta)
 	if res.IsErr() {
@@ -137,7 +137,7 @@ type Entry struct {
 // precondition of a later [Bucket.Swap]. It returns nil (with a nil error)
 // when the key does not exist.
 //
-// Requires the app's world to import wasmcloud:keyvalue/cas@0.1.0.
+// Requires the app's world to import wasmcloud:keyvalue/cas@0.2.0.
 func (b *Bucket) Current(key string) (*Entry, error) {
 	res := cas.Current(b.inner, key)
 	if res.IsErr() {
@@ -177,7 +177,7 @@ type SwapResult struct {
 // in opts holds. A lost race is reported via SwapResult.Swapped == false,
 // not an error.
 //
-// Requires the app's world to import wasmcloud:keyvalue/cas@0.1.0.
+// Requires the app's world to import wasmcloud:keyvalue/cas@0.2.0.
 func (b *Bucket) Swap(key string, value []byte, opts SwapOptions) (SwapResult, error) {
 	witOpts := cas.CasOptions{
 		RequireVersion: witTypes.None[string](),
@@ -208,7 +208,7 @@ func (b *Bucket) Swap(key string, value []byte, opts SwapOptions) (SwapResult, e
 // GetMany returns the values for the given keys in one round trip. Keys that
 // do not exist are absent from the returned map.
 //
-// Requires the app's world to import wasmcloud:keyvalue/batch@0.1.0.
+// Requires the app's world to import wasmcloud:keyvalue/batch@0.2.0.
 func (b *Bucket) GetMany(keys []string) (map[string][]byte, error) {
 	res := batch.GetMany(b.inner, keys)
 	if res.IsErr() {
@@ -228,7 +228,7 @@ func (b *Bucket) GetMany(keys []string) (map[string][]byte, error) {
 // values. The operation is not atomic: on error, some entries may have been
 // written.
 //
-// Requires the app's world to import wasmcloud:keyvalue/batch@0.1.0.
+// Requires the app's world to import wasmcloud:keyvalue/batch@0.2.0.
 func (b *Bucket) SetMany(entries map[string][]byte) error {
 	kvs := make([]witTypes.Tuple2[string, []uint8], 0, len(entries))
 	for k, v := range entries {
@@ -245,7 +245,7 @@ func (b *Bucket) SetMany(entries map[string][]byte) error {
 // not exist. The operation is not atomic: on error, some entries may have
 // been deleted.
 //
-// Requires the app's world to import wasmcloud:keyvalue/batch@0.1.0.
+// Requires the app's world to import wasmcloud:keyvalue/batch@0.2.0.
 func (b *Bucket) DeleteMany(keys []string) error {
 	res := batch.DeleteMany(b.inner, keys)
 	if res.IsErr() {

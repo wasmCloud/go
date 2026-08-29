@@ -1,6 +1,6 @@
 // Package lifecycle wires up the optional
-// wasmcloud:host/workload-lifecycle@0.1.0 export (vendored from wasmCloud
-// v2.6.1 under wit/deps/wasmcloud-host-0.1.0), through which the wasmCloud
+// wasmcloud:host/workload-lifecycle@0.1.3 export (vendored from wasmCloud
+// v2.8.0 under wit/deps/wasmcloud-host-0.1.3), through which the wasmCloud
 // host tells a host component plugin about workloads binding to and
 // unbinding from it, so the plugin can provision and reclaim per-workload
 // state eagerly rather than lazily on first call.
@@ -11,8 +11,8 @@
 // interface:
 //
 //	world plugin {
-//	  import wasmcloud:host/identity@0.1.0;
-//	  export wasmcloud:host/workload-lifecycle@0.1.0;
+//	  import wasmcloud:host/identity@0.1.3;
+//	  export wasmcloud:host/workload-lifecycle@0.1.3;
 //	  export acme:kv/store@0.1.0; // the plugin's own capability
 //	}
 //
@@ -40,8 +40,8 @@ package lifecycle
 
 import (
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
-	export "go.wasmcloud.dev/plugin/exports/wasmcloud_plugin_go_lifecycle_0_1_0/export_wasmcloud_host_0_1_0_workload_lifecycle"
-	wit "go.wasmcloud.dev/plugin/imports/wasmcloud_host_0_1_0_workload_lifecycle"
+	export "go.wasmcloud.dev/plugin/exports/wasmcloud_plugin_go_lifecycle_0_1_0/export_wasmcloud_host_0_1_3_workload_lifecycle"
+	wit "go.wasmcloud.dev/plugin/imports/wasmcloud_host_0_1_3_workload_lifecycle"
 
 	// Pull in the //go:wasmexport glue for the workload-lifecycle export.
 	_ "go.wasmcloud.dev/plugin/exports/wasmcloud_plugin_go_lifecycle_0_1_0/wit_exports"

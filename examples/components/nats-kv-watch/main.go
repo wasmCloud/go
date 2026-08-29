@@ -31,6 +31,9 @@ const (
 	flagsBucket = "feature-flags"
 	// Watched keys. The host is configured to deliver only this prefix.
 	flagPrefix = "flag."
+	// The same prefix as a KV key filter. The host applies it, so its
+	// listing cap bounds the flags rather than the whole bucket.
+	flagFilter = flagPrefix + ">"
 	// The derived key, deliberately outside flagPrefix so writing it does
 	// not re-trigger this handler.
 	activeKey = "active"
@@ -107,7 +110,7 @@ func handleChange(bucket string, entry nats.Entry) error {
 // the stored value is stable and two concurrent rebuilds of the same state
 // produce the same bytes.
 func rebuildActive(b *nats.Bucket) ([]string, error) {
-	page, err := b.Keys()
+	page, err := b.Keys(flagFilter)
 	if err != nil {
 		return nil, err
 	}
@@ -115,15 +118,12 @@ func rebuildActive(b *nats.Bucket) ([]string, error) {
 	// under that cap, but say so rather than silently rebuilding from a
 	// partial set if it ever is not.
 	if page.Truncated {
-		return nil, fmt.Errorf("bucket holds more keys than one listing returns (%d); rebuild would be partial", len(page.Keys))
+		return nil, fmt.Errorf("bucket holds more flag keys than one listing returns (%d); rebuild would be partial", len(page.Keys))
 	}
 
 	var active []string
 	for _, key := range page.Keys {
-		if !strings.HasPrefix(key, flagPrefix) {
-			continue
-		}
-		// Keys() can name a key that a concurrent delete has already
+		// Keys can name a key that a concurrent delete has already
 		// removed, so an absent key here is ordinary, not an error.
 		entry, err := b.Get(key)
 		if errors.Is(err, nats.ErrKeyNotFound) {

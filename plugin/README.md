@@ -5,14 +5,14 @@ components that *export* capability interfaces and are run by the wasmCloud
 host in a long-lived, supervised store. One plugin instance serves concurrent
 capability calls from every workload that imports the interfaces it exports.
 
-The module vendors the `wasmcloud:host@0.1.0` WIT (from wasmCloud v2.6.1)
+The module vendors the `wasmcloud:host@0.1.3` WIT (from wasmCloud v2.8.0)
 under `wit/` and provides:
 
 | Package | WIT | Direction | Purpose |
 |---|---|---|---|
-| `hostidentity` | `wasmcloud:host/identity@0.1.0` | import | `WorkloadID()` / `ComponentID()` of the caller currently invoking the plugin |
-| `hostcancel` | `wasmcloud:host/cancel@0.1.0` | import | `CurrentJob()`, `RequestCancel(job)`, `IsCancelled()` — cooperative cancellation of the plugin's own in-flight invocations |
-| `lifecycle` | `wasmcloud:host/workload-lifecycle@0.1.0` | **export** | `OnWorkloadBind` / `OnWorkloadUnbind` hook registration; the host invokes the hooks as workloads bind/unbind |
+| `hostidentity` | `wasmcloud:host/identity@0.1.3` | import | `WorkloadID()` / `ComponentID()` of the caller currently invoking the plugin |
+| `hostcancel` | `wasmcloud:host/cancel@0.1.3` | import | `CurrentJob()`, `RequestCancel(job)`, `IsCancelled()` — cooperative cancellation of the plugin's own in-flight invocations |
+| `lifecycle` | `wasmcloud:host/workload-lifecycle@0.1.3` | **export** | `OnWorkloadBind` / `OnWorkloadUnbind` hook registration; the host invokes the hooks as workloads bind/unbind |
 | `imports/`, `exports/` | — | — | generated bindings (`./regenerate_bindings.sh`), do not edit |
 
 ## Authoring a host component in Go
@@ -27,14 +27,14 @@ under `wit/` and provides:
    package acme:kv-plugin@0.1.0;
 
    world plugin {
-     import wasmcloud:host/identity@0.1.0;
-     import wasmcloud:host/cancel@0.1.0;
-     export wasmcloud:host/workload-lifecycle@0.1.0;
+     import wasmcloud:host/identity@0.1.3;
+     import wasmcloud:host/cancel@0.1.3;
+     export wasmcloud:host/workload-lifecycle@0.1.3;
      export acme:kv/store@0.1.0;
    }
    ```
 
-   Copy `wit/deps/wasmcloud-host-0.1.0/` from this module (or the embedded
+   Copy `wit/deps/wasmcloud-host-0.1.3/` from this module (or the embedded
    `plugin.Wit` FS) into your project's `wit/deps/`, alongside the WIT for
    your own capability. Prefer `async func`s in your capability interface:
    the host dispatches cross-store capability calls asynchronously, and an

@@ -1,6 +1,6 @@
 // Package hostidentity is an idiomatic Go wrapper for the
-// wasmcloud:host/identity@0.1.0 interface (vendored from wasmCloud v2.6.1
-// under wit/deps/wasmcloud-host-0.1.0), provided by the wasmCloud host to a
+// wasmcloud:host/identity@0.1.3 interface (vendored from wasmCloud v2.8.0
+// under wit/deps/wasmcloud-host-0.1.3), provided by the wasmCloud host to a
 // host component plugin so it can partition state by the workload currently
 // calling it.
 //
@@ -11,7 +11,7 @@
 // The plugin's world must import the interface:
 //
 //	world plugin {
-//	  import wasmcloud:host/identity@0.1.0;
+//	  import wasmcloud:host/identity@0.1.3;
 //	  export acme:kv/store@0.1.0; // the plugin's own capability
 //	}
 //
@@ -24,7 +24,7 @@
 package hostidentity
 
 import (
-	identity "go.wasmcloud.dev/plugin/imports/wasmcloud_host_0_1_0_identity"
+	identity "go.wasmcloud.dev/plugin/imports/wasmcloud_host_0_1_3_identity"
 )
 
 // WorkloadID returns the workload id of the caller currently invoking this

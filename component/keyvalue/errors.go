@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	types "go.wasmcloud.dev/component/imports/wasmcloud_keyvalue_0_1_0_types"
+	types "go.wasmcloud.dev/component/imports/wasmcloud_keyvalue_0_2_0_types"
 )
 
 // Sentinel errors for the named cases of wasmcloud:keyvalue/types.error.

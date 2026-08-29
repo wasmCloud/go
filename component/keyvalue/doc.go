@@ -1,7 +1,7 @@
 // Package keyvalue is an idiomatic Go wrapper for the wasmCloud
-// wasmcloud:keyvalue@0.1.0 host-plugin interfaces (`types`, `store`,
-// `atomics`, `cas`, and `batch`, vendored from wasmCloud v2.6.1 under
-// wit/deps/wasmcloud-keyvalue-0.1.0). The `watcher` export and
+// wasmcloud:keyvalue@0.2.0 host-plugin interfaces (`types`, `store`,
+// `atomics`, `cas`, and `batch`, vendored from wasmCloud v2.8.0 under
+// wit/deps/wasmcloud-keyvalue-0.2.0). The `watcher` export and
 // `watch-service` world are not wrapped.
 //
 // [Open] returns a [Bucket] whose methods cover single-key CRUD (Get, Set,
@@ -16,10 +16,10 @@
 //
 //	world app {
 //	  include wasmcloud:component-go/wasip3@0.2.0;
-//	  import wasmcloud:keyvalue/store@0.1.0;
-//	  import wasmcloud:keyvalue/atomics@0.1.0;
-//	  import wasmcloud:keyvalue/cas@0.1.0;
-//	  import wasmcloud:keyvalue/batch@0.1.0;
+//	  import wasmcloud:keyvalue/store@0.2.0;
+//	  import wasmcloud:keyvalue/atomics@0.2.0;
+//	  import wasmcloud:keyvalue/cas@0.2.0;
+//	  import wasmcloud:keyvalue/batch@0.2.0;
 //	}
 //
 // and the workload manifest must declare the matching hostInterfaces entry

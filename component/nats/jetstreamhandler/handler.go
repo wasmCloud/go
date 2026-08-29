@@ -32,8 +32,8 @@
 // Under the binding's default `ack-mode: auto` the host settles the message
 // from the callback's outcome: returning nil acks, and returning an error
 // naks with a backoff that grows by delivery count. Do not settle the handle
-// yourself in that mode — it reports an error, because the host owns the
-// acknowledgement.
+// yourself in that mode — it reports [nats.ErrAckOwnedByHost]. Only
+// InProgress, which extends ack-wait rather than settling, still works.
 //
 // Under `ack-mode: manual` the host settles nothing and the callback must
 // call Ack, Nak, or Term on the handle. Returning without settling stalls

@@ -1,5 +1,6 @@
 // Bindings-generation worlds for the wasmCloud host-plugin capability
-// interfaces (vendored under deps/ from wasmCloud v2.6.1).
+// interfaces (vendored under deps/ from wasmCloud v2.8.0, except
+// wasmcloud:nats, which is not in a release yet and comes from main).
 //
 // These worlds exist only so regenerate_bindings.sh can generate the import
 // bindings under imports/ and the export glue under exports/. They are NOT
@@ -11,19 +12,24 @@
 // Everything a component may import from a wasmCloud host plugin.
 world wasmcloud-capabilities {
   // wasmcloud:secrets — opaque secret handles, revealed on demand.
-  import wasmcloud:secrets/store@2.0.0;
-  import wasmcloud:secrets/reveal@2.0.0;
+  import wasmcloud:secrets/store@2.1.0;
+  import wasmcloud:secrets/reveal@2.1.0;
+  // `secret` names one secret by the `(implements ..)` label it is imported
+  // under, for a component whose secret names are known at build time.
+  import wasmcloud:secrets/secret@2.1.0;
 
   // wasmcloud:keyvalue — bucket CRUD, atomics, CAS, and batch operations.
-  import wasmcloud:keyvalue/types@0.1.0;
-  import wasmcloud:keyvalue/store@0.1.0;
-  import wasmcloud:keyvalue/atomics@0.1.0;
-  import wasmcloud:keyvalue/cas@0.1.0;
-  import wasmcloud:keyvalue/batch@0.1.0;
+  import wasmcloud:keyvalue/types@0.2.0;
+  import wasmcloud:keyvalue/store@0.2.0;
+  import wasmcloud:keyvalue/atomics@0.2.0;
+  import wasmcloud:keyvalue/cas@0.2.0;
+  import wasmcloud:keyvalue/batch@0.2.0;
 
-  // wasmcloud:messaging — publish/request on a message broker.
-  import wasmcloud:messaging/types@0.2.0;
-  import wasmcloud:messaging/consumer@0.2.0;
+  // wasmcloud:messaging — publish/request on a message broker. Every
+  // function is an `async func` and bodies are `stream<u8>` as of 0.3.0, so
+  // a component importing it targets WASI P3.
+  import wasmcloud:messaging/types@0.3.0;
+  import wasmcloud:messaging/consumer@0.3.0;
 
   // wasmcloud:postgres — parameterized queries and prepared statements.
   import wasmcloud:postgres/types@0.2.0;
@@ -50,7 +56,7 @@ world wasmcloud-capabilities {
 // An app that wants to receive messages exports this interface from its own
 // world and registers a callback via go.wasmcloud.dev/component/messaging.
 world wasmcloud-messaging-handler {
-  export wasmcloud:messaging/handler@0.2.0;
+  export wasmcloud:messaging/handler@0.3.0;
 }
 
 // Export-glue worlds for the wasmcloud:nats handler callbacks. Each is

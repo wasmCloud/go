@@ -1,6 +1,6 @@
 // Package postgres is an idiomatic Go wrapper for the wasmCloud
 // wasmcloud:postgres@0.2.0 host-plugin interfaces (`types`, `query`, and
-// `prepared`, vendored from wasmCloud v2.6.1 under
+// `prepared`, vendored from wasmCloud v2.8.0 under
 // wit/deps/wasmcloud-postgres-0.2.0).
 //
 // [Query] runs a parameterized statement and streams result rows back

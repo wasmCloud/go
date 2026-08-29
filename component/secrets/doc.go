@@ -1,6 +1,6 @@
 // Package secrets is an idiomatic Go wrapper for the wasmCloud
-// wasmcloud:secrets@2.0.0 host-plugin interfaces (`store` and `reveal`,
-// vendored from wasmCloud v2.6.1 under wit/deps/wasmcloud-secrets-2.0.0).
+// wasmcloud:secrets@2.1.0 host-plugin interfaces (`store` and `reveal`,
+// vendored from wasmCloud v2.8.0 under wit/deps/wasmcloud-secrets-2.1.0).
 //
 // [Get] looks up a secret and returns an opaque [Secret] handle; the value is
 // not transferred until [Secret.Reveal] is called, so a host can gate (and
@@ -13,8 +13,8 @@
 //
 //	world app {
 //	  include wasmcloud:component-go/wasip3@0.2.0;
-//	  import wasmcloud:secrets/store@2.0.0;
-//	  import wasmcloud:secrets/reveal@2.0.0;
+//	  import wasmcloud:secrets/store@2.1.0;
+//	  import wasmcloud:secrets/reveal@2.1.0;
 //	}
 //
 // and the workload manifest must declare the matching hostInterfaces entry
