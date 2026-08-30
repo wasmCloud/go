@@ -70,8 +70,9 @@
 // runtime traps with "async-lifted export failed to produce a result", on
 // every delivery. Use [go.wasmcloud.dev/component/sleep.Sleep] instead, which
 // awaits the host's clock through the same async-import mechanism every
-// wasmcloud:nats call uses. The `wasmcloud:nats-guest@0.1.0` worlds import
-// the clock it needs already.
+// wasmcloud:nats call uses. It needs the P3 clock in the component's world:
+//
+//	import wasi:clocks/monotonic-clock@0.3.0;
 //
 // # Generating bindings
 //
