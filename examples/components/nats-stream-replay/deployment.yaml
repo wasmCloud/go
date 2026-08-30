@@ -3,8 +3,8 @@
 #
 #   kubectl apply -f deployment.yaml
 #
-# The stream and subject grants are not here on purpose. Under `wash host`'s
-# default `--wasmcloud-nats-workload-config=deny` they are the host's to
+# The stream and subject grants are not here on purpose. Under a `wash host`
+# plugin entry's default `workloadConfig: deny` they are the host's to
 # declare, and a manifest that sets one is refused at bind. See "Declaring
 # the binding host-side" in the README for the operator half.
 apiVersion: v1

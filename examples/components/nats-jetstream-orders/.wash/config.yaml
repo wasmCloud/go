@@ -26,7 +26,7 @@ dev:
         stream-allow: ORDERS,PROCESSED
         bucket-allow: order-totals
         # STREAM:filter[:policy[:queue]]
-        subscriptions: ORDERS:orders.received:all
+        jetstream-subscriptions: ORDERS:orders.received:all
         # The host acks on a nil return and naks on an error.
         ack-mode: auto
         max-in-flight: "8"

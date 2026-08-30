@@ -24,8 +24,9 @@
 //	}
 //
 // The workload manifest must declare a matching hostInterfaces entry
-// (namespace `wasmcloud`, package `nats`) whose `subscriptions` config names
-// the stream and filter, and whose `stream-allow` grant covers the stream.
+// (namespace `wasmcloud`, package `nats`) whose `jetstream-subscriptions`
+// config names the stream and filter, and whose `stream-allow` grant covers
+// the stream.
 //
 // # Who acknowledges
 //

@@ -1,8 +1,8 @@
 # Needs a runtime >= 2.7.0: this manifest uses `maxConcurrency`, which
 # 2.6.x rejects outright.
 #
-# Connection settings and grants are not here. Under `wash host`'s default
-# `--wasmcloud-nats-workload-config=deny` they are the host's to declare, and
+# Connection settings and grants are not here. Under a `wash host` plugin
+# entry's default `workloadConfig: deny` they are the host's to declare, and
 # a manifest that sets one is refused at bind. Both workloads below want the
 # same thing from the host — `subject-allow: service.>` — so one unnamed
 # binding serves them; see "Declaring the binding host-side" in the README.
