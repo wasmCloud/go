@@ -92,10 +92,10 @@
 // stores alongside the stream.
 //
 // Where those grants are *written* is the host's business, not the
-// component's. A `wash host` declares each binding under
-// `host.wasmcloudNats` — the servers, the credentials, and the three grants —
-// and refuses a manifest that tries to set any of them. What a workload
-// declares is only what it wants delivered:
+// component's. A `wash host` declares each binding under a `host.plugins`
+// entry with `id: wasmcloud-nats` — the servers, the credentials, and the
+// three grants — and refuses a manifest that tries to set any of them. What
+// a workload declares is only what it wants delivered:
 //
 //	hostInterfaces:
 //	  - namespace: wasmcloud
@@ -105,12 +105,12 @@
 //	    name: orders
 //	    interfaces: [types, jetstream, kv, jetstream-handler]
 //	    config:
-//	      subscriptions: ORDERS:orders.received:all
+//	      jetstream-subscriptions: ORDERS:orders.received:all
 //	      ack-mode: auto
 //
-// Under `wash dev`, which runs `--wasmcloud-nats-workload-config=allow`, the
-// same manifest may carry `servers` and the grants itself, so a project stays
-// runnable on its own.
+// Under `wash dev`, whose plugin entries default to `workloadConfig: allow`,
+// the same manifest may carry `servers` and the grants itself, so a project
+// stays runnable on its own.
 //
 // Credentials never appear in a manifest. The host merges
 // `config` → `configFrom` → `secretFrom` (later wins) before the plugin sees

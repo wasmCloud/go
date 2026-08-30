@@ -88,12 +88,12 @@ wash dev
 `wasmcloud:nats` is a host plugin, and `wash dev` has no manifest to read
 the binding from — so `.wash/config.yaml` carries the binding whole:
 servers, grants, and asks together. It is deliberately *not* a mirror of
-`deployment.yaml` any more. Dev runs
-`--wasmcloud-nats-workload-config=allow` precisely so a checkout is
-runnable on its own, while a real host runs `deny` and keeps the servers,
-the credentials, and the grants on its side. So a grant lives in this file
-for dev and in the host group's `wasmcloudNats` for a cluster — change it
-in both.
+`deployment.yaml` any more. A `wash dev` plugin entry defaults to
+`workloadConfig: allow` precisely so a checkout is runnable on its own,
+while a real host defaults to `deny` and keeps the servers, the
+credentials, and the grants on its side. So a grant lives in this file for
+dev and on the host group's `wasmcloud-nats` plugin entry for a cluster —
+change it in both.
 
 The two are not quite interchangeable, and the difference is worth knowing
 before a component that works in dev fails on deploy: dev derives host
@@ -123,8 +123,9 @@ bytes and an unrelated flag change does not burn a revision on it.
 
 ## Declaring the binding host-side
 
-`wash host` runs `--wasmcloud-nats-workload-config=deny`, which splits a
-`wasmcloud:nats` binding between two people. The host declares what the
+`wasmcloud:nats` is configured like every other plugin, as a `host.plugins`
+entry with `id: wasmcloud-nats`. Under `wash host` that entry defaults to
+`workloadConfig: deny`, which splits a binding between two people. The host declares what the
 binding *is* — the servers it dials, the credentials it dials them with, and
 the subject, stream, and bucket grants it carries. The workload declares only
 what it wants delivered within that grant. A manifest that sets `servers`,
@@ -145,22 +146,25 @@ In the chart, the declaration goes on the host group:
 runtime:
   hostGroups:
     - name: default
-      # Omit `servers` to take the cluster's own NATS (`dataNatsUrl`), so the
-      # same manifest runs under `wash dev` and here.
-      wasmcloudNats:
-        config:
-          bucket-allow: feature-flags
-          subject-allow: flags.changed
-        # NATS credentials reach the host this way rather than through a
-        # workload manifest or a CLI arg — the rendered `wash host` config
-        # file never appears in `kubectl describe pod`.
-        secretFrom:
-          - feature-flags-nats-creds
+      # Omit `servers` to take the group's `wasmcloudNatsUrl` (which falls
+      # back to `dataNatsUrl`), so the same manifest runs under `wash dev`
+      # and here.
+      plugins:
+        - id: wasmcloud-nats
+          config:
+            bucket-allow: feature-flags
+            subject-allow: flags.changed
+          # NATS credentials reach the host this way rather than through a
+          # workload manifest or a CLI arg — the rendered `wash host` config
+          # file never appears in `kubectl describe pod`.
+          secretFrom:
+            - feature-flags-nats-creds
 ```
 
-`wash dev` runs the other way round (`allow`): the host's declaration is a
-default a manifest may override, so `.wash/config.yaml` still carries the
-whole binding and a checkout stays runnable on its own.
+`wash dev` defaults the other way round (`workloadConfig: allow`): the
+host's declaration is a default a manifest may override, so
+`.wash/config.yaml` still carries the whole binding and a checkout stays
+runnable on its own.
 
 ## Deploy to wasmCloud on Kubernetes
 

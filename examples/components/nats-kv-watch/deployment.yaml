@@ -3,16 +3,16 @@
 #
 #   kubectl apply -f deployment.yaml
 #
-# What is *not* here is the point. `wash host` runs
-# `--wasmcloud-nats-workload-config=deny`, which splits a binding in two: the
-# host declares what it is — servers, credentials, TLS, and the subject,
+# What is *not* here is the point. A `wash host` plugin entry (`id:
+# wasmcloud-nats`) defaults to `workloadConfig: deny`, which splits a binding
+# in two: the host declares what it is — servers, credentials, TLS, and the subject,
 # stream, and bucket grants — and the workload declares only what it wants
 # delivered within that grant. A manifest that sets `servers`, `creds`,
 # `tls-*`, or a `*-allow` is refused at bind, so a workload can ask for a
 # capability but never widen one.
 #
 # The operator side of this example lives in the README, under "Declaring the
-# binding host-side". `wash dev` runs the other way round (`allow`), so
+# binding host-side". `wash dev` defaults the other way round (`allow`), so
 # `.wash/config.yaml` still carries the whole binding and a checkout stays
 # runnable on its own.
 apiVersion: runtime.wasmcloud.dev/v1alpha1

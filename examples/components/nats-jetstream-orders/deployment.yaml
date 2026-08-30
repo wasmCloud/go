@@ -3,8 +3,8 @@
 #
 #   kubectl apply -f deployment.yaml
 #
-# The grants are not here on purpose. Under `wash host`'s default
-# `--wasmcloud-nats-workload-config=deny`, `subject-allow`, `stream-allow`,
+# The grants are not here on purpose. Under a `wash host` plugin entry's
+# default `workloadConfig: deny`, `subject-allow`, `stream-allow`,
 # `bucket-allow`, `servers`, credentials, and TLS are the host's to declare;
 # a manifest that sets one is refused at bind. What stays here is what this
 # workload wants delivered within that grant. See "Declaring the binding
@@ -34,7 +34,7 @@ spec:
             # filter is still checked against the host's subject grant when
             # the consumer is created, so a filter reaching past it fails the
             # deployment rather than quietly widening it.
-            subscriptions: ORDERS:orders.received:all
+            jetstream-subscriptions: ORDERS:orders.received:all
             # The host acks on a nil return and naks on an error.
             ack-mode: auto
             max-in-flight: "8"
