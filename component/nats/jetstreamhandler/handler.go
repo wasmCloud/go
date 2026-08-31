@@ -6,7 +6,7 @@
 // component, so import it only from apps whose world exports the interface:
 //
 //	world app {
-//	  include wasmcloud:component-go/wasip3@0.2.0;
+//	  include wasmcloud:component-go/headless@0.2.0;
 //	  import wasmcloud:nats/types@0.1.0;
 //	  import wasmcloud:nats/jetstream@0.1.0;
 //	  export wasmcloud:nats/jetstream-handler@0.1.0;
