@@ -34,22 +34,71 @@ func (m Message) Header(name string) (string, bool) {
 	return "", false
 }
 
+// Core is the core-NATS surface this package calls: exactly the two functions
+// `wasmcloud:nats/core@0.1.0` defines, in the generated bindings' own types.
+//
+// The default implementation is the SDK's committed bindings, which name the
+// plain (unlabeled) instance. A component that imports the interface under an
+// `(implements ..)` label — because its manifest's hostInterfaces entry sets
+// `name:` — generates its own bindings for that label and satisfies this
+// interface with a few lines of forwarding, rather than reimplementing the
+// package. See the "Labeled bindings" section of the package doc.
+type Core interface {
+	Publish(msg types.NatsMessage) witTypes.Result[witTypes.Unit, types.NatsError]
+	Request(msg types.NatsMessage, timeoutMs uint32) witTypes.Result[types.NatsMessage, types.NatsError]
+}
+
+// Conn is one core-NATS binding: the connection, credentials, and grants the
+// host attached to a single instance of `wasmcloud:nats/core@0.1.0`. A
+// component with more than one binding holds one [Conn] per label.
+type Conn struct{ core Core }
+
+// NewConn wraps a generated core bindings package as a [Conn].
+func NewConn(c Core) *Conn { return &Conn{core: c} }
+
+// plainCore is [Core] over the committed bindings for the plain, unlabeled
+// instance — the only instance name a committed binding can carry, because
+// //go:wasmimport takes it as a compile-time literal.
+type plainCore struct{}
+
+func (plainCore) Publish(msg types.NatsMessage) witTypes.Result[witTypes.Unit, types.NatsError] {
+	return core.Publish(msg)
+}
+
+func (plainCore) Request(msg types.NatsMessage, timeoutMs uint32) witTypes.Result[types.NatsMessage, types.NatsError] {
+	return core.Request(msg, timeoutMs)
+}
+
+// Default is the connection bound to the plain (unlabeled) instance, the one
+// an unnamed hostInterfaces entry routes to. The package-level [Publish] and
+// [Request] are its methods.
+var Default = NewConn(plainCore{})
+
 // Publish sends msg to its subject and returns once it is written to the
 // connection — not once a subscriber has seen it. Core NATS is
 // fire-and-forget; use [JetStreamPublish] for durable delivery.
-func Publish(msg Message) error {
-	if res := core.Publish(toWitMessage(msg)); res.IsErr() {
-		return convertError(res.Err())
-	}
-	return nil
-}
+func Publish(msg Message) error { return Default.Publish(msg) }
 
 // Request publishes msg and waits up to timeout for a single reply.
 //
 // Replies arrive on a per-workload inbox prefix, so two workloads on one
 // host cannot observe each other's responses.
 func Request(msg Message, timeout time.Duration) (Message, error) {
-	res := core.Request(toWitMessage(msg), uint32(timeout.Milliseconds()))
+	return Default.Request(msg, timeout)
+}
+
+// Publish sends msg to its subject over this connection. See [Publish].
+func (c *Conn) Publish(msg Message) error {
+	if res := c.core.Publish(toWitMessage(msg)); res.IsErr() {
+		return convertError(res.Err())
+	}
+	return nil
+}
+
+// Request publishes msg over this connection and waits up to timeout for a
+// single reply. See [Request].
+func (c *Conn) Request(msg Message, timeout time.Duration) (Message, error) {
+	res := c.core.Request(toWitMessage(msg), uint32(timeout.Milliseconds()))
 	if res.IsErr() {
 		return Message{}, convertError(res.Err())
 	}

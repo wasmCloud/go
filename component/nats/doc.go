@@ -118,6 +118,69 @@
 // them, and an nkey seed is signed host-side without crossing into the
 // component.
 //
+// # Labeled bindings
+//
+// A `name:` on the hostInterfaces entry is not a label the host attaches to
+// whatever the component imported: it selects the `(implements <label>)`
+// *instance* the host binds. The plain instance is then left unbound, and a
+// component built against this package — whose committed bindings name
+// `wasmcloud:nats/core@0.1.0` — fails to start with
+//
+//	component imports instance `wasmcloud:nats/core@0.1.0`, but a matching
+//	implementation was not found in the linker
+//
+// which names the interface, not the routing. So: use this package as-is with
+// an *unnamed* entry, which is the plain route, and reach for `name:` only
+// alongside a world that imports the interface under that same label.
+//
+// //go:wasmimport takes its instance name as a compile-time literal, so a
+// committed binding can only ever name one instance. A labeled instance
+// therefore needs bindings generated for the component's own world:
+//
+//	world app {
+//	  include wasmcloud:component-go/headless@0.2.0;
+//	  import wasmcloud:nats/types@0.1.0;
+//	  import orders: wasmcloud:nats/core@0.1.0;
+//	}
+//
+// componentize-go emits one package per labeled instance, named for the label
+// (`orders`), whose functions carry `//go:wasmimport orders publish`. Generate
+// them with this module's import path as --pkg-name:
+//
+//	componentize-go -w example:app/app -d wit bindings -o gen \
+//	  --pkg-name go.wasmcloud.dev/component/imports --include-versions
+//
+// Types from an interface imported *unlabeled* — everything in
+// `wasmcloud:nats/types@0.1.0` — then resolve to this module's committed
+// packages instead of being regenerated, so the labeled package speaks
+// exactly the Go types this one does. Keep the `orders` directory, drop the
+// rest, and hand it to [NewConn]:
+//
+//	type ordersCore struct{}
+//
+//	func (ordersCore) Publish(msg types.NatsMessage) witTypes.Result[witTypes.Unit, types.NatsError] {
+//	  return orders.Publish(msg)
+//	}
+//
+//	func (ordersCore) Request(msg types.NatsMessage, timeoutMs uint32) witTypes.Result[types.NatsMessage, types.NatsError] {
+//	  return orders.Request(msg, timeoutMs)
+//	}
+//
+//	var Orders = nats.NewConn(ordersCore{})
+//
+// [Conn.Publish] and [Conn.Request] then behave as the package-level
+// functions do, against that binding's connection and grants.
+//
+// JetStream and KV have no equivalent hook: `jetstream` and `kv` define their
+// own resources (`message-handle`, `pull-consumer`, `bucket`), and a resource
+// type belongs to the instance it was generated for, so a labeled instance
+// cannot be substituted into [PullConsumer] or [Bucket]. Call the generated
+// labeled package directly for those. Its plain structs — [Entry],
+// [StoredMessage], the info records — are generated identically to this
+// module's, so a Go conversion bridges them:
+//
+//	entry := nats.FromWitEntry(kv.Entry(labeledEntry))
+//
 // # Receiving messages
 //
 // Publishing and KV work through this package directly. To be *given*
