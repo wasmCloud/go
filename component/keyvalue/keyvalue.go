@@ -16,9 +16,40 @@ type Bucket struct {
 	inner *types.Bucket
 }
 
-// Open returns the bucket with the given host-provided identifier.
+// Store is the one label-routed call of `wasmcloud:keyvalue`: `store.open`.
+// Everything else — atomics, cas, batch, and the bucket's own methods —
+// operates on a [types.Bucket] that already carries the backend it was opened
+// through, so only this needs to know which binding it is talking to.
+//
+// The default implementation is the SDK's committed bindings, which name the
+// plain (unlabeled) instance. A component that imports `store` under an
+// `(implements ..)` label satisfies this interface with its own generated
+// bindings for that label; see the package doc.
+type Store interface {
+	Open(identifier string) witTypes.Result[*types.Bucket, types.Error]
+}
+
+// plainStore is [Store] over the committed bindings for the plain, unlabeled
+// instance — the only instance name a committed binding can carry, because
+// //go:wasmimport takes it as a compile-time literal.
+type plainStore struct{}
+
+func (plainStore) Open(identifier string) witTypes.Result[*types.Bucket, types.Error] {
+	return store.Open(identifier)
+}
+
+// Open returns the bucket with the given host-provided identifier, from the
+// plain (unlabeled) instance an unnamed hostInterfaces entry routes to.
 func Open(identifier string) (*Bucket, error) {
-	res := store.Open(identifier)
+	return OpenFrom(plainStore{}, identifier)
+}
+
+// OpenFrom returns the bucket with the given host-provided identifier, opened
+// through s rather than the plain instance. The returned [Bucket] is an
+// ordinary bucket: every method on it routes to the backend it was opened
+// through.
+func OpenFrom(s Store, identifier string) (*Bucket, error) {
+	res := s.Open(identifier)
 	if res.IsErr() {
 		return nil, convertError(res.Err())
 	}
