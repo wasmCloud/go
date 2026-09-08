@@ -1,5 +1,5 @@
 module go.wasmcloud.dev/plugin
 
-go 1.25
+go 1.27.1
 
-require go.bytecodealliance.org/pkg v0.2.4-0.20260806154504-91f6c4863e67
+require go.bytecodealliance.org/pkg v0.2.4-0.20260908212714-8fe76305a856

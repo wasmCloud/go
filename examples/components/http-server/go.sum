@@ -1,7 +1,7 @@
 github.com/apparentlymart/go-userdirs v0.0.0-20200915174352-b0c018a67c13 h1:JtuelWqyixKApmXm3qghhZ7O96P6NKpyrlSIe8Rwnhw=
 github.com/apparentlymart/go-userdirs v0.0.0-20200915174352-b0c018a67c13/go.mod h1:7kfpUbyCdGJ9fDRCp3fopPQi5+cKNHgTE4ZuNrO71Cw=
-github.com/bytecodealliance/componentize-go v0.4.2-0.20260827144128-20f3b0c2a412 h1:R8UW49cRsVzdktbaI1FdMx3BpQY9qx+UxVnUVa5qLag=
-github.com/bytecodealliance/componentize-go v0.4.2-0.20260827144128-20f3b0c2a412/go.mod h1:w1QFtPLGI9o38epvMOPyCKbMc7q7GJ7yZhIvhGTpzA0=
+github.com/bytecodealliance/componentize-go v0.4.3-0.20260908212636-5b8eef1155ae h1:z0NHk01bOAUS3TLm0nNGy7tkZo1/XQdhL1QkPlg6+bg=
+github.com/bytecodealliance/componentize-go v0.4.3-0.20260908212636-5b8eef1155ae/go.mod h1:XIR4nMdyNjTIKgqkKe/F/ih8BOR/H2iZZgp2XTCMdjs=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/gofrs/flock v0.13.0 h1:95JolYOvGMqeH31+FC7D2+uULf6mG61mEZ/A8dRYMzw=
@@ -14,8 +14,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu7U=
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
-go.bytecodealliance.org/pkg v0.2.4-0.20260806154504-91f6c4863e67 h1:f+ws/D+SxcanjyEJHu46EW+Lp7KuwKfQR2XKeKN0L5k=
-go.bytecodealliance.org/pkg v0.2.4-0.20260806154504-91f6c4863e67/go.mod h1:OjA+V8g3uUFixeCKFfamm6sYhTJdg8fvwEdJ2GO0GSk=
+go.bytecodealliance.org/pkg v0.2.4-0.20260908212714-8fe76305a856 h1:oQ1l0o3qC0t+ilV5wJfOXiqraUyvlbLlJ+trUTZdXrs=
+go.bytecodealliance.org/pkg v0.2.4-0.20260908212714-8fe76305a856/go.mod h1:3Y4rSI/nLUEb57ZMXbEWDbblC/GWfZPRMh/qdxJTmMM=
 go.wasmcloud.dev/component v0.1.0 h1:Gsu76BbP4nRF0/S+jXA9m3ltE/zWLzKJ4ga5XYdkM+Q=
 go.wasmcloud.dev/component v0.1.0/go.mod h1:uvfMQ/8d0YMF5bKbLzJCUY/cXG2FDlU3DmH5TdpnCWM=
 golang.org/x/sys v0.0.0-20190509141414-a5b02f93d862/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
