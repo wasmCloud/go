@@ -22,6 +22,10 @@ that run on [wasmCloud](https://wasmcloud.com) v2.
 - [`templates`](./templates) — starter templates for `wash new`.
 - [`x`](./x) — experimental libraries.
 
+See [BUILDING.md](./BUILDING.md) for the exact versions of Go, componentize-go,
+wit-bindgen and `wash` needed to build against a released SDK, and for how to
+build with no network at all.
+
 ## Quickstart
 
 ```shell
