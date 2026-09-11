@@ -66,7 +66,7 @@ nats consumer add EVENTS workers --pull --ack explicit \
 ## Build
 
 ```bash
-GOFLAGS=-tags=componentizego_async componentize-go \
+componentize-go \
   -w 'wasmcloud:component-go/wasip3@0.2.0' \
   -w 'wasmcloud:examples/nats-stream-replay@0.1.0' build
 ```
@@ -74,10 +74,9 @@ GOFLAGS=-tags=componentizego_async componentize-go \
 Both worlds are named because this is a **WASI P3** component: every
 `wasmcloud:nats` function is an `async func`, so it takes the SDK's `wasip3`
 world (`wasi:http/handler@0.3.0`) rather than the default `wasip2` one, and
-its own world adds the JetStream imports on top. The `GOFLAGS` prefix selects
-`wasihttp`'s async P3 implementation; componentize-go sets that tag on its own
-for async worlds, but the `go tool` wrapper still fetches the v0.4.1 binary,
-which predates that. The prefix can go once a later release ships.
+its own world adds the JetStream imports on top. componentize-go sets the
+`componentizego_async` build tag itself for async worlds, which is what selects
+`wasihttp`'s async P3 implementation, so no `GOFLAGS` prefix is needed.
 
 ## Running it
 

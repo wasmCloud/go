@@ -45,7 +45,7 @@ nats-server &
 
 ```bash
 cd service && componentize-go -w 'wasmcloud:examples/nats-reply-service@0.1.0' build
-cd ../gateway && GOFLAGS=-tags=componentizego_async componentize-go \
+cd ../gateway && componentize-go \
   -w 'wasmcloud:component-go/wasip3@0.2.0' \
   -w 'wasmcloud:examples/nats-request-gateway@0.1.0' build
 ```
@@ -54,10 +54,9 @@ Both are **WASI P3** components: every `wasmcloud:nats` function is an `async
 func`. The service serves no HTTP, so it declares its own world and needs only
 that one. The gateway does serve HTTP, so it names the SDK's `wasip3` world
 (`wasi:http/handler@0.3.0`) alongside its own — the default `wasip2` world
-would put it on P2 `wasi:http` and fail to link. The `GOFLAGS` prefix selects
-`wasihttp`'s async P3 implementation; componentize-go sets that tag on its own
-for async worlds, but the `go tool` wrapper still fetches the v0.4.1 binary,
-which predates that.
+would put it on P2 `wasi:http` and fail to link. componentize-go sets the
+`componentizego_async` build tag itself for async worlds, which is what selects
+`wasihttp`'s async P3 implementation, so no `GOFLAGS` prefix is needed.
 
 ## Running it
 
