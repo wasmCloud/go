@@ -33,7 +33,14 @@ airgap-image: ## Build the air-gapped toolchain image
 	$(DOCKER) build -f airgap/Dockerfile -t $(AIRGAP_REF) $(AIRGAP_BUILD_ARGS) .
 
 .PHONY: airgap-test
-airgap-test: airgap-image ## Build every example with no network
+airgap-test: airgap-image airgap-run ## Build every example with no network
+
+# Split out so CI can run the suite against an image it pulled from GHCR
+# without rebuilding it. `docker build` is nearly free locally once layers are
+# cached, but on a fresh runner it re-does the whole seed stage — which is the
+# cost pulling exists to avoid.
+.PHONY: airgap-run
+airgap-run: ## Run the offline suite against an existing (built or pulled) image
 	$(DOCKER) run --rm --network none \
 		-e AIRGAP_USE_LOCAL_SDK=$(AIRGAP_USE_LOCAL_SDK) \
 		-v "$(CURDIR):/workspace" \

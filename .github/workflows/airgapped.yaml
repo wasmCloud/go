@@ -36,9 +36,6 @@ on:
   schedule:
     - cron: "17 6 * * 1"
 
-env:
-  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/go-airgap
-
 permissions:
   contents: read
 
@@ -71,23 +68,32 @@ jobs:
       # The image is tagged by a hash of airgap/versions.env, so a cache miss
       # means the pinned version set changed — which is exactly when we want a
       # fresh image rather than a stale one.
-      - name: Resolve image tag
-        id: tag
-        run: echo "tag=$(sha256sum airgap/versions.env | cut -c1-12)" >> "$GITHUB_OUTPUT"
+      #
+      # The owner has to be lowercased: Docker repository names must be
+      # lowercase and this org is `wasmCloud`. Computed rather than hardcoded so
+      # the workflow still works in a fork.
+      - name: Resolve image name and tag
+        id: img
+        run: |
+          owner=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          echo "name=ghcr.io/${owner}/go-airgap" >> "$GITHUB_OUTPUT"
+          echo "tag=$(sha256sum airgap/versions.env | cut -c1-12)" >> "$GITHUB_OUTPUT"
 
       - name: Pull published image
         id: pull
         continue-on-error: true
-        run: docker pull "${IMAGE_NAME}:${{ steps.tag.outputs.tag }}"
+        run: docker pull "${{ steps.img.outputs.name }}:${{ steps.img.outputs.tag }}"
 
       # Falls back to building locally when nothing is published for this
       # version set yet (a PR that bumps a version, or the very first run).
       - name: Build image
         if: steps.pull.outcome != 'success'
-        run: make airgap-image AIRGAP_IMAGE="${IMAGE_NAME}"
+        run: make airgap-image AIRGAP_IMAGE="${{ steps.img.outputs.name }}"
 
+      # airgap-run, not airgap-test: the latter depends on airgap-image and
+      # would rebuild the image we just pulled.
       - name: Build every example with no network
-        run: make airgap-test AIRGAP_IMAGE="${IMAGE_NAME}"
+        run: make airgap-run AIRGAP_IMAGE="${{ steps.img.outputs.name }}"
 
   # Publishes the image so PR runs pull instead of rebuilding. Only from main
   # and the weekly run — never from a pull request, which cannot be trusted
@@ -103,17 +109,20 @@ jobs:
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
-      - name: Resolve image tag
-        id: tag
-        run: echo "tag=$(sha256sum airgap/versions.env | cut -c1-12)" >> "$GITHUB_OUTPUT"
+      - name: Resolve image name and tag
+        id: img
+        run: |
+          owner=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          echo "name=ghcr.io/${owner}/go-airgap" >> "$GITHUB_OUTPUT"
+          echo "tag=$(sha256sum airgap/versions.env | cut -c1-12)" >> "$GITHUB_OUTPUT"
 
       - name: Log in to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
       - name: Build and push
         run: |
-          make airgap-image AIRGAP_IMAGE="${IMAGE_NAME}"
-          docker push "${IMAGE_NAME}:${{ steps.tag.outputs.tag }}"
+          make airgap-image AIRGAP_IMAGE="${{ steps.img.outputs.name }}"
+          docker push "${{ steps.img.outputs.name }}:${{ steps.img.outputs.tag }}"
           # A moving tag for humans; the hash tag is what CI resolves.
-          docker tag "${IMAGE_NAME}:${{ steps.tag.outputs.tag }}" "${IMAGE_NAME}:latest"
-          docker push "${IMAGE_NAME}:latest"
+          docker tag "${{ steps.img.outputs.name }}:${{ steps.img.outputs.tag }}" "${{ steps.img.outputs.name }}:latest"
+          docker push "${{ steps.img.outputs.name }}:latest"
