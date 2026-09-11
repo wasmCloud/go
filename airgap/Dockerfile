@@ -113,9 +113,19 @@ ENV XDG_CACHE_HOME=/opt/cache \
     GOCACHE=/opt/gobuild \
     GOTOOLCHAIN=local \
     GOPROXY=off \
-    GOFLAGS=-mod=mod \
+    GOFLAGS="-mod=mod -buildvcs=false" \
     CGO_ENABLED=0 \
     GOSUMDB=off
+
+# -buildvcs=false because the workspace is a bind-mounted git checkout. Go
+# otherwise shells out to `git` to stamp version info, and that fails with
+# "error obtaining VCS status: exit status 128" whenever git refuses the
+# repository — on Linux CI the checkout is owned by the runner's UID while the
+# container runs as root, which trips git's dubious-ownership check. It does
+# not reproduce on macOS, where the bind mount reports everything as root-owned.
+#
+# Disabling it is right on its own terms: a hermetic build should not depend on
+# the checkout's git state, and the stamp would make output non-reproducible.
 
 # GOPROXY=off alone is not enough: writing a go.sum entry, which any module
 # lacking one does (the templates), verifies the hash against sum.golang.org —
