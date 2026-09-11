@@ -1,0 +1,17 @@
+# Build context for airgap/Dockerfile. The image only needs source: module
+# files, Go code and vendored WIT. Everything below is either large, generated,
+# or would bake stale artifacts into the toolchain image.
+.git
+.github
+docs
+bench-output
+
+# Build outputs from local `wash build` runs.
+**/build/
+**/*.wasm
+**/gen/
+
+# Scratch notes that are not part of the repo.
+*.md
+!README.md
+!BUILDING.md

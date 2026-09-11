@@ -1,0 +1,119 @@
+name: Air-gapped build
+
+# Proves the examples build with only the versions documented in BUILDING.md,
+# and nothing else. The build itself runs with `--network none`, so anything
+# the toolchain tries to download is a hard failure rather than a slow success.
+#
+# This does not replace Component / Go: that workflow runs live smoke tests
+# against NATS and `wash dev`. This one is build-only and answers a different
+# question — can someone offline build this at all.
+
+# NOTE: the two path lists are duplicated on purpose — GitHub Actions does not
+# support YAML anchors, so they have to be kept in sync by hand.
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - ".github/workflows/airgapped.yaml"
+      - "airgap/**"
+      - "BUILDING.md"
+      - "Makefile"
+      - "component/**"
+      - "examples/components/**"
+      - "templates/**"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - ".github/workflows/airgapped.yaml"
+      - "airgap/**"
+      - "BUILDING.md"
+      - "Makefile"
+      - "component/**"
+      - "examples/components/**"
+      - "templates/**"
+  # The pinned toolchain is fetched from GitHub Releases, which can be re-cut
+  # under us. A weekly run catches that without waiting for a code change.
+  schedule:
+    - cron: "17 6 * * 1"
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/go-airgap
+
+permissions:
+  contents: read
+
+jobs:
+  # Cheap and fast: catches BUILDING.md drifting from reality without building
+  # anything. Runs first so a stale doc fails in seconds, not minutes.
+  versions:
+    name: Version drift
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          # check-versions.sh resolves the SDK version from the newest
+          # component/* tag, so a shallow clone without tags would report drift.
+          fetch-depth: 0
+      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+        with:
+          go-version-file: component/go.mod
+          cache: false
+      - name: Check pinned versions against their sources
+        run: make airgap-versions
+
+  build:
+    name: Build all examples offline
+    runs-on: ubuntu-latest
+    needs: versions
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      # The image is tagged by a hash of airgap/versions.env, so a cache miss
+      # means the pinned version set changed — which is exactly when we want a
+      # fresh image rather than a stale one.
+      - name: Resolve image tag
+        id: tag
+        run: echo "tag=$(sha256sum airgap/versions.env | cut -c1-12)" >> "$GITHUB_OUTPUT"
+
+      - name: Pull published image
+        id: pull
+        continue-on-error: true
+        run: docker pull "${IMAGE_NAME}:${{ steps.tag.outputs.tag }}"
+
+      # Falls back to building locally when nothing is published for this
+      # version set yet (a PR that bumps a version, or the very first run).
+      - name: Build image
+        if: steps.pull.outcome != 'success'
+        run: make airgap-image AIRGAP_IMAGE="${IMAGE_NAME}"
+
+      - name: Build every example with no network
+        run: make airgap-test AIRGAP_IMAGE="${IMAGE_NAME}"
+
+  # Publishes the image so PR runs pull instead of rebuilding. Only from main
+  # and the weekly run — never from a pull request, which cannot be trusted
+  # with a write token.
+  publish:
+    name: Publish image
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Resolve image tag
+        id: tag
+        run: echo "tag=$(sha256sum airgap/versions.env | cut -c1-12)" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Build and push
+        run: |
+          make airgap-image AIRGAP_IMAGE="${IMAGE_NAME}"
+          docker push "${IMAGE_NAME}:${{ steps.tag.outputs.tag }}"
+          # A moving tag for humans; the hash tag is what CI resolves.
+          docker tag "${IMAGE_NAME}:${{ steps.tag.outputs.tag }}" "${IMAGE_NAME}:latest"
+          docker push "${IMAGE_NAME}:latest"
