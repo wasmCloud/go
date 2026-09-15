@@ -15,7 +15,7 @@ on:
       - "examples/components/**"
 
 env:
-  GO_VERSION: "1.25"
+  GO_VERSION: "1.27"
   # Only used by the nats examples, which need a real server to talk to.
   NATS_SERVER_VERSION: "2.14.5"
   NATSCLI_VERSION: "0.3.1"

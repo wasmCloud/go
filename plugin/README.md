@@ -65,11 +65,11 @@ under `wit/` and provides:
    //   tenant := hostidentity.WorkloadID()
    ```
 
-   Until go-pkg#10 merges, mirror this module's `go.mod` pin:
+   Until go-pkg tags a release containing these packages, mirror this
+   module's `go.mod` pin:
 
    ```
-   require go.bytecodealliance.org/pkg v0.2.2
-   replace go.bytecodealliance.org/pkg => github.com/jfleitz/go-pkg v0.2.4-0.20260731175613-c7a085937f13
+   require go.bytecodealliance.org/pkg v0.2.4-0.20260911130647-2495ff7eca86
    ```
 
 3. **Build** with componentize-go (async support is enabled automatically

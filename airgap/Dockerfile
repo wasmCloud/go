@@ -7,7 +7,7 @@
 #
 # Versions come from airgap/versions.env — see BUILDING.md.
 
-ARG GO_VERSION=1.25.5
+ARG GO_VERSION=1.27.1
 
 # =============================================================================
 # Stage 1: seed
@@ -15,8 +15,8 @@ ARG GO_VERSION=1.25.5
 FROM golang:${GO_VERSION}-bookworm AS seed
 
 ARG WASH_VERSION=v2.9.0
-ARG COMPONENTIZE_GO_BINARY=v0.4.2
-ARG PATCHED_GO_TAG=go1.25.5-wasi-on-idle-v2
+ARG COMPONENTIZE_GO_BINARY=v0.4.3
+ARG PATCHED_GO_TAG=go1.27.1-wasi-on-idle
 # Populated automatically by BuildKit. Must be declared with NO default: a
 # default shadows the real value, and the image then gets a wrong-architecture
 # wash and a second, unused patched Go tree.
@@ -73,7 +73,7 @@ RUN set -eux; \
     cd /src/examples/components/http-p3-streaming && wash build --skip-fetch
 
 # If PATCHED_GO_TAG names a build the pinned componentize-go does not know about
-# — go1.27.1-wasi-on-idle, say — the async build above fetched the wrong one.
+# — a newer dicej/go build, say — the async build above fetched the wrong one.
 # Nothing in a released wrapper will fetch it, so pull it directly and replace
 # the cached tree. When the tag already matches, this is a no-op.
 RUN set -eux; \

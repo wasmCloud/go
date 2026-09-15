@@ -18,7 +18,7 @@ concepts to their v2 replacements.
 
 **v0.0.x (TinyGo, WASI P2 only)** remains available at its tags for
 existing projects; the TinyGo line ends at `v0.0.8`. **v0.2.0+** is a
-rebuild on big Go (1.25+) and
+rebuild on big Go (1.27+) and
 [componentize-go](https://github.com/bytecodealliance/componentize-go):
 
 - Build with `go tool componentize-go build` (or `wash build` with the

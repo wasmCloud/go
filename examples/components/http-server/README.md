@@ -5,7 +5,7 @@ A WebAssembly component that serves HTTP requests using Go's standard
 
 ## Prerequisites
 
-- Go 1.25+
+- Go 1.27+
 - [`wash`](https://wasmcloud.com/docs/installation) 2.x
 
 ## Develop
