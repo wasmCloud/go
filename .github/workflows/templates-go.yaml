@@ -28,11 +28,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          # Full history so Go can resolve the SDK from this checkout below.
+          fetch-depth: 0
       - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: false
       - uses: wasmcloud/setup-wash-action@v2.1.0
+
+      # `wash new` runs the template's `go mod tidy` before the replace below
+      # can be applied, and the template has no go.sum, so the SDK version it
+      # pins must be downloadable. On a release PR it is not tagged yet: tag it
+      # locally and resolve it from this checkout, as the release train does
+      # (airgap/local-sdk-env.sh). A no-op once the tag exists.
+      - name: Resolve an untagged release SDK from this checkout
+        run: |
+          set -euo pipefail
+          version=$(. airgap/versions.env && echo "$SDK_VERSION")
+          tag="component/${version}"
+          if git ls-remote --exit-code --tags origin "refs/tags/${tag}" >/dev/null; then
+            exit 0
+          fi
+          echo "::notice::${tag} is not tagged yet; resolving it from this checkout."
+          git tag "$tag" HEAD
+          . airgap/local-sdk-env.sh
+          local_sdk_env "$GITHUB_WORKSPACE"
+          for var in GIT_CONFIG_COUNT GIT_CONFIG_KEY_0 GIT_CONFIG_VALUE_0 GOPRIVATE; do
+            echo "${var}=${!var}" >> "$GITHUB_ENV"
+          done
 
       - name: Generate project from template
         run: |
