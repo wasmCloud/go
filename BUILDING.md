@@ -71,8 +71,8 @@ slow path. Async WASI P3 support depends on `runtime.wasiOnIdle`
 ([golang/go#76775](https://github.com/golang/go/pull/76775)), which is still
 open, so it exists only in a patched fork.
 
-Six of the eleven examples need it — `http-p3-streaming` plus all five `nats-*`
-modules. The nats ones are not opting in: every function on
+Eight of the thirteen examples need it — `http-p3-streaming`, both
+`http-local-routing` modules, plus all five `nats-*` modules. The nats ones are not opting in: every function on
 `wasmcloud:nats@0.1.0` is async, so importing it forces the P3 world.
 
 componentize-go handles this for you. It resolves the target world, and if the
