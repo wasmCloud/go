@@ -224,8 +224,9 @@ move together in the commit that gets tagged:
 2. Review and merge it. Merging *is* the release.
 3. **Release tag** ([`release-tag.yaml`](./.github/workflows/release-tag.yaml))
    runs on the merge. It pushes the `component/vX.Y.Z` tag at the merge commit
-   and creates the GitHub Release with generated notes. The tag push runs the
-   air-gapped suite and publishes its image.
+   and creates the GitHub Release as a draft with generated notes. The tag push
+   runs the air-gapped suite; the release is published only once that build
+   passes, and stays a draft if it fails.
 
 The version is not tagged while the PR is open, so the train resolves the
 examples against a tag that exists only in its own checkout
@@ -244,8 +245,14 @@ already done.
 
 While the PR is open, and on `main` until the tag lands, the version-drift check
 accepts `SDK_VERSION` as a pending release and the offline build is skipped
-(the version cannot be downloaded yet). The weekly run does not accept a
-pending release, so a release that never got tagged still fails.
+(the version cannot be downloaded yet). A PR only gets that exception if the
+release train's bot opened it from this repository and it changes nothing but
+the version bump; any other PR raising `SDK_VERSION` is checked strictly. The
+weekly run does not accept a pending release, so a release that never got
+tagged still fails.
+
+`make airgap-fetch` also fails if `wash wit fetch` rewrites a committed
+`wkg.lock`, so the offline build never passes on a lockfile only the runner has.
 
 Bumping componentize-go also moves wit-bindgen, because the wit-bindgen version
 is baked into the componentize-go release rather than chosen separately. Two

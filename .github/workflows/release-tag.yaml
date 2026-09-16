@@ -7,9 +7,16 @@ name: Release tag
 #      example go.sum. The train computed those from a local-only tag; if
 #      component/ changed on main since, they are wrong and nothing is pushed.
 #   3. Pushes the annotated component/vX.Y.Z tag at the merge commit. That tag
-#      push runs the air-gapped suite and publishes its image.
+#      push runs the air-gapped suite, which cannot run any earlier: it has to
+#      download the tagged SDK.
 #   4. Checks the published module against proxy.golang.org / sum.golang.org.
-#   5. Creates the component/vX.Y.Z GitHub Release with generated notes.
+#   5. Creates the component/vX.Y.Z GitHub Release as a draft, waits for the
+#      air-gapped run on the tag to pass, and only then publishes it. If that
+#      run fails the release stays a draft; fix forward, re-run the air-gapped
+#      workflow on the tag, then re-run this one to publish.
+#
+# The tag itself, and so the Go module, is public from step 3 — the proxy serves
+# any pushed tag. What the draft gates is the announced release.
 #
 # Every step is idempotent against an existing tag or release, so re-running
 # (or dispatching with the merge commit's sha) is the recovery path.
@@ -37,7 +44,13 @@ jobs:
   tag:
     name: Tag and release
     runs-on: ubuntu-latest
+    # Covers the air-gapped image build on the tag, which dominates the wait.
+    timeout-minutes: 180
     if: ${{ github.repository == 'wasmCloud/go' }}
+    permissions:
+      contents: read
+      # Reading the air-gapped run on the tag.
+      actions: read
     steps:
       # An app token so the tag push triggers the air-gapped workflow; pushes
       # made with GITHUB_TOKEN trigger nothing.
@@ -140,7 +153,8 @@ jobs:
         if: steps.ver.outputs.release == 'true'
         run: bash airgap/verify-sdk-sums.sh --published "${{ steps.ver.outputs.version }}"
 
-      - name: Create GitHub Release
+      - name: Create draft GitHub Release
+        id: draft
         if: steps.ver.outputs.release == 'true'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
@@ -148,12 +162,63 @@ jobs:
           PREVIOUS_TAG: ${{ steps.ver.outputs.previous_tag }}
         run: |
           set -euo pipefail
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "release $TAG already exists"
+          if draft=$(gh release view "$TAG" --json isDraft --jq .isDraft 2>/dev/null); then
+            if [ "$draft" = "false" ]; then
+              echo "release $TAG is already published"
+              echo "published=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "draft release $TAG already exists"
+            fi
             exit 0
           fi
           # Pin the notes' start tag: auto-detection would pick up the
           # component-wit-v* tags that share this repo.
-          args=(--title "$TAG" --generate-notes --verify-tag --latest)
+          args=(--draft --title "$TAG" --generate-notes --verify-tag)
           [ -n "$PREVIOUS_TAG" ] && args+=(--notes-start-tag "$PREVIOUS_TAG")
           gh release create "$TAG" "${args[@]}"
+
+      # The same commit also ran the air-gapped workflow when it landed on main,
+      # with the build skipped (the tag did not exist yet) — so match the run by
+      # the tag, and require the build job itself to have passed, not merely a
+      # green run.
+      - name: Wait for the air-gapped build on the tag
+        if: steps.ver.outputs.release == 'true' && steps.draft.outputs.published != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.ver.outputs.tag }}
+        run: |
+          set -euo pipefail
+          sha=$(git rev-parse HEAD)
+          deadline=$(( SECONDS + 150 * 60 ))
+          while (( SECONDS < deadline )); do
+            runs=$(gh run list --workflow airgapped.yaml --commit "$sha" --event push \
+              --limit 20 --json databaseId,headBranch,status,conclusion \
+              --jq "[.[] | select(.headBranch == \"$TAG\")]")
+            # A passing run whose offline build job succeeded.
+            for id in $(echo "$runs" | jq -r '.[] | select(.status == "completed" and .conclusion == "success") | .databaseId'); do
+              build=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${id}/jobs" \
+                --jq '[.jobs[] | select(.name == "Build all examples offline")][0].conclusion')
+              if [ "$build" = "success" ]; then
+                echo "air-gapped run $id passed on $TAG"
+                exit 0
+              fi
+            done
+            # Every run finished and none qualified: a re-run could still pass,
+            # but waiting on it here would only burn the timeout.
+            total=$(echo "$runs" | jq 'length')
+            open=$(echo "$runs" | jq '[.[] | select(.status != "completed")] | length')
+            if (( total > 0 && open == 0 )); then
+              echo "::error::the air-gapped build on $TAG did not pass; the release stays a draft. Fix forward, re-run the air-gapped workflow on $TAG, then re-run this workflow to publish."
+              exit 1
+            fi
+            sleep 30
+          done
+          echo "::error::timed out waiting for the air-gapped build on $TAG; the release stays a draft"
+          exit 1
+
+      - name: Publish GitHub Release
+        if: steps.ver.outputs.release == 'true' && steps.draft.outputs.published != 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          TAG: ${{ steps.ver.outputs.tag }}
+        run: gh release edit "$TAG" --draft=false --latest

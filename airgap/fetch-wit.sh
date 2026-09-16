@@ -30,14 +30,26 @@ done < <(find examples/components templates -name go.mod 2>/dev/null | xargs -n1
 echo "Fetching WIT dependencies for ${#DIRS[@]} projects."
 echo
 
+# wkg.lock is the committed record of what gets fetched, and fetch rewrites it
+# whenever resolving the world disagrees with it. A rewrite must fail: the
+# offline build would otherwise pass on a lockfile that exists only in this
+# checkout, while a clean clone still carries the stale one. Compared by
+# checksum rather than `git diff`, since git in the container may refuse the
+# bind-mounted repository.
+lock_sum() { if [ -f "$1" ]; then cksum < "$1"; else echo absent; fi; }
+
 failed=()
 for dir in "${DIRS[@]}"; do
   printf '=== %s\n' "$dir"
-  if (cd "$dir" && wash wit fetch); then
-    printf '    OK\n\n'
-  else
+  before=$(lock_sum "$dir/wkg.lock")
+  if ! (cd "$dir" && wash wit fetch); then
     failed+=("$dir")
     printf '    FAIL\n\n'
+  elif [ "$(lock_sum "$dir/wkg.lock")" != "$before" ]; then
+    failed+=("$dir (wash wit fetch changed wkg.lock; commit the updated lockfile)")
+    printf '    FAIL: wkg.lock changed\n\n'
+  else
+    printf '    OK\n\n'
   fi
 done
 
