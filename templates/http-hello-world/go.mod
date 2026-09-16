@@ -5,7 +5,7 @@ go 1.27.1
 require (
 	// Pseudo-version of go-pkg main (post-#12); bump to the next tagged release.
 	go.bytecodealliance.org/pkg v0.2.4-0.20260911130647-2495ff7eca86
-	go.wasmcloud.dev/component v0.1.5
+	go.wasmcloud.dev/component v0.1.6
 )
 
 require (

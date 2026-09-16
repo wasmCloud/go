@@ -2,7 +2,7 @@ module github.com/wasmCloud/go/examples/components/nats-jetstream-orders
 
 go 1.27.1
 
-require go.wasmcloud.dev/component v0.1.5
+require go.wasmcloud.dev/component v0.1.6
 
 require (
 	github.com/apparentlymart/go-userdirs v0.0.0-20200915174352-b0c018a67c13 // indirect
