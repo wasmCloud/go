@@ -1,0 +1,14 @@
+build:
+  command: go tool componentize-go -w wasmcloud:component-go/wasip3@0.2.0 build -o build/http_local_routing_caller.wasm
+  component_path: build/http_local_routing_caller.wasm
+dev:
+  address: 0.0.0.0:8000
+workload:
+  environment:
+    config:
+      # `wash dev` runs one component per session, so in dev the caller reaches
+      # the callee over loopback. On a cluster this points at the callee's
+      # localRoute instead; see ../deployment.yaml.
+      CALLEE_URL: http://localhost:8001/hello
+  allowedHosts:
+    - localhost

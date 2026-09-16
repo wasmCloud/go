@@ -1,0 +1,101 @@
+# Same-host local routing: a Go caller and callee on one wasmCloud host.
+#
+#   kubectl apply -f deployment.yaml
+#
+# Takes two keys, and neither works alone:
+#   1. the host enables it — `--http-local-routing`, or the runtime-operator
+#      chart value `runtime.hostGroups[].http.localBypassRouting: true`;
+#   2. the callee offers a name to co-located callers with `localRoute`.
+#
+# Both workloads must land on the same host. Run the hostgroup with one
+# replica, or give them a dedicated hostgroup.
+#
+# Replace `ghcr.io/[your-org]` with the registry you pushed the components to.
+apiVersion: runtime.wasmcloud.dev/v1alpha1
+kind: WorkloadDeployment
+metadata:
+  name: go-local-routing-callee
+spec:
+  replicas: 1
+  template:
+    spec:
+      hostSelector:
+        hostgroup: default
+      hostInterfaces:
+        - namespace: wasi
+          package: http
+          interfaces:
+            - incoming-handler
+          config:
+            # Reachable from the network. Never short-circuited for a
+            # co-located caller.
+            host: go-callee.localhost.cosmonic.sh
+            # Offered in-memory to co-located callers only, never reachable
+            # from the network. Comma-separated `name` or `name/prefix`;
+            # prefixes match on `/` boundaries, so `/hello/items` routes here
+            # and `/hello-world` does not.
+            localRoute: callee.internal/hello
+      components:
+        - name: callee
+          image: ghcr.io/[your-org]/http-local-routing-callee:0.1.0
+---
+apiVersion: runtime.wasmcloud.dev/v1alpha1
+kind: WorkloadDeployment
+metadata:
+  name: go-local-routing-caller
+spec:
+  replicas: 1
+  kubernetes:
+    service:
+      name: go-local-routing-caller
+  template:
+    spec:
+      hostSelector:
+        hostgroup: default
+      hostInterfaces:
+        - namespace: wasi
+          package: http
+          interfaces:
+            - incoming-handler
+          config:
+            host: go-hello.localhost.cosmonic.sh
+      components:
+        - name: caller
+          image: ghcr.io/[your-org]/http-local-routing-caller:0.1.0
+          localResources:
+            # Checked before local routing, so a callee cannot widen the
+            # caller's egress. This is the only config the caller needs; it
+            # dials `http://callee.internal/hello` by default.
+            allowedHosts:
+              - callee.internal
+---
+# No selector: the runtime-operator manages the EndpointSlice, pointing it at
+# the host pod running the caller.
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-local-routing-caller
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: go-local-routing-caller
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: go-hello.localhost.cosmonic.sh
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: go-local-routing-caller
+                port:
+                  number: 80

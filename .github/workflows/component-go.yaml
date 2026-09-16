@@ -135,6 +135,14 @@ jobs:
           - folder: nats-request-reply/gateway
             skip-dev-test: true
             test-command: "true"
+
+          # The callee stands alone on its dev port. The caller is build-only:
+          # it needs the callee in a second `wash dev` session.
+          - folder: http-local-routing/callee
+            test-command: curl -sf 127.0.0.1:8001/hello
+          - folder: http-local-routing/caller
+            skip-dev-test: true
+            test-command: "true"
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
