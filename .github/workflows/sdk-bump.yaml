@@ -1,0 +1,113 @@
+name: SDK release bump
+
+# Tagging component/vX.Y.Z makes the version-drift check in airgapped.yaml fail
+# until the examples, the template, airgap/versions.env and BUILDING.md follow.
+# This opens that follow-up PR as soon as the tag lands. It never commits to
+# main: a person reviews and merges, and merging republishes the air-gapped
+# image, whose tag is a hash of versions.env.
+#
+# Toolchain bumps are out of scope — see airgap/bump-sdk.sh.
+
+on:
+  push:
+    tags:
+      - "component/v*"
+  # For re-running a bump by hand, e.g. after closing a PR that went stale.
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Released SDK version (vX.Y.Z); component/<version> must already be tagged"
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sdk-bump-${{ github.event.inputs.version || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  bump:
+    name: Open bump PR
+    runs-on: ubuntu-latest
+    # The bot app's secrets only exist upstream, same as renovate.yaml.
+    if: ${{ github.repository == 'wasmCloud/go' }}
+    steps:
+      # An app token, not GITHUB_TOKEN: a PR opened with GITHUB_TOKEN does not
+      # trigger workflows, so Component / Go and Air-gapped build would never
+      # run on it.
+      - id: app-token
+        uses: actions/create-github-app-token@67018539274d69449ef7c02e8e71183d1719ab42 # v2.1.4
+        with:
+          app-id: ${{ secrets.BOT_APP_ID }}
+          private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+
+      - name: Resolve version
+        id: ver
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+        run: |
+          version="${INPUT_VERSION:-${GITHUB_REF_NAME#component/}}"
+          if ! [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::'$version' is not a vX.Y.Z release"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "branch=chore/bump-sdk-$version" >> "$GITHUB_OUTPUT"
+
+      # main, not the tagged commit: the bump lands on top of whatever has
+      # merged since. Full history so check-versions.sh sees every tag.
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+
+      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+        with:
+          go-version-file: component/go.mod
+          cache: false
+
+      - name: Bump
+        run: bash airgap/bump-sdk.sh "${{ steps.ver.outputs.version }}"
+
+      - name: Open PR
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+          VERSION: ${{ steps.ver.outputs.version }}
+          BRANCH: ${{ steps.ver.outputs.branch }}
+        run: |
+          if git diff --quiet; then
+            echo "Already at $VERSION; nothing to do."
+            exit 0
+          fi
+
+          # Commit as the app's bot user so the commit links to it.
+          bot_id=$(gh api "/users/${APP_SLUG}[bot]" --jq .id)
+          git config user.name "${APP_SLUG}[bot]"
+          git config user.email "${bot_id}+${APP_SLUG}[bot]@users.noreply.github.com"
+
+          git switch -c "$BRANCH"
+          git commit -a -s -m "chore: bump examples to component/$VERSION"
+          # Forced so a re-run replaces an earlier attempt at the same bump.
+          git push --force origin "$BRANCH"
+
+          if [ -n "$(gh pr list --head "$BRANCH" --state open --json number --jq '.[].number')" ]; then
+            echo "PR for $BRANCH already open; branch updated."
+            exit 0
+          fi
+
+          gh pr create --base main --head "$BRANCH" \
+            --title "chore: bump examples to component/$VERSION" \
+            --label dependencies --label go \
+            --body "$(cat <<EOF
+          Automated follow-up to the \`component/$VERSION\` tag, produced by \`airgap/bump-sdk.sh\`.
+
+          - \`go.wasmcloud.dev/component\` → \`$VERSION\` in every example (\`go get\` + \`go mod tidy\`) and \`templates/http-hello-world\`
+          - \`SDK_VERSION\` and the verified-against tag in \`airgap/versions.env\`
+          - the release link and version table in \`BUILDING.md\`
+
+          \`make airgap-versions\` passed on the bumped tree. Merging republishes the air-gapped image, since its tag is a hash of \`versions.env\`.
+          EOF
+          )"

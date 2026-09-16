@@ -100,8 +100,16 @@ for dir in "${MODULES[@]}"; do
   fi
 
   # --skip-fetch is not optional here: without it wash tries to resolve WIT
-  # dependencies from an OCI registry. Every package the examples need is
-  # vendored in-tree, so there is nothing legitimate to fetch.
+  # dependencies from an OCI registry. wit/deps is not checked in; it is
+  # fetched into the checkout beforehand by fetch-wit.sh (`make airgap-fetch`),
+  # so a missing one is a skipped step, not a build failure worth diagnosing.
+  if [ -d "$dir/wit" ] && [ -f "$dir/wkg.lock" ] && [ ! -d "$dir/wit/deps" ]; then
+    failed+=("$dir (no wit/deps; run \`make airgap-fetch\` first)")
+    printf '    FAIL\n\n'
+    restore "$dir"
+    continue
+  fi
+
   if (cd "$dir" && wash build --skip-fetch); then
     passed+=("$dir")
     printf '    PASS\n\n'

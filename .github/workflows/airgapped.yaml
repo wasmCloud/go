@@ -90,6 +90,11 @@ jobs:
         if: steps.pull.outcome != 'success'
         run: make airgap-image AIRGAP_IMAGE="${{ steps.img.outputs.name }}"
 
+      # wit/deps is not checked in. This is the one step with a network, and
+      # it uses the image's pinned wash rather than installing one.
+      - name: Fetch WIT dependencies
+        run: make airgap-fetch AIRGAP_IMAGE="${{ steps.img.outputs.name }}"
+
       # airgap-run, not airgap-test: the latter depends on airgap-image and
       # would rebuild the image we just pulled.
       - name: Build every example with no network

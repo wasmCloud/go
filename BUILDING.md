@@ -158,7 +158,7 @@ A build reaches the network in six places. All six have a fix:
 | Go toolchain download | `GOTOOLCHAIN=auto` with a newer `go` directive | `GOTOOLCHAIN=local` and a matching toolchain installed |
 | componentize-go releases | The wrapper fetching its Rust binary | Seed `$XDG_CACHE_HOME/componentize-go/bin` and `version.txt` |
 | `dicej/go` releases | Async worlds needing the patched Go | Seed `$XDG_CACHE_HOME/componentize-go/v2/go-<os>-<arch>-bootstrap` |
-| OCI registry | `wash build` resolving WIT deps | `wash build --skip-fetch`; WIT is vendored in-tree |
+| OCI registry | `wash build` resolving WIT deps | `wash wit fetch` while online (it reads `wkg.lock`), then `wash build --skip-fetch` |
 
 `GOPROXY=off` does not imply the second one. The checksum database is a separate
 call, and any module without a `go.sum` entry triggers it — which includes
@@ -180,10 +180,17 @@ The repo ships a container that has exactly these versions and no network, and
 builds every example in it:
 
 ```shell
-make airgap-test     # build every example with --network none
+make airgap-test     # fetch WIT deps, then build every example with --network none
+make airgap-fetch    # just the fetch: wit/deps into the checkout (needs network)
+make airgap-run      # just the offline build, against deps already fetched
 make airgap-shell    # same image, interactive, for debugging
 make airgap-versions # re-derive every version and check this document
 ```
+
+`wit/deps` is not checked in, so `airgap-fetch` is the one step that touches the
+network — the WIT equivalent of populating `GOMODCACHE`. It writes into the
+checkout rather than the image because the image tag only tracks
+`airgap/versions.env`, not each example's `wkg.lock`.
 
 This runs in CI on every change to the SDK, the examples, or the templates. A
 build that needs something not pinned here fails there.
@@ -205,7 +212,19 @@ happens to resolve. Under minimal version selection they resolve to exactly what
 they declare, so a stale pin means the examples are built against SDK code
 nobody is shipping.
 
-Then update `airgap/versions.env` and run `make airgap-versions`.
+This is automated. Pushing a `component/vX.Y.Z` tag runs
+[`sdk-bump.yaml`](./.github/workflows/sdk-bump.yaml), which opens a PR moving
+every module, `airgap/versions.env` and this document to the new release. Until
+that PR merges, the air-gapped workflow's version-drift check fails — that is
+the check doing its job. Merging it republishes the air-gapped image. To do the
+same by hand, after the tag is pushed:
+
+```shell
+make sdk-bump VERSION=v0.1.6   # runs airgap/bump-sdk.sh, then make airgap-versions
+```
+
+If the workflow's run fails or its PR goes stale, re-run it from the Actions tab
+with the version as input.
 
 Bumping componentize-go also moves wit-bindgen, because the wit-bindgen version
 is baked into the componentize-go release rather than chosen separately. Two

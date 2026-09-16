@@ -33,7 +33,22 @@ airgap-image: ## Build the air-gapped toolchain image
 	$(DOCKER) build -f airgap/Dockerfile -t $(AIRGAP_REF) $(AIRGAP_BUILD_ARGS) .
 
 .PHONY: airgap-test
-airgap-test: airgap-image airgap-run ## Build every example with no network
+airgap-test: airgap-image airgap-fetch airgap-run ## Fetch WIT deps, then build every example with no network
+
+# The only network step. wit/deps is not checked in, so it is fetched into the
+# checkout with the image's pinned wash before the offline run. Runs as the
+# calling user so the fetched files are not root-owned, which in turn means the
+# image's root-owned caches are off limits — hence the /tmp XDG dirs. The
+# script comes from the bind mount so a pulled image cannot run a stale copy.
+.PHONY: airgap-fetch
+airgap-fetch: ## Fetch every example's WIT deps into the checkout (needs network)
+	$(DOCKER) run --rm \
+		--user "$$(id -u):$$(id -g)" \
+		-e HOME=/tmp -e XDG_CACHE_HOME=/tmp/cache \
+		-e XDG_CONFIG_HOME=/tmp/config -e XDG_DATA_HOME=/tmp/data \
+		-v "$(CURDIR):/workspace" \
+		--entrypoint /bin/bash \
+		$(AIRGAP_REF) /workspace/airgap/fetch-wit.sh
 
 # Split out so CI can run the suite against an image it pulled from GHCR
 # without rebuilding it. `docker build` is nearly free locally once layers are
@@ -53,6 +68,11 @@ airgap-shell: airgap-image ## Interactive shell in the air-gapped image
 		-v "$(CURDIR):/workspace" \
 		--entrypoint /bin/bash \
 		$(AIRGAP_REF)
+
+.PHONY: sdk-bump
+sdk-bump: ## Move examples, template and pinned docs to a released SDK (VERSION=vX.Y.Z)
+	@test -n "$(VERSION)" || { echo "usage: make sdk-bump VERSION=vX.Y.Z" >&2; exit 2; }
+	@bash airgap/bump-sdk.sh $(VERSION)
 
 .PHONY: airgap-versions
 airgap-versions: ## Re-derive every pinned version and check BUILDING.md
