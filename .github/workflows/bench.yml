@@ -131,7 +131,7 @@ jobs:
       matrix:
         bench: ${{ fromJSON(needs.matrix.outputs.benches) }}
     env:
-      GO_VERSION: "1.25"
+      GO_VERSION: "1.27"
       WASMCLOUD_BENCH_NAME: ${{ matrix.bench }}
       # The ref recorded on each data row — httpbench reads this as the
       # single source of truth for what was benched (the tag for a

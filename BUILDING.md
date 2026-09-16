@@ -13,13 +13,13 @@ every value from its real upstream source and fails if the two disagree.
 
 | What | Version |
 |---|---|
-| Go | 1.25.5 (any 1.25.x; `>= 1.25` is enforced) |
+| Go | 1.27.1 (`go.bytecodealliance.org/pkg` declares `go 1.27.1`) |
 | `go.wasmcloud.dev/component` | v0.1.5 |
-| `go.bytecodealliance.org/pkg` | v0.2.4-0.20260806154504-91f6c4863e67 |
-| componentize-go | v0.4.2 (module and toolchain) |
+| `go.bytecodealliance.org/pkg` | v0.2.4-0.20260911130647-2495ff7eca86 |
+| componentize-go | v0.4.3 (module and toolchain) |
 | wit-bindgen-go | 0.61.1 (rev `4f9a02d7`) |
 | wit-component / wit-parser | 0.258.0 |
-| Patched Go (**async worlds only**) | `dicej/go` `go1.25.5-wasi-on-idle-v2` |
+| Patched Go (**async worlds only**) | `dicej/go` `go1.27.1-wasi-on-idle` |
 | `wash` | v2.9.0 |
 
 Nothing else is required. If a build reaches for something not on this list,
@@ -31,7 +31,7 @@ that is a bug — please open an issue.
 directive, is a ~130-line downloader. Its `main.go` hardcodes a release string:
 
 ```go
-release := "v0.4.2"
+release := "v0.4.3"
 ```
 
 and fetches *that* Rust binary from GitHub Releases into a user cache. The real
@@ -39,13 +39,13 @@ and fetches *that* Rust binary from GitHub Releases into a user cache. The real
 not anywhere in the Go module graph.
 
 **Tagged releases name themselves**, so the module and the toolchain agree:
-v0.4.0 fetches v0.4.0, v0.4.1 fetches v0.4.1, v0.4.2 fetches v0.4.2. Pin a tag
+v0.4.1 fetches v0.4.1, v0.4.2 fetches v0.4.2, v0.4.3 fetches v0.4.3. Pin a tag
 and there is nothing to think about. That is what this repo does.
 
 **A pseudo-version breaks that, silently.** A pseudo-version names an untagged
 commit on `main`, and `release :=` is only bumped by hand in the "prep for
 release" commit just before tagging — so a snapshot of `main` still names the
-*previous* release. Depend on `v0.4.3-0.2026...` and you get the v0.4.2
+*previous* release. Depend on `v0.4.4-0.2026...` and you get the v0.4.3
 toolchain, while the module's own `Cargo.toml` advertises versions that never
 run. This repo was in exactly that state before: it pinned
 `v0.4.2-0.20260827144128-20f3b0c2a412`, a pre-release of v0.4.2, and therefore
@@ -71,8 +71,8 @@ slow path. Async WASI P3 support depends on `runtime.wasiOnIdle`
 ([golang/go#76775](https://github.com/golang/go/pull/76775)), which is still
 open, so it exists only in a patched fork.
 
-Six of the eleven examples need it — `http-p3-streaming` plus all five `nats-*`
-modules. The nats ones are not opting in: every function on
+Eight of the thirteen examples need it — `http-p3-streaming`, both
+`http-local-routing` modules, plus all five `nats-*` modules. The nats ones are not opting in: every function on
 `wasmcloud:nats@0.1.0` is async, so importing it forces the P3 world.
 
 componentize-go handles this for you. It resolves the target world, and if the
@@ -85,18 +85,31 @@ Two patched builds exist:
 
 | Patched build | Pairs with | How you get it |
 |---|---|---|
-| `go1.25.5-wasi-on-idle-v2` | Go 1.25 | **Automatic** — componentize-go v0.4.2 fetches it |
-| `go1.27.1-wasi-on-idle` | Go 1.27 | **Manual** — nothing fetches it yet |
+| `go1.27.1-wasi-on-idle` | Go 1.27 | **Automatic** — componentize-go v0.4.3 fetches it |
+| `go1.25.5-wasi-on-idle-v2` | Go 1.25 | Fetched by componentize-go v0.4.2 and earlier; no longer used here |
 
-The 1.27 build needs fetching by hand because of the wrapper lag above.
-componentize-go #75 pointed `src/utils.rs` at the 1.27.1 URL, but no *released*
-wrapper includes that change — `main.go` still names an older release, so
-`go tool componentize-go` keeps fetching a binary that only knows the 1.25.5
-URL. Until a release ships with `release :=` bumped past #75, Go 1.27 users must
-supply the toolchain themselves.
+Go 1.25 is no longer an option for this repo: `go.bytecodealliance.org/pkg`
+now declares `go 1.27.1`, so every module that imports it needs a 1.27.1
+toolchain regardless of which world it builds.
 
-**Stay on Go 1.25 unless you have a specific reason not to.** It is the
-documented, automatic path.
+Two things make async builds fail with `downloaded Go does not support async`.
+Both come down to Go's automatic toolchain switching, and both are fixed on your
+side:
+
+**Install Go 1.27.1 or newer; do not rely on `GOTOOLCHAIN=auto`.** If your
+`go` is older, `go tool componentize-go` switches to a downloaded 1.27.1 and
+exports `GOROOT` pointing at it. componentize-go v0.4.3 probes for the patch by
+running `go env GOROOT`, and the inherited variable makes the patched toolchain
+report the *stock* root, so the probe fails. The `--go` flag goes through the
+same probe and does not help. Sync builds are unaffected.
+
+**Upgrading from componentize-go v0.4.2 or earlier: delete the cached patched
+Go.** The cache is version-blind (see below), so a machine that built an async
+world before keeps its `go1.25.5` tree and never fetches `go1.27.1`. That old
+toolchain sees the modules' `go 1.27.1` directive, re-execs into stock 1.27.1,
+and fails the same probe. Remove `componentize-go/v2/go-<os>-<arch>-bootstrap`
+from your user cache directory (`~/Library/Caches` on macOS, `$XDG_CACHE_HOME`
+or `~/.cache` on Linux) and the next async build downloads the right one.
 
 ### Using a patched Go you downloaded yourself
 
@@ -158,7 +171,7 @@ The two componentize-go caches share one root, so seeding
 `$XDG_CACHE_HOME/componentize-go` covers both. Set `XDG_CACHE_HOME` explicitly
 rather than relying on `$HOME`, so the path is predictable.
 
-`version.txt` must contain the release string the wrapper expects (`v0.4.2`
+`version.txt` must contain the release string the wrapper expects (`v0.4.3`
 here) or it will re-download on the first build, air gap or not.
 
 ## Verifying it

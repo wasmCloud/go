@@ -1,7 +1,7 @@
 # wasmCloud Component SDK for Go
 
 `go.wasmcloud.dev/component` builds WebAssembly components from standard Go
-(1.25+) using
+(1.27+) using
 [componentize-go](https://github.com/bytecodealliance/componentize-go).
 
 ## Worlds
