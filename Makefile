@@ -69,11 +69,6 @@ airgap-shell: airgap-image ## Interactive shell in the air-gapped image
 		--entrypoint /bin/bash \
 		$(AIRGAP_REF)
 
-.PHONY: sdk-bump
-sdk-bump: ## Move examples, template and pinned docs to a released SDK (VERSION=vX.Y.Z)
-	@test -n "$(VERSION)" || { echo "usage: make sdk-bump VERSION=vX.Y.Z" >&2; exit 2; }
-	@bash airgap/bump-sdk.sh $(VERSION)
-
 .PHONY: airgap-versions
 airgap-versions: ## Re-derive every pinned version and check BUILDING.md
 	@bash airgap/check-versions.sh

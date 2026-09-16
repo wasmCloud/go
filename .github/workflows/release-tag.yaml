@@ -1,0 +1,159 @@
+name: Release tag
+
+# Finishes an SDK release once its release-train PR has merged:
+#
+#   1. Confirms the commit moves SDK_VERSION in airgap/versions.env.
+#   2. Re-derives the SDK checksum from that commit and checks it against every
+#      example go.sum. The train computed those from a local-only tag; if
+#      component/ changed on main since, they are wrong and nothing is pushed.
+#   3. Pushes the annotated component/vX.Y.Z tag at the merge commit. That tag
+#      push runs the air-gapped suite and publishes its image.
+#   4. Checks the published module against proxy.golang.org / sum.golang.org.
+#   5. Creates the component/vX.Y.Z GitHub Release with generated notes.
+#
+# Every step is idempotent against an existing tag or release, so re-running
+# (or dispatching with the merge commit's sha) is the recovery path.
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "airgap/versions.env"
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "Release commit on main to tag (defaults to main HEAD)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-tag
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    name: Tag and release
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'wasmCloud/go' }}
+    steps:
+      # An app token so the tag push triggers the air-gapped workflow; pushes
+      # made with GITHUB_TOKEN trigger nothing.
+      - id: app-token
+        uses: actions/create-github-app-token@67018539274d69449ef7c02e8e71183d1719ab42 # v2.1.4
+        with:
+          app-id: ${{ secrets.BOT_APP_ID }}
+          private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          ref: ${{ inputs.sha || github.sha }}
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Is this a release commit?
+        id: ver
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          version=$(. airgap/versions.env && echo "$SDK_VERSION")
+          if ! [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::SDK_VERSION '$version' is not vX.Y.Z"
+            exit 1
+          fi
+
+          # On push, only a commit that changes SDK_VERSION is a release; other
+          # edits to versions.env (toolchain bumps) are not. A dispatch trusts
+          # the caller.
+          if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
+            previous=$(git show "${BEFORE}:airgap/versions.env" 2>/dev/null \
+              | sed -n 's/^SDK_VERSION=//p' || true)
+            if [ "$previous" = "$version" ]; then
+              echo "SDK_VERSION unchanged ($version); not a release."
+              echo "release=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+
+          tag="component/$version"
+          if remote=$(git ls-remote --exit-code --tags origin "refs/tags/${tag}^{}" "refs/tags/${tag}"); then
+            tagged=$(printf '%s\n' "$remote" | awk '{print $1}' | tail -n1)
+            if [ "$tagged" != "$(git rev-parse HEAD)" ]; then
+              echo "::error::$tag already exists at $tagged, not at $(git rev-parse HEAD). Tags are immutable."
+              exit 1
+            fi
+            echo "$tag already points at HEAD; continuing to the release."
+            echo "tag_exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag_exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          # Newest release below this one, for the notes range.
+          previous_tag=$(git tag -l 'component/v*' \
+            | grep -E '^component/v[0-9]+\.[0-9]+\.[0-9]+$' \
+            | { cat; echo "$tag"; } \
+            | sort -uV | grep -B1 -xF "$tag" | head -n1)
+          [ "$previous_tag" = "$tag" ] && previous_tag=""
+
+          {
+            echo "release=true"
+            echo "version=$version"
+            echo "tag=$tag"
+            echo "previous_tag=$previous_tag"
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+        if: steps.ver.outputs.release == 'true'
+        with:
+          go-version-file: component/go.mod
+          cache: false
+
+      - name: Check go.sum against the commit being tagged
+        if: steps.ver.outputs.release == 'true' && steps.ver.outputs.tag_exists != 'true'
+        run: |
+          if ! bash airgap/verify-sdk-sums.sh --local "${{ steps.ver.outputs.version }}"; then
+            echo "::error::component/ changed on main after the release PR was prepared, so the examples' go.sum is wrong for this commit. Nothing was tagged. Bump the examples again (airgap/bump-sdk.sh --provisional ${{ steps.ver.outputs.version }}) in a PR, then dispatch this workflow with the new merge commit."
+            exit 1
+          fi
+
+      - name: Push tag
+        if: steps.ver.outputs.release == 'true' && steps.ver.outputs.tag_exists != 'true'
+        env:
+          TAG: ${{ steps.ver.outputs.tag }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          set -euo pipefail
+          bot_id=$(gh api "/users/${APP_SLUG}[bot]" --jq .id)
+          git config user.name "${APP_SLUG}[bot]"
+          git config user.email "${bot_id}+${APP_SLUG}[bot]@users.noreply.github.com"
+          # The check above left a lightweight local tag; replace it with the
+          # annotated one that gets pushed.
+          git tag -d "$TAG" 2>/dev/null || true
+          git tag -a "$TAG" HEAD -m "Release $TAG"
+          git push origin "refs/tags/$TAG"
+
+      - name: Check the published module
+        if: steps.ver.outputs.release == 'true'
+        run: bash airgap/verify-sdk-sums.sh --published "${{ steps.ver.outputs.version }}"
+
+      - name: Create GitHub Release
+        if: steps.ver.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          TAG: ${{ steps.ver.outputs.tag }}
+          PREVIOUS_TAG: ${{ steps.ver.outputs.previous_tag }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "release $TAG already exists"
+            exit 0
+          fi
+          # Pin the notes' start tag: auto-detection would pick up the
+          # component-wit-v* tags that share this repo.
+          args=(--title "$TAG" --generate-notes --verify-tag --latest)
+          [ -n "$PREVIOUS_TAG" ] && args+=(--notes-start-tag "$PREVIOUS_TAG")
+          gh release create "$TAG" "${args[@]}"

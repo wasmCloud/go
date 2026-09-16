@@ -13,6 +13,10 @@ name: Air-gapped build
 on:
   push:
     branches: ["main"]
+    # A release tag re-runs the whole suite and publishes the image: it is the
+    # first moment the release's SDK version can actually be downloaded.
+    # (Path filters do not apply to tag pushes.)
+    tags: ["component/v*"]
     paths:
       - ".github/workflows/airgapped.yaml"
       - "airgap/**"
@@ -56,12 +60,39 @@ jobs:
           go-version-file: component/go.mod
           cache: false
       - name: Check pinned versions against their sources
+        env:
+          # A release PR, and main between its merge and release-tag.yaml
+          # pushing the tag, pin a version that has no tag yet. Tag pushes and
+          # the weekly run stay strict, so a release that never got tagged
+          # still fails here.
+          ALLOW_PENDING_SDK_RELEASE: ${{ (startsWith(github.head_ref, 'release/component/') || github.ref == 'refs/heads/main') && '1' || '' }}
         run: make airgap-versions
+
+  # The offline build downloads the pinned SDK while seeding the image, which is
+  # impossible until release-tag.yaml pushes the tag. Skip the build until then;
+  # the tag push runs it.
+  release-state:
+    name: SDK release state
+    runs-on: ubuntu-latest
+    outputs:
+      pending: ${{ steps.state.outputs.pending }}
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - id: state
+        run: |
+          version=$(. airgap/versions.env && echo "$SDK_VERSION")
+          if git ls-remote --exit-code --tags origin "refs/tags/component/${version}" >/dev/null; then
+            echo "pending=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::component/${version} is not tagged yet; skipping the offline build until release-tag.yaml pushes it."
+            echo "pending=true" >> "$GITHUB_OUTPUT"
+          fi
 
   build:
     name: Build all examples offline
     runs-on: ubuntu-latest
-    needs: versions
+    needs: [versions, release-state]
+    if: needs.release-state.outputs.pending != 'true'
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 

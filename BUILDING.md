@@ -212,19 +212,40 @@ happens to resolve. Under minimal version selection they resolve to exactly what
 they declare, so a stale pin means the examples are built against SDK code
 nobody is shipping.
 
-This is automated. Pushing a `component/vX.Y.Z` tag runs
-[`sdk-bump.yaml`](./.github/workflows/sdk-bump.yaml), which opens a PR moving
-every module, `airgap/versions.env` and this document to the new release. Until
-that PR merges, the air-gapped workflow's version-drift check fails — that is
-the check doing its job. Merging it republishes the air-gapped image. To do the
-same by hand, after the tag is pushed:
+Releases are cut by a release train, so the version, the docs and the examples
+move together in the commit that gets tagged:
 
-```shell
-make sdk-bump VERSION=v0.1.6   # runs airgap/bump-sdk.sh, then make airgap-versions
-```
+1. Run **Release train** ([`release-train.yaml`](./.github/workflows/release-train.yaml))
+   from the Actions tab and pick `patch`, `minor` or `major`. It computes the
+   next `component/vX.Y.Z` from the newest tag and opens a
+   `release: component/vX.Y.Z` PR that sets `SDK_VERSION` in
+   `airgap/versions.env`, updates this document, and pins every example and the
+   template to the new version.
+2. Review and merge it. Merging *is* the release.
+3. **Release tag** ([`release-tag.yaml`](./.github/workflows/release-tag.yaml))
+   runs on the merge. It pushes the `component/vX.Y.Z` tag at the merge commit
+   and creates the GitHub Release with generated notes. The tag push runs the
+   air-gapped suite and publishes its image.
 
-If the workflow's run fails or its PR goes stale, re-run it from the Actions tab
-with the version as input.
+The version is not tagged while the PR is open, so the train resolves the
+examples against a tag that exists only in its own checkout
+([`airgap/local-sdk-env.sh`](./airgap/local-sdk-env.sh)). A module's `go.sum`
+hash depends only on the files under `component/`, so this gives the hash the
+real tag will have. Before tagging, `release-tag.yaml` re-derives it from the
+merge commit ([`airgap/verify-sdk-sums.sh`](./airgap/verify-sdk-sums.sh)
+`--local`), and afterwards checks it against proxy.golang.org and
+sum.golang.org (`--published`).
+
+If `component/` changes on `main` while the release PR is open, the hashes no
+longer match and `release-tag.yaml` refuses to tag. Close the PR, delete its
+branch and run the train again. If the workflow fails after tagging, dispatch
+**Release tag** with the merge commit's sha; every step skips work that is
+already done.
+
+While the PR is open, and on `main` until the tag lands, the version-drift check
+accepts `SDK_VERSION` as a pending release and the offline build is skipped
+(the version cannot be downloaded yet). The weekly run does not accept a
+pending release, so a release that never got tagged still fails.
 
 Bumping componentize-go also moves wit-bindgen, because the wit-bindgen version
 is baked into the componentize-go release rather than chosen separately. Two
