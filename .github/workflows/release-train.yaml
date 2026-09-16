@@ -1,0 +1,156 @@
+name: Release train
+
+# Starts an SDK release. Pick patch, minor or major; the train computes the
+# next component/vX.Y.Z from the newest tag and opens a `release:` PR that
+# moves everything outside component/ to it:
+#
+#   - SDK_VERSION in airgap/versions.env, and BUILDING.md
+#   - go.wasmcloud.dev/component in every example (go.mod + go.sum) and the
+#     template
+#
+# The tag does not exist yet, so the examples are resolved against a local-only
+# tag in this runner's checkout (airgap/local-sdk-env.sh). Their go.sum gets the
+# hash the real tag will have. Nothing is tagged here.
+#
+# Merging the PR is the release. release-tag.yaml then re-checks those hashes
+# against the merged commit, pushes component/vX.Y.Z and creates the GitHub
+# Release — so the tagged commit already documents its own version.
+#
+# A PR that goes stale (component/ changes on main before it merges) is
+# refused by release-tag.yaml. Close it, delete the branch, and run the train
+# again.
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Version bump"
+        required: true
+        type: choice
+        default: patch
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-train
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Open release PR
+    runs-on: ubuntu-latest
+    # The bot app's secrets only exist upstream, same as renovate.yaml.
+    if: ${{ github.repository == 'wasmCloud/go' }}
+    steps:
+      # An app token, not GITHUB_TOKEN: a PR opened with GITHUB_TOKEN does not
+      # trigger workflows, so no CI would run on it.
+      - id: app-token
+        uses: actions/create-github-app-token@67018539274d69449ef7c02e8e71183d1719ab42 # v2.1.4
+        with:
+          app-id: ${{ secrets.BOT_APP_ID }}
+          private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+
+      # Full history for the tags, which are the source of the current version.
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+
+      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+        with:
+          go-version-file: component/go.mod
+          cache: false
+
+      - name: Compute next version
+        id: ver
+        env:
+          BUMP: ${{ inputs.bump }}
+        run: |
+          set -euo pipefail
+          current=$(git tag -l 'component/v*' --sort=-v:refname \
+            | sed -nE 's|^component/(v[0-9]+\.[0-9]+\.[0-9]+)$|\1|p' | head -n1)
+          if [ -z "$current" ]; then
+            echo "::error::no component/vX.Y.Z tag found"
+            exit 1
+          fi
+          # main must be settled on the last release. Anything else means a
+          # release PR already merged and its tag was never pushed.
+          pinned=$(. airgap/versions.env && echo "$SDK_VERSION")
+          if [ "$pinned" != "$current" ]; then
+            echo "::error::versions.env pins $pinned but the newest tag is component/$current. Finish or fix that release (release-tag.yaml) before starting another."
+            exit 1
+          fi
+          IFS=. read -r major minor patch <<< "${current#v}"
+          case "$BUMP" in
+            major) major=$((major + 1)); minor=0; patch=0 ;;
+            minor) minor=$((minor + 1)); patch=0 ;;
+            patch) patch=$((patch + 1)) ;;
+            *) echo "::error::unknown bump $BUMP"; exit 1 ;;
+          esac
+          next="v${major}.${minor}.${patch}"
+          {
+            echo "current=$current"
+            echo "version=$next"
+            echo "branch=release/component/$next"
+          } >> "$GITHUB_OUTPUT"
+          echo "component/$current -> component/$next"
+
+      - name: Abort if the release is already in flight
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+          BRANCH: ${{ steps.ver.outputs.branch }}
+        run: |
+          set -euo pipefail
+          if git ls-remote --exit-code --tags origin "refs/tags/component/$VERSION" >/dev/null; then
+            echo "::error::component/$VERSION is already tagged; tags are immutable"
+            exit 1
+          fi
+          if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null; then
+            echo "::error::$BRANCH already exists. Merge or close its PR and delete the branch before re-running."
+            exit 1
+          fi
+
+      # Tags HEAD locally and resolves the SDK from it. That tag is never
+      # pushed: release-tag.yaml tags the merge commit instead.
+      - name: Bump
+        run: bash airgap/bump-sdk.sh --provisional "${{ steps.ver.outputs.version }}"
+
+      - name: Commit and open PR
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+          VERSION: ${{ steps.ver.outputs.version }}
+          CURRENT: ${{ steps.ver.outputs.current }}
+          BRANCH: ${{ steps.ver.outputs.branch }}
+        run: |
+          set -euo pipefail
+          # Commit as the app's bot user so the commit links to it.
+          bot_id=$(gh api "/users/${APP_SLUG}[bot]" --jq .id)
+          git config user.name "${APP_SLUG}[bot]"
+          git config user.email "${bot_id}+${APP_SLUG}[bot]@users.noreply.github.com"
+
+          git switch -c "$BRANCH"
+          # --signoff for DCO.
+          git commit -a --signoff -m "release: component/$VERSION"
+          git push origin "$BRANCH"
+
+          body=$(mktemp)
+          # Backticks are literal Markdown here.
+          # shellcheck disable=SC2016
+          {
+            printf 'Release train for **component/%s** (from component/%s).\n\n' "$VERSION" "$CURRENT"
+            printf 'Merging this PR is the release: `release-tag.yaml` then pushes the `component/%s` tag at the merge commit and creates the GitHub Release.\n\n' "$VERSION"
+            printf -- '- `SDK_VERSION` in `airgap/versions.env`, and `BUILDING.md`\n'
+            printf -- '- `go.wasmcloud.dev/component` in every example (`go.mod` + `go.sum`) and `templates/http-hello-world`\n\n'
+            printf 'The example `go.sum` entries were computed from a local-only tag of `main` at %s. If `component/` changes on `main` before this merges, `release-tag.yaml` refuses to tag. Close this PR, delete the branch and re-run the train.\n\n' "$(git rev-parse --short HEAD~1)"
+            printf 'The air-gapped build is skipped here because the version cannot be downloaded until it is tagged; it runs on the tag.\n'
+          } > "$body"
+          gh pr create --base main --head "$BRANCH" \
+            --title "release: component/$VERSION" \
+            --body-file "$body"

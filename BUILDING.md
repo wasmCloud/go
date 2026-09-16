@@ -158,7 +158,7 @@ A build reaches the network in six places. All six have a fix:
 | Go toolchain download | `GOTOOLCHAIN=auto` with a newer `go` directive | `GOTOOLCHAIN=local` and a matching toolchain installed |
 | componentize-go releases | The wrapper fetching its Rust binary | Seed `$XDG_CACHE_HOME/componentize-go/bin` and `version.txt` |
 | `dicej/go` releases | Async worlds needing the patched Go | Seed `$XDG_CACHE_HOME/componentize-go/v2/go-<os>-<arch>-bootstrap` |
-| OCI registry | `wash build` resolving WIT deps | `wash build --skip-fetch`; WIT is vendored in-tree |
+| OCI registry | `wash build` resolving WIT deps | `wash wit fetch` while online (it reads `wkg.lock`), then `wash build --skip-fetch` |
 
 `GOPROXY=off` does not imply the second one. The checksum database is a separate
 call, and any module without a `go.sum` entry triggers it — which includes
@@ -180,10 +180,17 @@ The repo ships a container that has exactly these versions and no network, and
 builds every example in it:
 
 ```shell
-make airgap-test     # build every example with --network none
+make airgap-test     # fetch WIT deps, then build every example with --network none
+make airgap-fetch    # just the fetch: wit/deps into the checkout (needs network)
+make airgap-run      # just the offline build, against deps already fetched
 make airgap-shell    # same image, interactive, for debugging
 make airgap-versions # re-derive every version and check this document
 ```
+
+`wit/deps` is not checked in, so `airgap-fetch` is the one step that touches the
+network — the WIT equivalent of populating `GOMODCACHE`. It writes into the
+checkout rather than the image because the image tag only tracks
+`airgap/versions.env`, not each example's `wkg.lock`.
 
 This runs in CI on every change to the SDK, the examples, or the templates. A
 build that needs something not pinned here fails there.
@@ -205,7 +212,47 @@ happens to resolve. Under minimal version selection they resolve to exactly what
 they declare, so a stale pin means the examples are built against SDK code
 nobody is shipping.
 
-Then update `airgap/versions.env` and run `make airgap-versions`.
+Releases are cut by a release train, so the version, the docs and the examples
+move together in the commit that gets tagged:
+
+1. Run **Release train** ([`release-train.yaml`](./.github/workflows/release-train.yaml))
+   from the Actions tab and pick `patch`, `minor` or `major`. It computes the
+   next `component/vX.Y.Z` from the newest tag and opens a
+   `release: component/vX.Y.Z` PR that sets `SDK_VERSION` in
+   `airgap/versions.env`, updates this document, and pins every example and the
+   template to the new version.
+2. Review and merge it. Merging *is* the release.
+3. **Release tag** ([`release-tag.yaml`](./.github/workflows/release-tag.yaml))
+   runs on the merge. It pushes the `component/vX.Y.Z` tag at the merge commit
+   and creates the GitHub Release as a draft with generated notes. The tag push
+   runs the air-gapped suite; the release is published only once that build
+   passes, and stays a draft if it fails.
+
+The version is not tagged while the PR is open, so the train resolves the
+examples against a tag that exists only in its own checkout
+([`airgap/local-sdk-env.sh`](./airgap/local-sdk-env.sh)). A module's `go.sum`
+hash depends only on the files under `component/`, so this gives the hash the
+real tag will have. Before tagging, `release-tag.yaml` re-derives it from the
+merge commit ([`airgap/verify-sdk-sums.sh`](./airgap/verify-sdk-sums.sh)
+`--local`), and afterwards checks it against proxy.golang.org and
+sum.golang.org (`--published`).
+
+If `component/` changes on `main` while the release PR is open, the hashes no
+longer match and `release-tag.yaml` refuses to tag. Close the PR, delete its
+branch and run the train again. If the workflow fails after tagging, dispatch
+**Release tag** with the merge commit's sha; every step skips work that is
+already done.
+
+While the PR is open, and on `main` until the tag lands, the version-drift check
+accepts `SDK_VERSION` as a pending release and the offline build is skipped
+(the version cannot be downloaded yet). A PR only gets that exception if the
+release train's bot opened it from this repository and it changes nothing but
+the version bump; any other PR raising `SDK_VERSION` is checked strictly. The
+weekly run does not accept a pending release, so a release that never got
+tagged still fails.
+
+`make airgap-fetch` also fails if `wash wit fetch` rewrites a committed
+`wkg.lock`, so the offline build never passes on a lockfile only the runner has.
 
 Bumping componentize-go also moves wit-bindgen, because the wit-bindgen version
 is baked into the componentize-go release rather than chosen separately. Two

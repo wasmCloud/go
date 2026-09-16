@@ -37,7 +37,18 @@ echo
 
 # --- SDK: the newest component/* tag in the repo ---------------------------
 actual_sdk=$(git tag -l 'component/v*' --sort=-v:refname | head -n1 | sed 's|^component/||')
-check "SDK (latest tag)" "$SDK_VERSION" "$actual_sdk"
+# A release PR, and main between its merge and release-tag.yaml pushing the tag,
+# pin a version that is newer than every tag by design. CI opts into accepting
+# that with ALLOW_PENDING_SDK_RELEASE=1; the weekly run never does, so a release
+# that never got tagged still surfaces.
+if [ "${ALLOW_PENDING_SDK_RELEASE:-}" = "1" ] &&
+   [ "$SDK_VERSION" != "$actual_sdk" ] &&
+   ! git rev-parse --verify --quiet "refs/tags/component/${SDK_VERSION}" >/dev/null &&
+   [ "$(printf '%s\n%s\n' "$actual_sdk" "$SDK_VERSION" | sort -V | tail -n1)" = "$SDK_VERSION" ]; then
+  printf '  ok    %-28s %s pending release (latest tag %s)\n' "SDK (latest tag)" "$SDK_VERSION" "$actual_sdk"
+else
+  check "SDK (latest tag)" "$SDK_VERSION" "$actual_sdk"
+fi
 
 # --- every consumer module must require exactly that ------------------------
 # Plain word-splitting rather than mapfile: this script runs on developer

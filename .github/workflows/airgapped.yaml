@@ -13,6 +13,10 @@ name: Air-gapped build
 on:
   push:
     branches: ["main"]
+    # A release tag re-runs the whole suite and publishes the image: it is the
+    # first moment the release's SDK version can actually be downloaded.
+    # (Path filters do not apply to tag pushes.)
+    tags: ["component/v*"]
     paths:
       - ".github/workflows/airgapped.yaml"
       - "airgap/**"
@@ -45,6 +49,7 @@ jobs:
   versions:
     name: Version drift
     runs-on: ubuntu-latest
+    needs: release-state
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
@@ -56,12 +61,75 @@ jobs:
           go-version-file: component/go.mod
           cache: false
       - name: Check pinned versions against their sources
+        env:
+          ALLOW_PENDING_SDK_RELEASE: ${{ needs.release-state.outputs.pending == 'true' && '1' || '' }}
         run: make airgap-versions
+
+  # A release pins an SDK version before it is tagged: on the release PR, and on
+  # main until release-tag.yaml pushes the tag. Only then may the version check
+  # accept an untagged SDK_VERSION, and the offline build be skipped — it seeds
+  # the image by downloading that version, which is impossible until the tag
+  # exists. The tag push runs the build.
+  #
+  # "Release" is decided here, not by branch name, since anyone can name a
+  # branch. It is either a push to main (already reviewed), or a PR that is all
+  # of: opened by a bot (the release train's app), from this repository, from a
+  # release/component/ branch, and changing nothing but what airgap/bump-sdk.sh
+  # changes. Anything else stays strict: an untagged SDK_VERSION fails the
+  # version check and the build still runs. The weekly run is always strict, so
+  # a release that never got tagged surfaces.
+  release-state:
+    name: SDK release state
+    runs-on: ubuntu-latest
+    outputs:
+      pending: ${{ steps.state.outputs.pending }}
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          # The PR merge commit's first parent, for the changed-files check.
+          fetch-depth: 2
+      - id: state
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          PR_AUTHOR_TYPE: ${{ github.event.pull_request.user.type }}
+        run: |
+          set -euo pipefail
+          version=$(. airgap/versions.env && echo "$SDK_VERSION")
+          if git ls-remote --exit-code --tags origin "refs/tags/component/${version}" >/dev/null; then
+            echo "pending=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          trusted=false
+          if [ "$GITHUB_EVENT_NAME" = "push" ] && [ "$GITHUB_REF" = "refs/heads/main" ]; then
+            trusted=true
+          elif [ "$GITHUB_EVENT_NAME" = "pull_request" ] &&
+               [[ "$HEAD_REF" == release/component/* ]] &&
+               [ "$HEAD_REPO" = "$GITHUB_REPOSITORY" ] &&
+               [ "$PR_AUTHOR_TYPE" = "Bot" ]; then
+            unexpected=$(git diff --name-only HEAD^1 HEAD | grep -vE \
+              '^(airgap/versions\.env|BUILDING\.md|examples/components/.+/go\.(mod|sum)|templates/[^/]+/go\.mod)$' || true)
+            if [ -z "$unexpected" ]; then
+              trusted=true
+            else
+              echo "::warning::release PR changes files outside a version bump, so it is checked strictly:"
+              printf '%s\n' "$unexpected"
+            fi
+          fi
+
+          if [ "$trusted" = "true" ]; then
+            echo "::notice::component/${version} is not tagged yet; accepting it as a pending release and skipping the offline build until release-tag.yaml pushes the tag."
+            echo "pending=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "pending=false" >> "$GITHUB_OUTPUT"
+          fi
 
   build:
     name: Build all examples offline
     runs-on: ubuntu-latest
-    needs: versions
+    needs: [versions, release-state]
+    if: needs.release-state.outputs.pending != 'true'
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
@@ -89,6 +157,11 @@ jobs:
       - name: Build image
         if: steps.pull.outcome != 'success'
         run: make airgap-image AIRGAP_IMAGE="${{ steps.img.outputs.name }}"
+
+      # wit/deps is not checked in. This is the one step with a network, and
+      # it uses the image's pinned wash rather than installing one.
+      - name: Fetch WIT dependencies
+        run: make airgap-fetch AIRGAP_IMAGE="${{ steps.img.outputs.name }}"
 
       # airgap-run, not airgap-test: the latter depends on airgap-image and
       # would rebuild the image we just pulled.
