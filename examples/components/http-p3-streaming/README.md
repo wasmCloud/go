@@ -56,11 +56,11 @@ its P3 implementation.
 ## Deploy to wasmCloud on Kubernetes
 
 Push the component to an OCI registry, point `image` in
-[deployment.yaml](./deployment.yaml) at it, and apply the manifest:
+[deploy/deployment.yaml](./deploy/deployment.yaml) at it, and apply the manifest:
 
 ```shell
 wash oci push ghcr.io/<your-org>/http-p3-streaming:0.1.0 build/http_p3_streaming.wasm
-kubectl apply -f deployment.yaml
+kubectl apply -f deploy/deployment.yaml
 ```
 
 The manifest has the same shape as a P2 one — the host serves

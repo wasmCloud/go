@@ -35,11 +35,11 @@ wash build
 ## Deploy to wasmCloud on Kubernetes
 
 Push the component to an OCI registry, point `image` in
-[deployment.yaml](./deployment.yaml) at it, and apply the manifest:
+[deploy/deployment.yaml](./deploy/deployment.yaml) at it, and apply the manifest:
 
 ```shell
 wash oci push ghcr.io/<your-org>/http-password-checker:0.1.0 build/http_password_checker.wasm
-kubectl apply -f deployment.yaml
+kubectl apply -f deploy/deployment.yaml
 ```
 
 Set `config.host` on the manifest's `wasi:http` entry to the hostname your

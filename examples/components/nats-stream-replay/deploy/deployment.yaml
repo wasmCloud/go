@@ -1,7 +1,7 @@
 # Deploys the reader on wasmCloud v2. Needs a runtime >= 2.7.0: this
 # manifest uses `maxConcurrency`, which 2.6.x rejects outright.
 #
-#   kubectl apply -f deployment.yaml
+#   kubectl apply -f deploy/deployment.yaml
 #
 # The stream and subject grants are not here on purpose. Under a `wash host`
 # plugin entry's default `workloadConfig: deny` they are the host's to

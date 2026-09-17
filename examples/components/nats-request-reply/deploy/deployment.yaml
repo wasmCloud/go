@@ -10,7 +10,7 @@
 # Two workloads, two halves of one round trip: the gateway turns HTTP into a
 # NATS request, and the service answers it.
 #
-#   kubectl apply -f deployment.yaml
+#   kubectl apply -f deploy/deployment.yaml
 #
 # They are separate workloads on purpose. A single workload subscribing to
 # the subject it also issues requests on would be answering itself, and one

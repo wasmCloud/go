@@ -1,7 +1,7 @@
 # Deploys the watcher on wasmCloud v2. Needs a runtime >= 2.7.0: this
 # manifest uses `maxConcurrency`, which 2.6.x rejects outright.
 #
-#   kubectl apply -f deployment.yaml
+#   kubectl apply -f deploy/deployment.yaml
 #
 # What is *not* here is the point. A `wash host` plugin entry (`id:
 # wasmcloud-nats`) defaults to `workloadConfig: deny`, which splits a binding

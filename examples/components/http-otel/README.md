@@ -89,12 +89,12 @@ runtime:
     - "--wasi-otel"
 ```
 
-Then push the component, point `image` in [deployment.yaml](./deployment.yaml)
+Then push the component, point `image` in [deploy/deployment.yaml](./deploy/deployment.yaml)
 at it, and apply the manifest:
 
 ```shell
 wash oci push ghcr.io/<your-org>/http-otel:0.1.0 build/http_otel.wasm
-kubectl apply -f deployment.yaml
+kubectl apply -f deploy/deployment.yaml
 ```
 
 Two things in the manifest have to match your cluster:

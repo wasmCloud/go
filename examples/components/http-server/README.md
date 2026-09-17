@@ -47,11 +47,11 @@ wash build
 ## Deploy to wasmCloud on Kubernetes
 
 Push the component to an OCI registry, point `image` in
-[deployment.yaml](./deployment.yaml) at it, and apply the manifest:
+[deploy/deployment.yaml](./deploy/deployment.yaml) at it, and apply the manifest:
 
 ```shell
 wash oci push ghcr.io/<your-org>/http-server:0.1.0 build/http_server.wasm
-kubectl apply -f deployment.yaml
+kubectl apply -f deploy/deployment.yaml
 ```
 
 Two things in the manifest have to match your cluster:
@@ -66,7 +66,7 @@ Two things in the manifest have to match your cluster:
   entry it fails to start with `a matching implementation was not found in
   the linker`. `wash dev` derives it from the imports, so dev never shows it.
 
-See [deployment.yaml](./deployment.yaml) for the `WorkloadDeployment`
+See [deploy/deployment.yaml](./deploy/deployment.yaml) for the `WorkloadDeployment`
 definition and the wasmCloud [workload deployment
 quickstart](https://wasmcloud.com/docs/quickstart/deploy-a-webassembly-workload/)
 for cluster setup.

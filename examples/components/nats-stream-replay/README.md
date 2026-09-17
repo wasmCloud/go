@@ -113,7 +113,7 @@ below are pointed.
 `wasmcloud:nats` is a host plugin, and `wash dev` has no manifest to read
 the binding from — so `.wash/config.yaml` carries the binding whole:
 servers, grants, and asks together. It is deliberately *not* a mirror of
-`deployment.yaml` any more. A `wash dev` plugin entry defaults to
+`deploy/deployment.yaml` any more. A `wash dev` plugin entry defaults to
 `workloadConfig: allow` precisely so a checkout is runnable on its own,
 while a real host defaults to `deny` and keeps the servers, the
 credentials, and the grants on its side. So a grant lives in this file for
@@ -124,7 +124,7 @@ The two are not quite interchangeable, and the difference is worth knowing
 before a component that works in dev fails on deploy: dev derives host
 interfaces from the component's imports, so `wasi:logging` binds there
 whether or not you declare it. A real host binds only what the manifest
-names, which is why `deployment.yaml` lists it and `.wash/config.yaml`
+names, which is why `deploy/deployment.yaml` lists it and `.wash/config.yaml`
 does not.
 
 ## Try it
@@ -254,19 +254,19 @@ nats --server tls://nats.wasmcloud.svc.cluster.local:4222 \
   ...
 ```
 
-Then push the component, point `image` in [deployment.yaml](./deployment.yaml)
+Then push the component, point `image` in [deploy/deployment.yaml](./deploy/deployment.yaml)
 at it, and apply the manifest:
 
 ```shell
 wash oci push ghcr.io/<your-org>/nats-stream-replay:0.1.0 build/nats_stream_replay.wasm
-kubectl apply -f deployment.yaml
+kubectl apply -f deploy/deployment.yaml
 ```
 
 The HTTP half is routed by `Host` header: set `config.host` on the manifest's
 `wasi:http` entry to the hostname your ingress forwards to the
 `nats-stream-replay` Service.
 
-See [deployment.yaml](./deployment.yaml) for the `WorkloadDeployment`
+See [deploy/deployment.yaml](./deploy/deployment.yaml) for the `WorkloadDeployment`
 definition and the wasmCloud [workload deployment
 quickstart](https://wasmcloud.com/docs/quickstart/deploy-a-webassembly-workload/)
 for cluster setup.

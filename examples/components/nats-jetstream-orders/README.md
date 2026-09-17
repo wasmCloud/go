@@ -95,7 +95,7 @@ wash dev
 `wasmcloud:nats` is a host plugin, and `wash dev` has no manifest to read
 the binding from — so `.wash/config.yaml` carries the binding whole:
 servers, grants, and asks together. It is deliberately *not* a mirror of
-`deployment.yaml` any more. A `wash dev` plugin entry defaults to
+`deploy/deployment.yaml` any more. A `wash dev` plugin entry defaults to
 `workloadConfig: allow` precisely so a checkout is runnable on its own,
 while a real host defaults to `deny` and keeps the servers, the
 credentials, and the grants on its side. So a grant lives in this file for
@@ -185,15 +185,15 @@ nats --server tls://nats.wasmcloud.svc.cluster.local:4222 \
   ...
 ```
 
-Then push the component, point `image` in [deployment.yaml](./deployment.yaml)
+Then push the component, point `image` in [deploy/deployment.yaml](./deploy/deployment.yaml)
 at it, and apply the manifest:
 
 ```shell
 wash oci push ghcr.io/<your-org>/nats-jetstream-orders:0.1.0 build/nats_jetstream_orders.wasm
-kubectl apply -f deployment.yaml
+kubectl apply -f deploy/deployment.yaml
 ```
 
-See [deployment.yaml](./deployment.yaml) for the `WorkloadDeployment`
+See [deploy/deployment.yaml](./deploy/deployment.yaml) for the `WorkloadDeployment`
 definition and the wasmCloud [workload deployment
 quickstart](https://wasmcloud.com/docs/quickstart/deploy-a-webassembly-workload/)
 for cluster setup.

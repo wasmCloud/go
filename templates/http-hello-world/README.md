@@ -44,11 +44,11 @@ P3 implementation.
 ## Deploy to wasmCloud on Kubernetes
 
 Push the component to an OCI registry, point `image` in
-[deployment.yaml](./deployment.yaml) at it, and apply the manifest:
+[deploy/deployment.yaml](./deploy/deployment.yaml) at it, and apply the manifest:
 
 ```shell
 wash oci push ghcr.io/<your-org>/http-hello-world:0.1.0 build/http_hello_world.wasm
-kubectl apply -f deployment.yaml
+kubectl apply -f deploy/deployment.yaml
 ```
 
 Set `config.host` on the manifest's `wasi:http` entry to the hostname your
