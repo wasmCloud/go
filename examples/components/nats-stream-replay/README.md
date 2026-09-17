@@ -44,6 +44,17 @@ the end.
 
 ## Prerequisites
 
+On a fresh clone, download the Go modules first (in each component's
+directory, for an example with more than one):
+
+```bash
+go mod download
+```
+
+componentize-go reads the SDK's WIT straight out of the module cache and does
+not fetch it itself, so until the modules are downloaded `wash dev` and
+`wash build` fail with `failed to read path for WIT [wit]`.
+
 The server and the CLI are separate packages, and the examples use
 both — `brew install nats-server nats` on macOS.
 
@@ -59,16 +70,26 @@ nats stream add EVENTS --subjects 'events.>' \
   --max-msgs=-1 --max-bytes=-1 --max-age=24h --replicas 1 --defaults
 
 # Explicit ack policy, because the drain endpoint settles each message itself.
-nats consumer add EVENTS workers --pull --ack explicit \
+# The filter is not optional: a consumer with no filter subject reads `>`,
+# which is outside this component's `events.>` grant, so the drain fails
+# with 403 `subject ">" denied: not granted`.
+nats consumer add EVENTS workers --pull --filter 'events.>' --ack explicit \
   --deliver all --max-deliver 5 --wait 30s --defaults
 ```
 
 ## Build
 
 ```bash
-componentize-go \
+wash build
+```
+
+That runs the recipe in [.wash/config.yaml](./.wash/config.yaml):
+
+```bash
+go tool componentize-go \
   -w 'wasmcloud:component-go/wasip3@0.2.0' \
-  -w 'wasmcloud:examples/nats-stream-replay@0.1.0' build
+  -w 'wasmcloud:examples/nats-stream-replay@0.1.0' \
+  build -o build/nats_stream_replay.wasm
 ```
 
 Both worlds are named because this is a **WASI P3** component: every
@@ -191,16 +212,20 @@ runtime:
       plugins:
         - id: wasmcloud-nats
           config:
-            stream-allow: ORDERS,EVENTS
+            stream-allow: EVENTS
             # Reads are filtered by the subject grant too: `scan` and
             # `get-by-sequence` only return a message whose stored
             # subject falls inside it.
-            subject-allow: events.>,orders.>
-          # NATS credentials reach the host this way rather than through a
-          # workload manifest or a CLI arg — the rendered `wash host` config
-          # file never appears in `kubectl describe pod`.
-          secretFrom:
-            - events-nats-creds
+            subject-allow: events.>
+          # Only if your NATS needs credentials. They reach the host this way
+          # rather than through a workload manifest or a CLI arg — the
+          # rendered `wash host` config file never appears in `kubectl
+          # describe pod`. The Secret must exist before the host group
+          # starts: it is mounted as a volume, and a missing one leaves the
+          # host pod stuck in ContainerCreating. The chart's bundled NATS
+          # needs none.
+          # secretFrom:
+          #   - events-nats-creds
 ```
 
 `wash dev` defaults the other way round (`workloadConfig: allow`): the
@@ -215,12 +240,31 @@ plugin — the plugin ships with the host, not with the component, so a host
 built without it rejects the binding at placement — and whose host group
 declares the binding above.
 
-Push the component and apply the manifest:
+Create the `EVENTS` stream and its `workers` consumer on the NATS server the
+host group dials, with the same commands as in
+[Prerequisites](#prerequisites).
+
+The chart's bundled NATS requires mutual TLS, so give the `nats` CLI a client
+certificate — for example from a pod that mounts the `wasmcloud-data-tls`
+Secret at `/data-cert`:
+
+```bash
+nats --server tls://nats.wasmcloud.svc.cluster.local:4222 \
+  --tlsca /data-cert/ca.crt --tlscert /data-cert/tls.crt --tlskey /data-cert/tls.key \
+  ...
+```
+
+Then push the component, point `image` in [deployment.yaml](./deployment.yaml)
+at it, and apply the manifest:
 
 ```shell
 wash oci push ghcr.io/<your-org>/nats-stream-replay:0.1.0 build/nats_stream_replay.wasm
 kubectl apply -f deployment.yaml
 ```
+
+The HTTP half is routed by `Host` header: set `config.host` on the manifest's
+`wasi:http` entry to the hostname your ingress forwards to the
+`nats-stream-replay` Service.
 
 See [deployment.yaml](./deployment.yaml) for the `WorkloadDeployment`
 definition and the wasmCloud [workload deployment

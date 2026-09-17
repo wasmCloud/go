@@ -21,15 +21,11 @@ import (
 	_ "go.wasmcloud.dev/component"
 )
 
-// Types for JSON validation.
-type CheckRequest struct {
-	Value string `json:"value"`
-}
-
-type CheckResponse struct {
-	Valid   bool   `json:"valid"`
-	Length  int    `json:"length,omitempty"`
-	Message string `json:"message,omitempty"`
+// response is the JSON body of every reply. Value carries the stored JSON
+// document as-is, so it is embedded rather than re-encoded as a string.
+type response struct {
+	Message string          `json:"message"`
+	Value   json.RawMessage `json:"value,omitempty"`
 }
 
 func init() {
@@ -43,7 +39,7 @@ func init() {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprintln(w, `{"message":"GET, POST, or DELETE to /crud/<key> (with JSON payload for POSTs)"}`)
+	writeJSON(w, http.StatusOK, response{Message: "GET, POST, or DELETE to /crud/<key> (with JSON payload for POSTs)"})
 }
 
 // openBucket opens the default keyvalue bucket served by the host.
@@ -59,18 +55,17 @@ func postHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Assigns the "key" parameter to the "key" variable.
 	key := ps.ByName("key")
 
-	// Checks the request for a valid JSON body and assigns it to the value variable.
+	// Reads the request body and checks that it is a JSON document.
 	// The user will set the value via JSON payload:
 	// curl -X POST 'localhost:8000/crud/key' -d '{"foo": "bar", "woo": "hoo"}'
-	var req CheckRequest
 	defer r.Body.Close()
 	value, err := io.ReadAll(r.Body)
 	if err != nil {
 		errResponseJSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	if err := json.Unmarshal(value, &req); err != nil {
-		errResponseJSON(w, http.StatusBadRequest, fmt.Sprintf("error with json input: %s", err.Error()))
+	if !json.Valid(value) {
+		errResponseJSON(w, http.StatusBadRequest, "request body is not valid JSON")
 		return
 	}
 
@@ -87,7 +82,7 @@ func postHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	}
 
 	// Confirms set, returning key and value in JSON body.
-	fmt.Fprintf(w, `{"message":"Set %s", "value":"%s"}`+"\n", key, value)
+	writeJSON(w, http.StatusOK, response{Message: "Set " + key, Value: value})
 }
 
 func getHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -110,12 +105,17 @@ func getHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Returns and reports that key does not exist if no value is found.
 	value := kvGet.Ok()
 	if value.IsNone() {
-		errResponseJSON(w, http.StatusBadRequest, fmt.Sprintf("%s does not exist", key))
+		errResponseJSON(w, http.StatusNotFound, fmt.Sprintf("%s does not exist", key))
 		return
 	}
 
-	// Returns key and value in JSON body.
-	fmt.Fprintf(w, `{"message":"Got %s", "value":"%s"}`+"\n", key, value.Some())
+	// Returns key and value in JSON body. Anything this component stored is
+	// JSON already; a value written by something else is returned as a string.
+	stored := json.RawMessage(value.Some())
+	if !json.Valid(stored) {
+		stored, _ = json.Marshal(string(value.Some()))
+	}
+	writeJSON(w, http.StatusOK, response{Message: "Got " + key, Value: stored})
 }
 
 func deleteHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -135,7 +135,7 @@ func deleteHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params)
 		return
 	}
 	if !kvExists.Ok() {
-		errResponseJSON(w, http.StatusBadRequest, fmt.Sprintf("%s does not exist", key))
+		errResponseJSON(w, http.StatusNotFound, fmt.Sprintf("%s does not exist", key))
 		return
 	}
 
@@ -146,7 +146,7 @@ func deleteHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params)
 	}
 
 	// Confirms delete in JSON body.
-	fmt.Fprintf(w, `{"message":"Deleted %s"}`+"\n", key)
+	writeJSON(w, http.StatusOK, response{Message: "Deleted " + key})
 }
 
 // errString renders a wasi:keyvalue/store error variant as text.
@@ -161,11 +161,18 @@ func errString(e store.Error) string {
 	}
 }
 
-// JSON validation handling.
-func errResponseJSON(w http.ResponseWriter, code int, message string) {
-	msg, _ := json.Marshal(CheckResponse{Valid: false, Message: message})
-	http.Error(w, string(msg), code)
+// writeJSON encodes body as the JSON response. Headers must be set before
+// WriteHeader, or they are silently dropped.
+func writeJSON(w http.ResponseWriter, code int, body response) {
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	enc := json.NewEncoder(w)
+	enc.SetEscapeHTML(false)
+	_ = enc.Encode(body)
+}
+
+func errResponseJSON(w http.ResponseWriter, code int, message string) {
+	writeJSON(w, code, response{Message: message})
 }
 
 // Since we don't run this program like a CLI, the `main` function is empty. Instead,

@@ -66,14 +66,16 @@ metadata:
 spec:
   type: NodePort
   ports:
-    - port: 80
+    # The port must be named `http`: the operator writes this selectorless
+    # Service's EndpointSlices with a port named `http`, and Kubernetes
+    # matches slice ports to Service ports by name. Unnamed, nothing routes.
+    - name: http
+      port: 80
       protocol: TCP
 ---
 apiVersion: runtime.wasmcloud.dev/v1alpha1
 kind: WorkloadDeployment
 metadata:
-  # The inbox prefix the service grants above is derived from this name.
-  # Renaming this workload means updating that grant.
   name: nats-request-gateway
 spec:
   replicas: 1

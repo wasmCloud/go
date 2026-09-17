@@ -26,6 +26,17 @@ Idempotency is the part worth reading. Delivery is at-least-once, so a bare
 
 ## Prerequisites
 
+On a fresh clone, download the Go modules first (in each component's
+directory, for an example with more than one):
+
+```bash
+go mod download
+```
+
+componentize-go reads the SDK's WIT straight out of the module cache and does
+not fetch it itself, so until the modules are downloaded `wash dev` and
+`wash build` fail with `failed to read path for WIT [wit]`.
+
 The server and the CLI are separate packages, and the examples use
 both — `brew install nats-server nats` on macOS.
 
@@ -53,7 +64,13 @@ anything; without it a redelivery publishes a second notification.
 ## Build
 
 ```bash
-componentize-go -w 'wasmcloud:examples/nats-jetstream-orders@0.1.0' build
+wash build
+```
+
+That runs the recipe in [.wash/config.yaml](./.wash/config.yaml):
+
+```bash
+go tool componentize-go -w 'wasmcloud:examples/nats-jetstream-orders@0.1.0' build -o build/nats_jetstream_orders.wasm
 ```
 
 The `-w` flag is required: this component serves no HTTP, so it does not use
@@ -131,11 +148,15 @@ runtime:
             subject-allow: orders.processed,orders.received
             stream-allow: ORDERS,PROCESSED
             bucket-allow: order-totals
-          # NATS credentials reach the host this way rather than through a
-          # workload manifest or a CLI arg — the rendered `wash host` config
-          # file never appears in `kubectl describe pod`.
-          secretFrom:
-            - orders-nats-creds
+          # Only if your NATS needs credentials. They reach the host this way
+          # rather than through a workload manifest or a CLI arg — the
+          # rendered `wash host` config file never appears in `kubectl
+          # describe pod`. The Secret must exist before the host group
+          # starts: it is mounted as a volume, and a missing one leaves the
+          # host pod stuck in ContainerCreating. The chart's bundled NATS
+          # needs none.
+          # secretFrom:
+          #   - orders-nats-creds
 ```
 
 `wash dev` defaults the other way round (`workloadConfig: allow`): the
@@ -150,7 +171,22 @@ plugin — the plugin ships with the host, not with the component, so a host
 built without it rejects the binding at placement — and whose host group
 declares the binding above.
 
-Push the component and apply the manifest:
+Create the `ORDERS` and `PROCESSED` streams and the `order-totals` bucket on
+the NATS server the host group dials, with the same commands as in
+[Prerequisites](#prerequisites).
+
+The chart's bundled NATS requires mutual TLS, so give the `nats` CLI a client
+certificate — for example from a pod that mounts the `wasmcloud-data-tls`
+Secret at `/data-cert`:
+
+```bash
+nats --server tls://nats.wasmcloud.svc.cluster.local:4222 \
+  --tlsca /data-cert/ca.crt --tlscert /data-cert/tls.crt --tlskey /data-cert/tls.key \
+  ...
+```
+
+Then push the component, point `image` in [deployment.yaml](./deployment.yaml)
+at it, and apply the manifest:
 
 ```shell
 wash oci push ghcr.io/<your-org>/nats-jetstream-orders:0.1.0 build/nats_jetstream_orders.wasm

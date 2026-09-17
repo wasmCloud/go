@@ -32,6 +32,17 @@ work.
 
 ## Prerequisites
 
+On a fresh clone, download the Go modules first (in each component's
+directory, for an example with more than one):
+
+```bash
+go mod download
+```
+
+componentize-go reads the SDK's WIT straight out of the module cache and does
+not fetch it itself, so until the modules are downloaded `wash dev` and
+`wash build` fail with `failed to read path for WIT [wit]`.
+
 The server and the CLI are separate packages, and the examples use
 both — `brew install nats-server nats` on macOS.
 
@@ -44,10 +55,20 @@ nats-server &
 ## Build
 
 ```bash
-cd service && componentize-go -w 'wasmcloud:examples/nats-reply-service@0.1.0' build
-cd ../gateway && componentize-go \
-  -w 'wasmcloud:component-go/wasip3@0.2.0' \
-  -w 'wasmcloud:examples/nats-request-gateway@0.1.0' build
+(cd service && wash build)
+(cd gateway && wash build)
+```
+
+Each runs the recipe in its own `.wash/config.yaml`:
+
+```bash
+# service/
+go tool componentize-go -w 'wasmcloud:examples/nats-reply-service@0.1.0' \
+  build -o build/nats_reply_service.wasm
+# gateway/
+go tool componentize-go -w 'wasmcloud:component-go/wasip3@0.2.0' \
+  -w 'wasmcloud:examples/nats-request-gateway@0.1.0' \
+  build -o build/nats_request_gateway.wasm
 ```
 
 Both are **WASI P3** components: every `wasmcloud:nats` function is an `async
@@ -153,8 +174,9 @@ The gateway issues requests and the service answers them, and running both
 in one workload would mean a component answering itself. With a bounded
 `maxConcurrency`, an instance blocked inside `nats.Request` is an instance
 not available to serve the subscription the request is waiting on — so the
-call deadlocks until it times out. Separate workloads, separate grants, and
-neither can reach the other's inbox prefix.
+call deadlocks until it times out. Separate workloads also get separate
+inbox prefixes, each derived from its own workload id, so neither can read
+the other's replies.
 
 ## Declaring the binding host-side
 
@@ -191,11 +213,15 @@ runtime:
             # binding serves the gateway and the service alike. No
             # `_INBOX` grant: the host authorizes each reply itself.
             subject-allow: service.>
-          # NATS credentials reach the host this way rather than through a
-          # workload manifest or a CLI arg — the rendered `wash host` config
-          # file never appears in `kubectl describe pod`.
-          secretFrom:
-            - service-nats-creds
+          # Only if your NATS needs credentials. They reach the host this way
+          # rather than through a workload manifest or a CLI arg — the
+          # rendered `wash host` config file never appears in `kubectl
+          # describe pod`. The Secret must exist before the host group
+          # starts: it is mounted as a volume, and a missing one leaves the
+          # host pod stuck in ContainerCreating. The chart's bundled NATS
+          # needs none.
+          # secretFrom:
+          #   - service-nats-creds
 ```
 
 `wash dev` defaults the other way round (`workloadConfig: allow`): the
@@ -210,13 +236,19 @@ plugin — the plugin ships with the host, not with the component, so a host
 built without it rejects the binding at placement — and whose host group
 declares the binding above.
 
-Push the component and apply the manifest:
+Nothing needs provisioning — core NATS has no streams or buckets. Push both
+components, point each `image` in [deployment.yaml](./deployment.yaml) at
+them, and apply the manifest:
 
 ```shell
 wash oci push ghcr.io/<your-org>/nats-reply-service:0.1.0 service/build/nats_reply_service.wasm
 wash oci push ghcr.io/<your-org>/nats-request-gateway:0.1.0 gateway/build/nats_request_gateway.wasm
 kubectl apply -f deployment.yaml
 ```
+
+The HTTP half is routed by `Host` header: set `config.host` on the manifest's
+`wasi:http` entry to the hostname your ingress forwards to the
+`nats-request-gateway` Service.
 
 See [deployment.yaml](./deployment.yaml) for the `WorkloadDeployment`
 definition and the wasmCloud [workload deployment
