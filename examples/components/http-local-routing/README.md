@@ -14,6 +14,24 @@ routing, the caller's outgoing `wasi:http` request is served by the callee
 Rust counterpart:
 [wasmCloud/examples/local-ingress](https://github.com/wasmCloud/wasmCloud/tree/main/examples/local-ingress).
 
+## Prerequisites
+
+- Go 1.27+
+- [`wash`](https://wasmcloud.com/docs/installation) 2.x
+- For the cluster deploy, a wasmCloud host and runtime-operator built from
+  `main`: local routing landed after the 2.9.0 release.
+
+On a fresh clone, download the Go modules for both components first:
+
+```shell
+(cd callee && go mod download)
+(cd caller && go mod download)
+```
+
+componentize-go reads the SDK's WIT straight out of the module cache and does
+not fetch it itself, so until the modules are downloaded `wash dev` and
+`wash build` fail with `failed to read path for WIT [wit]`.
+
 ## How it is switched on
 
 Two keys, and neither works alone:
@@ -72,20 +90,39 @@ upstream status: 200 OK
 upstream body: hello from the Go callee! (path: /hello, host: localhost)
 ```
 
-## Deploy to Kubernetes
+## Deploy to wasmCloud on Kubernetes
 
-The hostgroup needs `http.localBypassRouting: true`, and both workloads must
-land on the same host (one replica, or a dedicated hostgroup). Push the
-components, replace `ghcr.io/[your-org]` in
-[deployment.yaml](./deployment.yaml), and apply:
+The hostgroup needs local routing switched on, and both workloads must land on
+the same host, so run it with one replica (or give these workloads a dedicated
+hostgroup):
+
+```yaml
+runtime:
+  hostGroups:
+    - name: default
+      replicas: 1
+      http:
+        enabled: true
+        port: 80
+        localBypassRouting: true
+```
+
+With more than one replica the scheduler may split the pair across hosts, and
+the call then falls through to the network, where `callee.internal` resolves
+nowhere.
+
+Push both components to an OCI registry, point the two `image` fields in
+[deploy/deployment.yaml](./deploy/deployment.yaml) at them, and apply the
+manifest:
 
 ```shell
 wash oci push ghcr.io/<your-org>/http-local-routing-callee:0.1.0 callee/build/http_local_routing_callee.wasm
 wash oci push ghcr.io/<your-org>/http-local-routing-caller:0.1.0 caller/build/http_local_routing_caller.wasm
-kubectl apply -f deployment.yaml
+kubectl apply -f deploy/deployment.yaml
 ```
 
-On a kind cluster with Traefik on `:80`, the caller is at
+The manifest also creates a selectorless Service and a Traefik Ingress for the
+caller. On a kind cluster with Traefik on `:80`, the caller is at
 `go-hello.localhost.cosmonic.sh`:
 
 ```shell

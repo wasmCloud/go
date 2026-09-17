@@ -8,7 +8,7 @@ workload:
     config:
       # `wash dev` runs one component per session, so in dev the caller reaches
       # the callee over loopback. On a cluster this points at the callee's
-      # localRoute instead; see ../deployment.yaml.
+      # localRoute instead; see ../deploy/deployment.yaml.
       CALLEE_URL: http://localhost:8001/hello
   allowedHosts:
     - localhost

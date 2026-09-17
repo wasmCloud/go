@@ -1,6 +1,6 @@
 # Same-host local routing: a Go caller and callee on one wasmCloud host.
 #
-#   kubectl apply -f deployment.yaml
+#   kubectl apply -f deploy/deployment.yaml
 #
 # Takes two keys, and neither works alone:
 #   1. the host enables it — `--http-local-routing`, or the runtime-operator
