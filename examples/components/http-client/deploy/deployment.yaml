@@ -1,0 +1,49 @@
+# Deploys this component on wasmCloud v2 (runtime operator >= 2.5.2).
+#
+#   kubectl apply -f deploy/deployment.yaml
+#
+# See https://wasmcloud.com/docs/quickstart/deploy-a-webassembly-workload/
+apiVersion: v1
+kind: Service
+metadata:
+  name: http-client
+spec:
+  type: NodePort
+  ports:
+    # The port must be named `http`: the operator writes this selectorless
+    # Service's EndpointSlices with a port named `http`, and Kubernetes
+    # matches slice ports to Service ports by name. Unnamed, nothing routes.
+    - name: http
+      port: 80
+      protocol: TCP
+---
+apiVersion: runtime.wasmcloud.dev/v1alpha1
+kind: WorkloadDeployment
+metadata:
+  name: http-client
+spec:
+  replicas: 1
+  template:
+    spec:
+      hostSelector:
+        hostgroup: default
+      kubernetes:
+        service:
+          name: http-client
+      components:
+        - name: http-client
+          image: ghcr.io/[your-org]/http-client:0.1.0
+          localResources:
+            # Outbound HTTP is deny-by-default on a real host: with no
+            # allowedHosts every request fails. This mirrors
+            # workload.allowedHosts in .wash/config.yaml, which only `wash dev`
+            # reads.
+            allowedHosts:
+              - dog.ceo
+      hostInterfaces:
+        - namespace: wasi
+          package: http
+          interfaces:
+            - incoming-handler
+          config:
+            host: localhost

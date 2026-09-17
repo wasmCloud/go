@@ -10,7 +10,7 @@
 # Two workloads, two halves of one round trip: the gateway turns HTTP into a
 # NATS request, and the service answers it.
 #
-#   kubectl apply -f deployment.yaml
+#   kubectl apply -f deploy/deployment.yaml
 #
 # They are separate workloads on purpose. A single workload subscribing to
 # the subject it also issues requests on would be answering itself, and one
@@ -66,14 +66,16 @@ metadata:
 spec:
   type: NodePort
   ports:
-    - port: 80
+    # The port must be named `http`: the operator writes this selectorless
+    # Service's EndpointSlices with a port named `http`, and Kubernetes
+    # matches slice ports to Service ports by name. Unnamed, nothing routes.
+    - name: http
+      port: 80
       protocol: TCP
 ---
 apiVersion: runtime.wasmcloud.dev/v1alpha1
 kind: WorkloadDeployment
 metadata:
-  # The inbox prefix the service grants above is derived from this name.
-  # Renaming this workload means updating that grant.
   name: nats-request-gateway
 spec:
   replicas: 1

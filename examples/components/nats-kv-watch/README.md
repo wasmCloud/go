@@ -48,6 +48,17 @@ is not defensible is a derived key inside the watched prefix.
 
 ## Prerequisites
 
+On a fresh clone, download the Go modules first (in each component's
+directory, for an example with more than one):
+
+```bash
+go mod download
+```
+
+componentize-go reads the SDK's WIT straight out of the module cache and does
+not fetch it itself, so until the modules are downloaded `wash dev` and
+`wash build` fail with `failed to read path for WIT [wit]`.
+
 The server and the CLI are separate packages, and the examples use
 both — `brew install nats-server nats` on macOS.
 
@@ -64,7 +75,13 @@ nats kv add feature-flags --history 5
 ## Build
 
 ```bash
-componentize-go -w 'wasmcloud:examples/nats-kv-watch@0.1.0' build
+wash build
+```
+
+That runs the recipe in [.wash/config.yaml](./.wash/config.yaml):
+
+```bash
+go tool componentize-go -w 'wasmcloud:examples/nats-kv-watch@0.1.0' build -o build/nats_kv_watch.wasm
 ```
 
 The `-w` flag is required: this component serves no HTTP, so it does not use
@@ -88,7 +105,7 @@ wash dev
 `wasmcloud:nats` is a host plugin, and `wash dev` has no manifest to read
 the binding from — so `.wash/config.yaml` carries the binding whole:
 servers, grants, and asks together. It is deliberately *not* a mirror of
-`deployment.yaml` any more. A `wash dev` plugin entry defaults to
+`deploy/deployment.yaml` any more. A `wash dev` plugin entry defaults to
 `workloadConfig: allow` precisely so a checkout is runnable on its own,
 while a real host defaults to `deny` and keeps the servers, the
 credentials, and the grants on its side. So a grant lives in this file for
@@ -99,7 +116,7 @@ The two are not quite interchangeable, and the difference is worth knowing
 before a component that works in dev fails on deploy: dev derives host
 interfaces from the component's imports, so `wasi:logging` binds there
 whether or not you declare it. A real host binds only what the manifest
-names, which is why `deployment.yaml` lists it and `.wash/config.yaml`
+names, which is why `deploy/deployment.yaml` lists it and `.wash/config.yaml`
 does not.
 
 ## Try it
@@ -154,11 +171,15 @@ runtime:
           config:
             bucket-allow: feature-flags
             subject-allow: flags.changed
-          # NATS credentials reach the host this way rather than through a
-          # workload manifest or a CLI arg — the rendered `wash host` config
-          # file never appears in `kubectl describe pod`.
-          secretFrom:
-            - feature-flags-nats-creds
+          # Only if your NATS needs credentials. They reach the host this way
+          # rather than through a workload manifest or a CLI arg — the
+          # rendered `wash host` config file never appears in `kubectl
+          # describe pod`. The Secret must exist before the host group
+          # starts: it is mounted as a volume, and a missing one leaves the
+          # host pod stuck in ContainerCreating. The chart's bundled NATS
+          # needs none.
+          # secretFrom:
+          #   - feature-flags-nats-creds
 ```
 
 `wash dev` defaults the other way round (`workloadConfig: allow`): the
@@ -173,14 +194,28 @@ plugin — the plugin ships with the host, not with the component, so a host
 built without it rejects the binding at placement — and whose host group
 declares the binding above.
 
-Push the component and apply the manifest:
+Create the `feature-flags` bucket on the NATS server the host group dials,
+with the same commands as in [Prerequisites](#prerequisites).
+
+The chart's bundled NATS requires mutual TLS, so give the `nats` CLI a client
+certificate — for example from a pod that mounts the `wasmcloud-data-tls`
+Secret at `/data-cert`:
+
+```bash
+nats --server tls://nats.wasmcloud.svc.cluster.local:4222 \
+  --tlsca /data-cert/ca.crt --tlscert /data-cert/tls.crt --tlskey /data-cert/tls.key \
+  ...
+```
+
+Then push the component, point `image` in [deploy/deployment.yaml](./deploy/deployment.yaml)
+at it, and apply the manifest:
 
 ```shell
 wash oci push ghcr.io/<your-org>/nats-kv-watch:0.1.0 build/nats_kv_watch.wasm
-kubectl apply -f deployment.yaml
+kubectl apply -f deploy/deployment.yaml
 ```
 
-See [deployment.yaml](./deployment.yaml) for the `WorkloadDeployment`
+See [deploy/deployment.yaml](./deploy/deployment.yaml) for the `WorkloadDeployment`
 definition and the wasmCloud [workload deployment
 quickstart](https://wasmcloud.com/docs/quickstart/deploy-a-webassembly-workload/)
 for cluster setup.

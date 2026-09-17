@@ -27,14 +27,11 @@ go tool componentize-go --ignore-toml-files \
   -w wasmcloud:examples/http-otel@0.1.0 -d wit bindings -o .
 ```
 
-> [!NOTE]
-> The `wasi_otel` host plugin is not yet in a released wash — running this
-> example requires a `wash` built from
-> [wasmCloud main](https://github.com/wasmCloud/wasmCloud) (the plugin
-> lives in `crates/wash-runtime/src/plugin/wasi_otel`). Released wash
-> versions fail to link the component's `wasi:otel` imports.
+The `wasi_otel` host plugin ships in released `wash` (verified with 2.9.0),
+but it is opt-in everywhere: a host that has not enabled it fails to link the
+component's `wasi:otel` imports.
 
-The plugin is opt-in for `wash dev`: this example's
+For `wash dev`: this example's
 [.wash/config.yaml](./.wash/config.yaml) enables it with:
 
 ```yaml
@@ -43,6 +40,21 @@ dev:
 ```
 
 The plugin exports spans over OTLP gRPC (default `http://localhost:4317`).
+
+## Prerequisites
+
+- Go 1.27+
+- [`wash`](https://wasmcloud.com/docs/installation) 2.x
+
+On a fresh clone, download the Go modules first:
+
+```shell
+go mod download
+```
+
+componentize-go reads the SDK's WIT straight out of the module cache and does
+not fetch it itself, so until the modules are downloaded `wash dev` and
+`wash build` fail with `failed to read path for WIT [wit]`.
 
 ## Develop
 
@@ -55,13 +67,46 @@ Spans emitted by the component are exported by the host's OTel pipeline —
 configure the host's OTLP endpoint to see them in your collector of
 choice.
 
-## Build & deploy
+## Build
 
 ```shell
 wash build
-wash oci push ghcr.io/<your-org>/http-otel:0.1.0 build/http_otel.wasm
-kubectl apply -f deployment.yaml
 ```
 
-[deployment.yaml](./deployment.yaml) declares `wasi:otel` under
-`hostInterfaces` alongside `wasi:http`.
+## Deploy to wasmCloud on Kubernetes
+
+The host group has to run with the plugin enabled and an OTLP endpoint to
+export to. In the `runtime-operator` chart:
+
+```yaml
+runtime:
+  env:
+    # Setting the endpoint is what turns export on. The host speaks OTLP
+    # over gRPC only.
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: "http://<your-collector>:4317"
+  extraArgs:
+    - "--wasi-otel"
+```
+
+Then push the component, point `image` in [deploy/deployment.yaml](./deploy/deployment.yaml)
+at it, and apply the manifest:
+
+```shell
+wash oci push ghcr.io/<your-org>/http-otel:0.1.0 build/http_otel.wasm
+kubectl apply -f deploy/deployment.yaml
+```
+
+Two things in the manifest have to match your cluster:
+
+- **`config.host`** on the `wasi:http` entry. The host routes each request to
+  a workload by its `Host` header, so set this to the hostname your ingress
+  forwards to the `http-otel` Service. Keep it unique per workload: two
+  workloads naming the same host become replicas of one route and split its
+  traffic.
+- **`wasi:otel`** stays listed under `hostInterfaces` alongside `wasi:http`;
+  a real host binds only the interfaces the manifest names.
+
+See the wasmCloud [workload deployment
+quickstart](https://wasmcloud.com/docs/quickstart/deploy-a-webassembly-workload/)
+for cluster setup.

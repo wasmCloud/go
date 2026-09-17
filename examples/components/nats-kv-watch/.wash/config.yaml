@@ -6,7 +6,7 @@ build:
   component_path: build/nats_kv_watch.wasm
 
 # See the note in nats-stream-replay/.wash/config.yaml: this mirrors
-# deployment.yaml's hostInterfaces for `wash dev`.
+# deploy/deployment.yaml's hostInterfaces for `wash dev`.
 dev:
   host_interfaces:
     - namespace: wasmcloud

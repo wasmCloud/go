@@ -7,7 +7,7 @@ build:
   component_path: build/nats_stream_replay.wasm
 
 # `wash dev` has no manifest, so the host interfaces this component would get
-# from deployment.yaml are declared here instead — same shape, same keys. Keep
+# from deploy/deployment.yaml are declared here instead — same shape, same keys. Keep
 # the two in step. wasi:logging is not listed: dev derives it from the
 # component's imports, which is exactly why the manifest has to name it
 # explicitly and this file does not.

@@ -1,0 +1,51 @@
+# Deploys this component on wasmCloud v2 (runtime operator >= 2.5.2).
+#
+#   kubectl apply -f deploy/deployment.yaml
+#
+# See https://wasmcloud.com/docs/quickstart/deploy-a-webassembly-workload/
+apiVersion: v1
+kind: Service
+metadata:
+  name: http-server
+spec:
+  type: NodePort
+  ports:
+    # The port must be named `http`: the operator writes this selectorless
+    # Service's EndpointSlices with a port named `http`, and Kubernetes
+    # matches slice ports to Service ports by name. Unnamed, nothing routes.
+    - name: http
+      port: 80
+      protocol: TCP
+---
+apiVersion: runtime.wasmcloud.dev/v1alpha1
+kind: WorkloadDeployment
+metadata:
+  name: http-server
+spec:
+  replicas: 1
+  template:
+    spec:
+      hostSelector:
+        hostgroup: default
+      kubernetes:
+        service:
+          name: http-server
+      components:
+        - name: http-server
+          image: ghcr.io/[your-org]/http-server:0.1.0
+      hostInterfaces:
+        - namespace: wasi
+          package: http
+          interfaces:
+            - incoming-handler
+          config:
+            host: localhost
+        # main.go logs through wasilog, which imports wasi:logging. A real
+        # host binds only what the manifest names, so leaving this out fails
+        # the workload with "a matching implementation was not found in the
+        # linker". `wash dev` derives it from the imports, so it only shows
+        # up on deploy.
+        - namespace: wasi
+          package: logging
+          interfaces:
+            - logging
