@@ -1,8 +1,8 @@
 # HTTP Server
 
 A WebAssembly component that serves HTTP requests using Go's standard
-`net/http` types via `go.bytecodealliance.org/pkg/wasihttp`, and logs through
-`wasi:logging` with `go.bytecodealliance.org/pkg/wasilog`.
+`net/http` types via `go.bytecodealliance.org/wasi/wasihttp`, and logs through
+`wasi:logging` with `go.bytecodealliance.org/wasi/wasilog`.
 
 ## Prerequisites
 

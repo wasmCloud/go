@@ -38,7 +38,7 @@ target world is declared by the SDK's `componentize-go.toml`. To target the
 async WASI P3 world instead, change the build command to
 `go tool componentize-go -w wasmcloud:component-go/wasip3@0.2.0 build`. The
 code stays the same: componentize-go sets the `componentizego_async` build tag
-for async worlds, which switches `go.bytecodealliance.org/pkg/wasihttp` to its
+for async worlds, which switches `go.bytecodealliance.org/wasi/wasihttp` to its
 P3 implementation.
 
 ## Deploy to wasmCloud on Kubernetes

@@ -186,48 +186,48 @@ func (e *LimitExceededError) Error() string { return "nats: limit exceeded: " + 
 // convertError maps a generated nats-error onto a Go error.
 func convertError(e types.NatsError) error {
 	switch e.Tag() {
-	case types.NatsErrorConnection:
+	case types.NatsError_Connection:
 		return fmt.Errorf("nats: connection: %s", e.Connection())
-	case types.NatsErrorTimeout:
+	case types.NatsError_Timeout:
 		return fmt.Errorf("nats: timeout: %s", e.Timeout())
-	case types.NatsErrorNoResponders:
+	case types.NatsError_NoResponders:
 		return ErrNoResponders
-	case types.NatsErrorDenied:
+	case types.NatsError_Denied:
 		d := e.Denied()
 		denied := &DeniedError{
 			Reason: DenialReason(d.Reason),
 			Target: DeniedTarget(d.Target.Tag()),
 			Name:   d.Name,
 		}
-		if d.Target.Tag() == types.DeniedResourceMessage {
+		if d.Target.Tag() == types.DeniedResource_Message {
 			denied.Sequence = d.Target.Message()
 		}
 		return denied
-	case types.NatsErrorMaxPayloadExceeded:
+	case types.NatsError_MaxPayloadExceeded:
 		return &MaxPayloadExceededError{Limit: e.MaxPayloadExceeded()}
-	case types.NatsErrorInvalidHeader:
+	case types.NatsError_InvalidHeader:
 		return &InvalidHeaderError{Detail: e.InvalidHeader()}
-	case types.NatsErrorJetstream:
+	case types.NatsError_Jetstream:
 		return fmt.Errorf("nats: jetstream: %s", e.Jetstream())
-	case types.NatsErrorKeyNotFound:
+	case types.NatsError_KeyNotFound:
 		return ErrKeyNotFound
-	case types.NatsErrorRevisionMismatch:
+	case types.NatsError_RevisionMismatch:
 		return &RevisionMismatchError{Current: e.RevisionMismatch()}
-	case types.NatsErrorNoMessages:
+	case types.NatsError_NoMessages:
 		return ErrNoMessages
-	case types.NatsErrorLimitExceeded:
+	case types.NatsError_LimitExceeded:
 		return &LimitExceededError{Detail: e.LimitExceeded()}
-	case types.NatsErrorNotFound:
+	case types.NatsError_NotFound:
 		return &NotFoundError{Resource: e.NotFound()}
-	case types.NatsErrorUnsupportedByServer:
+	case types.NatsError_UnsupportedByServer:
 		return &UnsupportedByServerError{Detail: e.UnsupportedByServer()}
-	case types.NatsErrorDisconnected:
+	case types.NatsError_Disconnected:
 		return ErrDisconnected
-	case types.NatsErrorAlreadySettled:
+	case types.NatsError_AlreadySettled:
 		return ErrAlreadySettled
-	case types.NatsErrorAckOwnedByHost:
+	case types.NatsError_AckOwnedByHost:
 		return ErrAckOwnedByHost
-	case types.NatsErrorUnexpected:
+	case types.NatsError_Unexpected:
 		return fmt.Errorf("nats: %s", e.Unexpected())
 	default:
 		// The variant is non-exhaustive; future hosts may add cases.

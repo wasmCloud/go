@@ -4,7 +4,7 @@ import (
 	"io"
 	"net/http"
 
-	"go.bytecodealliance.org/pkg/wasihttp"
+	"go.bytecodealliance.org/wasi/wasihttp"
 	"go.opentelemetry.io/otel"
 
 	// Anchor go.wasmcloud.dev/component in go.mod: it carries the wasmCloud
