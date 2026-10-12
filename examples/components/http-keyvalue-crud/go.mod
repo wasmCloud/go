@@ -4,7 +4,8 @@ go 1.27.1
 
 require (
 	github.com/julienschmidt/httprouter v1.3.0
-	go.bytecodealliance.org/pkg v0.2.4-0.20260911130647-2495ff7eca86
+	go.bytecodealliance.org/pkg v0.4.0
+	go.bytecodealliance.org/wasi v0.1.0
 	go.wasmcloud.dev/component v0.1.6
 )
 

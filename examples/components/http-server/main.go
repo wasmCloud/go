@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
-	"go.bytecodealliance.org/pkg/wasihttp"
-	"go.bytecodealliance.org/pkg/wasilog"
+	"go.bytecodealliance.org/wasi/wasihttp"
+	"go.bytecodealliance.org/wasi/wasilog"
 
 	// Anchor go.wasmcloud.dev/component in go.mod: it carries the wasmCloud
 	// worlds' WIT and componentize-go.toml used at build time.

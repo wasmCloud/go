@@ -3,7 +3,7 @@
 A WebAssembly component that serves HTTP requests and makes outbound HTTP
 calls using `wasihttp.DefaultClient` (an `http.Client` over
 `wasihttp.Transport`, an `http.RoundTripper` over
-`wasi:http/outgoing-handler`), from `go.bytecodealliance.org/pkg/wasihttp`.
+`wasi:http/outgoing-handler`), from `go.bytecodealliance.org/wasi/wasihttp`.
 
 ## Prerequisites
 

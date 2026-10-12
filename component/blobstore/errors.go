@@ -22,21 +22,21 @@ var (
 
 func convertError(e types.Error) error {
 	switch e.Tag() {
-	case types.ErrorNoSuchContainer:
+	case types.Error_NoSuchContainer:
 		return ErrNoSuchContainer
-	case types.ErrorContainerAlreadyExists:
+	case types.Error_ContainerAlreadyExists:
 		return ErrContainerAlreadyExists
-	case types.ErrorNoSuchObject:
+	case types.Error_NoSuchObject:
 		return ErrNoSuchObject
-	case types.ErrorAccessDenied:
+	case types.Error_AccessDenied:
 		return ErrAccessDenied
-	case types.ErrorTimeout:
+	case types.Error_Timeout:
 		return ErrTimeout
-	case types.ErrorStoreUnavailable:
+	case types.Error_StoreUnavailable:
 		return ErrStoreUnavailable
-	case types.ErrorQuotaExceeded:
+	case types.Error_QuotaExceeded:
 		return ErrQuotaExceeded
-	case types.ErrorOther:
+	case types.Error_Other:
 		return fmt.Errorf("blobstore: %s", e.Other())
 	default:
 		// The variant is non-exhaustive; future hosts may add cases.

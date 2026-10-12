@@ -49,13 +49,13 @@ type Value struct {
 // IsString reports whether the secret was stored as a string (as opposed to
 // raw bytes).
 func (v Value) IsString() bool {
-	return v.v.Tag() == store.SecretValueString
+	return v.v.Tag() == store.SecretValue_String
 }
 
 // String returns the value as a string. Byte-typed secrets are converted
 // with string().
 func (v Value) String() string {
-	if v.v.Tag() == store.SecretValueString {
+	if v.v.Tag() == store.SecretValue_String {
 		return v.v.String()
 	}
 	return string(v.v.Bytes())
@@ -64,7 +64,7 @@ func (v Value) String() string {
 // Bytes returns the value as a byte slice. String-typed secrets are
 // converted with []byte().
 func (v Value) Bytes() []byte {
-	if v.v.Tag() == store.SecretValueBytes {
+	if v.v.Tag() == store.SecretValue_Bytes {
 		return v.v.Bytes()
 	}
 	return []byte(v.v.String())
@@ -72,11 +72,11 @@ func (v Value) Bytes() []byte {
 
 func convertError(e store.SecretsError) error {
 	switch e.Tag() {
-	case store.SecretsErrorUpstream:
+	case store.SecretsError_Upstream:
 		return fmt.Errorf("secrets: upstream error: %s", e.Upstream())
-	case store.SecretsErrorIo:
+	case store.SecretsError_Io:
 		return fmt.Errorf("secrets: io error: %s", e.Io())
-	case store.SecretsErrorNotFound:
+	case store.SecretsError_NotFound:
 		return ErrNotFound
 	default:
 		return fmt.Errorf("secrets: unknown error (tag %d)", e.Tag())

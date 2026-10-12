@@ -26,16 +26,18 @@ rebuild on big Go (1.27+) and
 - No per-project WIT or generated bindings: the SDK ships its worlds and a
   `componentize-go.toml`; apps need only `go.mod` + code.
 - The generic WASI packages moved to
-  [`go.bytecodealliance.org/pkg`](https://github.com/bytecodealliance/go-pkg):
-  `net/wasihttp` → `go.bytecodealliance.org/pkg/wasihttp`, `log/wasilog` →
-  `go.bytecodealliance.org/pkg/wasilog`, and config access →
-  `go.bytecodealliance.org/pkg/wasiconfig`.
+  [`go.bytecodealliance.org/wasi`](https://github.com/bytecodealliance/go-wasi):
+  `net/wasihttp` → `go.bytecodealliance.org/wasi/wasihttp`, `log/wasilog` →
+  `go.bytecodealliance.org/wasi/wasilog`, and config access →
+  `go.bytecodealliance.org/wasi/wasiconfig`. (Before go-pkg v0.4.0 these were
+  `go.bytecodealliance.org/pkg/{wasihttp,wasilog,wasiconfig}`; only the
+  module path changed, so updating an import is a rename.)
 - `wasihttp` keeps the same API (`Handle`, `HandleFunc`, `Transport`,
   `DefaultClient`) on the sync WASI P2 world — most handler code ports
   unchanged.
 - The async WASI P3 world (`wasi:http@0.3.0`) — streaming bodies,
   concurrent outbound requests with plain goroutines — uses the *same*
-  `go.bytecodealliance.org/pkg/wasihttp` API: the P3 implementation is
+  `go.bytecodealliance.org/wasi/wasihttp` API: the P3 implementation is
   selected at build time by the `componentizego_async` build tag. Opt in
   with `go tool componentize-go -w wasmcloud:component-go/wasip3@0.2.0
   build`; componentize-go sets the tag automatically for async worlds
@@ -46,7 +48,7 @@ rebuild on big Go (1.27+) and
 - `wasmcloud.SetLinkName` / `CallTargetInterface` (bus) and
   `wasmcloud/secret.go` are removed (see concept map).
 - `wasmcloud.GetConfigOrDefault` is removed — use
-  `go.bytecodealliance.org/pkg/wasiconfig.GetOrDefault` (same semantics).
+  `go.bytecodealliance.org/wasi/wasiconfig.GetOrDefault` (same semantics).
 
 ## Removed from this repo
 

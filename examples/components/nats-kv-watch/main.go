@@ -22,7 +22,7 @@ import (
 	"sort"
 	"strings"
 
-	"go.bytecodealliance.org/pkg/wasilog"
+	"go.bytecodealliance.org/wasi/wasilog"
 	"go.wasmcloud.dev/component/nats"
 	"go.wasmcloud.dev/component/nats/kvhandler"
 )
