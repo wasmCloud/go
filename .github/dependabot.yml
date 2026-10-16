@@ -7,3 +7,39 @@ updates:
       day: "monday"
       time: "09:00"
       timezone: "America/New_York"
+    groups:
+      github-actions-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  # Security updates only: a limit of 0 turns off version updates for Go
+  # modules, and the group batches one advisory's fixes into a single PR.
+  - package-ecosystem: "gomod"
+    directories:
+      - "/component"
+      - "/plugin"
+      - "/templates/http-hello-world"
+      - "/examples/components/http-client"
+      - "/examples/components/http-keyvalue-crud"
+      - "/examples/components/http-otel"
+      - "/examples/components/http-p3-streaming"
+      - "/examples/components/http-password-checker"
+      - "/examples/components/http-server"
+      - "/examples/components/nats-jetstream-orders"
+      - "/examples/components/nats-kv-watch"
+      - "/examples/components/nats-request-reply/gateway"
+      - "/examples/components/nats-request-reply/service"
+      - "/examples/components/nats-stream-replay"
+      - "/scripts/bench/httpbench"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 0
+    groups:
+      go-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
