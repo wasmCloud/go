@@ -26,8 +26,8 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"go.bytecodealliance.org/pkg/wasihttp"
-	"go.bytecodealliance.org/pkg/wasilog"
+	"go.bytecodealliance.org/wasi/wasihttp"
+	"go.bytecodealliance.org/wasi/wasilog"
 	"go.wasmcloud.dev/component/nats"
 
 	// Anchor go.wasmcloud.dev/component in go.mod: it carries the wasmCloud

@@ -125,13 +125,25 @@ jobs:
             echo "pending=false" >> "$GITHUB_OUTPUT"
           fi
 
-  build:
-    name: Build all examples offline
+  # Builds (or pulls) the toolchain image once and hands it to every matrix leg
+  # as an artifact, so the seed stage's downloads happen once per run rather
+  # than once per example. Also discovers the module list, so a new example is
+  # covered without editing this file.
+  image:
+    name: Prepare air-gapped image
     runs-on: ubuntu-latest
     needs: [versions, release-state]
     if: needs.release-state.outputs.pending != 'true'
+    outputs:
+      modules: ${{ steps.modules.outputs.modules }}
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Discover modules
+        id: modules
+        run: |
+          echo "modules=$(find examples/components templates -name go.mod -exec dirname {} \; | sort \
+            | jq -R -s -c 'split("\n") | map(select(length > 0))')" >> "$GITHUB_OUTPUT"
 
       # The image is tagged by a hash of airgap/versions.env, so a cache miss
       # means the pinned version set changed — which is exactly when we want a
@@ -158,15 +170,52 @@ jobs:
         if: steps.pull.outcome != 'success'
         run: make airgap-image AIRGAP_IMAGE="${{ steps.img.outputs.name }}"
 
+      - name: Export image
+        run: docker save "${{ steps.img.outputs.name }}:${{ steps.img.outputs.tag }}" | zstd -T0 -3 -o airgap-image.tar.zst
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: airgap-image
+          path: airgap-image.tar.zst
+          retention-days: 1
+          compression-level: 0
+
+  # One leg per example, each in its own `--network none` container started
+  # from the image exactly as shipped: no example can lean on something another
+  # one's build left behind, and a failure names the example it belongs to.
+  build:
+    name: Offline (${{ matrix.module }})
+    runs-on: ubuntu-latest
+    needs: image
+    strategy:
+      fail-fast: false
+      matrix:
+        module: ${{ fromJSON(needs.image.outputs.modules) }}
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: airgap-image
+
+      - name: Load image
+        run: zstd -d -c airgap-image.tar.zst | docker load && rm airgap-image.tar.zst
+
+      - name: Resolve image name
+        id: img
+        run: |
+          owner=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          echo "name=ghcr.io/${owner}/go-airgap" >> "$GITHUB_OUTPUT"
+
       # wit/deps is not checked in. This is the one step with a network, and
       # it uses the image's pinned wash rather than installing one.
       - name: Fetch WIT dependencies
-        run: make airgap-fetch AIRGAP_IMAGE="${{ steps.img.outputs.name }}"
+        run: make airgap-fetch AIRGAP_IMAGE="${{ steps.img.outputs.name }}" AIRGAP_MODULES="${{ matrix.module }}"
 
       # airgap-run, not airgap-test: the latter depends on airgap-image and
-      # would rebuild the image we just pulled.
-      - name: Build every example with no network
-        run: make airgap-run AIRGAP_IMAGE="${{ steps.img.outputs.name }}"
+      # would rebuild the image we just loaded.
+      - name: Build with no network
+        run: make airgap-run AIRGAP_IMAGE="${{ steps.img.outputs.name }}" AIRGAP_MODULES="${{ matrix.module }}"
 
   # Publishes the image so PR runs pull instead of rebuilding. Only from main
   # and the weekly run — never from a pull request, which cannot be trusted

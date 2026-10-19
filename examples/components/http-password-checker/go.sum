@@ -14,8 +14,10 @@ github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
 github.com/wagslane/go-password-validator v0.3.0 h1:vfxOPzGHkz5S146HDpavl0cw1DSVP061Ry2PX0/ON6I=
 github.com/wagslane/go-password-validator v0.3.0/go.mod h1:TI1XJ6T5fRdRnHqHt14pvy1tNVnrwe7m3/f1f2fDphQ=
-go.bytecodealliance.org/pkg v0.2.4-0.20260911130647-2495ff7eca86 h1:zGIeCOSMipYX/MunK47MC8qpPSVeWXbsvuTknCY8u1U=
-go.bytecodealliance.org/pkg v0.2.4-0.20260911130647-2495ff7eca86/go.mod h1:3Y4rSI/nLUEb57ZMXbEWDbblC/GWfZPRMh/qdxJTmMM=
+go.bytecodealliance.org/pkg v0.4.0 h1:oB0kfk9XGmNAe+TBWOyy61ys3TuCOpF/YBB7PboS2YI=
+go.bytecodealliance.org/pkg v0.4.0/go.mod h1:3Y4rSI/nLUEb57ZMXbEWDbblC/GWfZPRMh/qdxJTmMM=
+go.bytecodealliance.org/wasi v0.1.1 h1:3GrKL1iUq4JT8cWjp9HeOU9EG7kdTcyI09Vbh6TH1d0=
+go.bytecodealliance.org/wasi v0.1.1/go.mod h1:CQwMNxvQKsW2V4JOLrFlrzLOfXdYIcL+5Ua+L4xplsQ=
 go.wasmcloud.dev/component v0.1.6 h1:ppSQf1A/5AtUmZqjIkAQ3GqMoNmeuFPOsr2b9QwICWk=
 go.wasmcloud.dev/component v0.1.6/go.mod h1:Q3NOrAqEnNxNCGmow0GzTcXI/6a+d90sEO0Lv1QdGhE=
 golang.org/x/sys v0.0.0-20190509141414-a5b02f93d862/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=

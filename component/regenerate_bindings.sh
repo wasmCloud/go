@@ -1,57 +1,32 @@
 #!/bin/bash
 set -euo pipefail
 
-# Regenerates the committed componentize-go export glue for this SDK.
+# Regenerates the committed wit-bindgen bindings for this SDK.
 #
-# The shared wasi:* import bindings live in go.bytecodealliance.org/pkg
-# under imports/ and are regenerated there; this script only generates the
-# per-world export glue under exports/, pointing the generated code at the
-# go-pkg import bindings.
+# The shared wasi:* bindings, and the wasi:http export glue behind wasihttp,
+# live in go.bytecodealliance.org/wasi and are regenerated there. This script
+# only generates what is wasmCloud-specific: the import bindings for the
+# wasmCloud capability interfaces under imports/, and the export glue for the
+# optional handler callbacks under exports/.
 #
-# Uses the componentize-go binary from PATH by default; override with e.g.
-#   COMPONENTIZE_GO=~/source/bytecodealliance/componentize-go/target/debug/componentize-go ./regenerate_bindings.sh
-COMPONENTIZE_GO="${COMPONENTIZE_GO:-componentize-go}"
+# Mirrors go.bytecodealliance.org/wasi's regenerate_bindings.sh. Run it from
+# this directory with the wit-bindgen release pinned as SDK_WIT_BINDGEN in
+# airgap/versions.env (see BUILDING.md).
+#
+# Uses the wit-bindgen binary from PATH by default; override with e.g.
+#   WIT_BINDGEN=~/source/bytecodealliance/wit-bindgen/target/debug/wit-bindgen ./regenerate_bindings.sh
+WIT_BINDGEN="${WIT_BINDGEN:-wit-bindgen}"
 
 MODULE=go.wasmcloud.dev/component
-IMPORTS_PKG=go.bytecodealliance.org/pkg/imports
-
-WORLDS=(
-  "wasmcloud:component-go/wasip2@0.2.0"
-  "wasmcloud:component-go/wasip3@0.2.0"
-)
 
 # Import bindings for the wasmCloud capability interfaces (wasmcloud:secrets,
 # wasmcloud:keyvalue, wasmcloud:messaging, wasmcloud:postgres,
-# wasmcloud:blobstore), generated from the wasmcloud-capabilities world in
-# wit/capabilities.wit into imports/. These are this module's own bindings
-# (the wasi:* import bindings live in go.bytecodealliance.org/pkg/imports).
+# wasmcloud:blobstore, wasmcloud:nats), from the wasmcloud-capabilities world
+# in wit/capabilities.wit.
 CAPABILITIES_WORLD="wasmcloud:component-go/wasmcloud-capabilities@0.2.0"
 
-rm -rf imports
-"$COMPONENTIZE_GO" \
-  --ignore-toml-files \
-  -w "$CAPABILITIES_WORLD" \
-  -d wit \
-  bindings \
-  --format \
-  -o imports \
-  --pkg-name "$MODULE/imports" \
-  --include-versions
-rm -r imports/wit_exports
-
-# Export glue for the optional handler callbacks (wasmcloud:messaging and
-# the three wasmcloud:nats handlers). The handwritten trampoline packages
-# (export_*) are preserved; only the generated wit_exports directory is
-# refreshed.
-#
-# An export world can also need an import-side helper package that the
-# capabilities world does not produce: an interface with a `stream` parameter
-# (wasmcloud:messaging/handler@0.3.0) generates the stream ABI intrinsics for
-# its own export under imports/, and the generated wit_exports glue calls
-# them. Those are copied across below, chosen by what the generated glue
-# actually imports so the alias-only packages the other handler worlds emit
-# are not committed; a package the capabilities world already generated is
-# left alone, so its version stays authoritative.
+# Export glue for the optional handler callbacks. The handwritten trampoline
+# packages (export_*) next to each wit_exports directory are preserved.
 EXPORT_WORLDS=(
   "wasmcloud:component-go/wasmcloud-messaging-handler@0.2.0"
   "wasmcloud:component-go/wasmcloud-nats-core-handler@0.2.0"
@@ -59,72 +34,69 @@ EXPORT_WORLDS=(
   "wasmcloud:component-go/wasmcloud-nats-kv-handler@0.2.0"
 )
 
-for world in "${EXPORT_WORLDS[@]}"; do
-  rm -rf tmp
-  dir=exports/$(echo "$world" | sed 's+[:/@.-]+_+g')
-  rm -rf "$dir/wit_exports"
-  mkdir -p "$dir"
-  "$COMPONENTIZE_GO" \
-    --ignore-toml-files \
-    -w "$world" \
-    -d wit \
-    bindings \
+generate() {
+  "$WIT_BINDGEN" go \
+    -w "$1" \
+    --pkg-name "$MODULE" \
+    --include-versions \
     --format \
-    -o tmp \
-    --export-pkg-name "$MODULE/$dir" \
-    --pkg-name "$MODULE/imports" \
-    --include-versions
-  cp -r tmp/wit_exports "$dir/"
+    --quiet \
+    --out-dir "$2" \
+    wit >/dev/null
+}
 
-  for name in $(grep -hoE "\"$MODULE/imports/[a-z0-9_]+\"" tmp/wit_exports/*.go \
+# Allow a package to compile on non-wasm hosts despite bodyless
+# //go:wasmimport declarations (same trick as the generated imports).
+add_empty_s() {
+  if [ ! -f "$1/empty.s" ]; then
+    cat > "$1/empty.s" <<'EOF'
+// This file exists for testing this package without WebAssembly,
+// allowing empty function bodies with a //go:wasmimport directive.
+// See https://pkg.go.dev/cmd/compile for more information.
+EOF
+  fi
+}
+
+rm -rf imports tmp
+mkdir -p imports
+
+generate "$CAPABILITIES_WORLD" "tmp/$CAPABILITIES_WORLD"
+cp -r "tmp/$CAPABILITIES_WORLD"/imports/* imports/
+
+for world in "${EXPORT_WORLDS[@]}"; do
+  dir=exports/$(echo "$world" | sed 's+[:/@.-]+_+g')
+  out="tmp/$world"
+
+  generate "$world" "$out"
+
+  # Merge in the import packages the export glue references. Packages the
+  # capabilities world already generated must be identical. A handler world
+  # also emits alias-only packages for its own interface; those are skipped
+  # unless the glue actually imports them (an interface with a `stream`
+  # parameter, such as wasmcloud:messaging/handler@0.3.0, carries the stream
+  # ABI intrinsics there).
+  for name in $(grep -hoE "\"$MODULE/imports/[a-z0-9_]+\"" "$out/exports/wit_exports/wit_exports.go" \
       | sed -e "s|.*/imports/||" -e 's|"$||' | sort -u); do
-    if [ ! -d "imports/$name" ] && [ -d "tmp/$name" ]; then
-      cp -r "tmp/$name" imports/
+    if [ -e "imports/$name" ]; then
+      if ! diff -r "imports/$name" "$out/imports/$name" >/dev/null; then
+        echo "error: imports/$name differs between worlds" >&2
+        exit 1
+      fi
+    else
+      cp -r "$out/imports/$name" imports/
     fi
   done
-  rm -rf tmp
 
-  # Allow the package to compile on non-wasm hosts despite bodyless
-  # //go:wasmimport declarations (same trick as the generated imports).
-  if [ ! -f "$dir/wit_exports/empty.s" ]; then
-    cat > "$dir/wit_exports/empty.s" <<'EOF'
-// This file exists for testing this package without WebAssembly,
-// allowing empty function bodies with a //go:wasmimport directive.
-// See https://pkg.go.dev/cmd/compile for more information.
-EOF
-  fi
-done
-
-# For each supported world, generate bindings specific to that world. We keep
-# only the exports, deferring to the shared import bindings from
-# go.bytecodealliance.org/pkg/imports.
-for world in "${WORLDS[@]}"; do
-  rm -rf tmp
-  dir=exports/$(echo "$world" | sed 's+[:/@.-]+_+g')
+  # Keep only the generated export glue; the export_* trampolines next to it
+  # are hand-written. Point the glue at the per-world trampoline packages.
   rm -rf "$dir/wit_exports"
   mkdir -p "$dir"
-  "$COMPONENTIZE_GO" \
-    --ignore-toml-files \
-    -w "$world" \
-    -d wit \
-    bindings \
-    --format \
-    -o tmp \
-    --export-pkg-name "$MODULE/$dir" \
-    --pkg-name "$IMPORTS_PKG" \
-    --include-versions
-  cp -r tmp/wit_exports "$dir/"
-  rm -rf tmp
-
-  # Allow the package to compile on non-wasm hosts despite bodyless
-  # //go:wasmimport declarations (same trick as the generated imports).
-  if [ ! -f "$dir/wit_exports/empty.s" ]; then
-    cat > "$dir/wit_exports/empty.s" <<'EOF'
-// This file exists for testing this package without WebAssembly,
-// allowing empty function bodies with a //go:wasmimport directive.
-// See https://pkg.go.dev/cmd/compile for more information.
-EOF
-  fi
+  cp -r "$out/exports/wit_exports" "$dir/"
+  sed "s+\"$MODULE/exports/export_+\"$MODULE/$dir/export_+g" \
+    "$out/exports/wit_exports/wit_exports.go" > "$dir/wit_exports/wit_exports.go"
+  add_empty_s "$dir/wit_exports"
 done
+
+rm -rf tmp
 
 go mod tidy

@@ -68,6 +68,18 @@ fi
 actual_gopkg=$(grep -oE 'go\.bytecodealliance\.org/pkg v[^ ]*' component/go.mod | awk '{print $2}')
 check "go-pkg" "$GO_PKG" "$actual_gopkg"
 
+# --- go-wasi ----------------------------------------------------------------
+# shellcheck disable=SC2207
+wasi_pins=($(grep -rhoE 'go\.bytecodealliance\.org/wasi v[0-9][^ ]*' \
+  --include=go.mod examples templates | awk '{print $2}' | sort -u))
+if [ "${#wasi_pins[@]}" -eq 1 ] && [ "${wasi_pins[0]}" = "$GO_WASI" ]; then
+  printf '  ok    %-28s all modules at %s\n' "go-wasi (module pins)" "$GO_WASI"
+else
+  printf '  DRIFT %-28s expected all at %s, found: %s\n' \
+    "go-wasi (module pins)" "$GO_WASI" "${wasi_pins[*]}"
+  problems=$((problems + 1))
+fi
+
 # --- componentize-go: module vs binary --------------------------------------
 actual_cg_mod=$(grep -rhoE 'github\.com/bytecodealliance/componentize-go v[^ ]*' \
   --include=go.mod examples | awk '{print $2}' | sort -u | head -n1)
@@ -164,6 +176,25 @@ else
   problems=$((problems + 1))
 fi
 
+# The SDK's own bindings come from the standalone wit-bindgen CLI, pinned
+# separately as SDK_WIT_BINDGEN, so they are checked against that instead.
+stale_sdk_bindings=""
+while IFS= read -r f; do
+  header_version=$(sed -n '1s/.*`wit-bindgen` \(.*\)\. DO NOT.*/\1/p' "$f")
+  [ -z "$header_version" ] && continue
+  if [ "$header_version" != "$SDK_WIT_BINDGEN" ]; then
+    stale_sdk_bindings="${stale_sdk_bindings}\n      ${f} (${header_version})"
+  fi
+done < <(git ls-files 'component/**/wit_bindings.go' 'component/**/wit_exports.go')
+
+if [ -z "$stale_sdk_bindings" ]; then
+  printf '  ok    %-28s all committed headers at %s\n' "SDK bindings" "$SDK_WIT_BINDGEN"
+else
+  printf '  DRIFT %-28s expected %s; run component/regenerate_bindings.sh%b\n' \
+    "SDK bindings" "$SDK_WIT_BINDGEN" "$stale_sdk_bindings"
+  problems=$((problems + 1))
+fi
+
 # --- BUILDING.md must repeat the same numbers -------------------------------
 echo
 echo "Checking BUILDING.md agrees..."
@@ -171,6 +202,8 @@ echo
 for pair in \
   "SDK:${SDK_VERSION}" \
   "go-pkg:${GO_PKG}" \
+  "go-wasi:${GO_WASI}" \
+  "SDK wit-bindgen:${SDK_WIT_BINDGEN}" \
   "componentize-go module:${COMPONENTIZE_GO_MODULE}" \
   "componentize-go binary:${COMPONENTIZE_GO_BINARY}" \
   "wit-component:${WIT_COMPONENT}" \

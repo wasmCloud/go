@@ -225,7 +225,7 @@ func (b *Bucket) Swap(key string, value []byte, opts SwapOptions) (SwapResult, e
 		return SwapResult{}, convertError(res.Err())
 	}
 	outcome := res.Ok()
-	if outcome.Tag() == cas.CasResultSwapped {
+	if outcome.Tag() == cas.CasResult_Swapped {
 		return SwapResult{Swapped: true}, nil
 	}
 	var stale *Entry

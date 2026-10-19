@@ -46,19 +46,19 @@ var (
 
 func convertError(e types.Error) error {
 	switch e.Tag() {
-	case types.ErrorSubjectInvalid:
+	case types.Error_SubjectInvalid:
 		return ErrSubjectInvalid
-	case types.ErrorAccessDenied:
+	case types.Error_AccessDenied:
 		return ErrAccessDenied
-	case types.ErrorTimeout:
+	case types.Error_Timeout:
 		return ErrTimeout
-	case types.ErrorBrokerUnavailable:
+	case types.Error_BrokerUnavailable:
 		return ErrBrokerUnavailable
-	case types.ErrorMessageTooLarge:
+	case types.Error_MessageTooLarge:
 		return ErrMessageTooLarge
-	case types.ErrorQuotaExceeded:
+	case types.Error_QuotaExceeded:
 		return ErrQuotaExceeded
-	case types.ErrorOther:
+	case types.Error_Other:
 		return fmt.Errorf("messaging: %s", e.Other())
 	default:
 		// The variant is non-exhaustive; future hosts may add cases.

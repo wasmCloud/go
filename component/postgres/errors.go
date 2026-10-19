@@ -39,13 +39,13 @@ func (e *DBError) Error() string {
 
 func convertError(e types.Error) error {
 	switch e.Tag() {
-	case types.ErrorConnectionFailed:
+	case types.Error_ConnectionFailed:
 		return fmt.Errorf("postgres: connection failed: %s", e.ConnectionFailed())
-	case types.ErrorInvalidParams:
+	case types.Error_InvalidParams:
 		return fmt.Errorf("postgres: invalid params: %s", e.InvalidParams())
-	case types.ErrorInvalidQuery:
+	case types.Error_InvalidQuery:
 		return fmt.Errorf("postgres: invalid query: %s", e.InvalidQuery())
-	case types.ErrorQueryFailed:
+	case types.Error_QueryFailed:
 		db := e.QueryFailed()
 		out := &DBError{
 			Code:     db.Code,
@@ -57,15 +57,15 @@ func convertError(e types.Error) error {
 			out.Extras = append(out.Extras, [2]string{extra.F0, extra.F1})
 		}
 		return out
-	case types.ErrorValueConversionFailed:
+	case types.Error_ValueConversionFailed:
 		return fmt.Errorf("postgres: value conversion failed: %s", e.ValueConversionFailed())
-	case types.ErrorUnknownPreparedStatement:
+	case types.Error_UnknownPreparedStatement:
 		return ErrUnknownPreparedStatement
-	case types.ErrorAccessDenied:
+	case types.Error_AccessDenied:
 		return ErrAccessDenied
-	case types.ErrorTimeout:
+	case types.Error_Timeout:
 		return ErrTimeout
-	case types.ErrorOther:
+	case types.Error_Other:
 		return fmt.Errorf("postgres: %s", e.Other())
 	default:
 		// The variant is non-exhaustive; future hosts may add cases.

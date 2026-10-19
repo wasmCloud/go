@@ -22,21 +22,21 @@ var (
 
 func convertError(e types.Error) error {
 	switch e.Tag() {
-	case types.ErrorNoSuchStore:
+	case types.Error_NoSuchStore:
 		return ErrNoSuchStore
-	case types.ErrorAccessDenied:
+	case types.Error_AccessDenied:
 		return ErrAccessDenied
-	case types.ErrorInvalidArgument:
+	case types.Error_InvalidArgument:
 		return ErrInvalidArgument
-	case types.ErrorPreconditionFailed:
+	case types.Error_PreconditionFailed:
 		return ErrPreconditionFailed
-	case types.ErrorTimeout:
+	case types.Error_Timeout:
 		return ErrTimeout
-	case types.ErrorStoreUnavailable:
+	case types.Error_StoreUnavailable:
 		return ErrStoreUnavailable
-	case types.ErrorQuotaExceeded:
+	case types.Error_QuotaExceeded:
 		return ErrQuotaExceeded
-	case types.ErrorOther:
+	case types.Error_Other:
 		return fmt.Errorf("keyvalue: %s", e.Other())
 	default:
 		// The variant is non-exhaustive; future hosts may add cases.

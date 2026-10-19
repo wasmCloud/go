@@ -231,16 +231,16 @@ type FetchStop uint8
 
 const (
 	// FetchStopBatchFilled means the batch was filled: batch messages came back.
-	FetchStopBatchFilled FetchStop = FetchStop(js.FetchStopBatchFilled)
+	FetchStopBatchFilled FetchStop = FetchStop(js.FetchStop_BatchFilled)
 	// FetchStopDrained means the consumer had no more to give before the
 	// timeout elapsed. What came back is everything that was there.
-	FetchStopDrained FetchStop = FetchStop(js.FetchStopDrained)
+	FetchStopDrained FetchStop = FetchStop(js.FetchStop_Drained)
 	// FetchStopByteLimit means a byte bound ended the batch early: maxBytes on
 	// the call, the consumer's MaxRequestMaxBytes, or — when maxBytes is 0 —
 	// what is left of the binding's `subscription-capacity-bytes` after the
 	// handles this component still holds. More messages are waiting, and the
 	// next fetch picks up where this one stopped.
-	FetchStopByteLimit FetchStop = FetchStop(js.FetchStopByteLimit)
+	FetchStopByteLimit FetchStop = FetchStop(js.FetchStop_ByteLimit)
 )
 
 func (s FetchStop) String() string {
