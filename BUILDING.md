@@ -16,7 +16,7 @@ every value from its real upstream source and fails if the two disagree.
 | Go | 1.27.1 (`go.bytecodealliance.org/pkg` and `/wasi` declare `go 1.27.1`) |
 | `go.wasmcloud.dev/component` | v0.1.6 |
 | `go.bytecodealliance.org/pkg` | v0.4.0 |
-| `go.bytecodealliance.org/wasi` | v0.1.0 |
+| `go.bytecodealliance.org/wasi` | v0.1.1 |
 | componentize-go | v0.4.3 (module and toolchain) |
 | wit-bindgen-go | 0.61.1 (rev `4f9a02d7`) |
 | wit-component / wit-parser | 0.258.0 |
