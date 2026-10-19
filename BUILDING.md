@@ -204,15 +204,25 @@ rather than relying on `$HOME`, so the path is predictable.
 `version.txt` must contain the release string the wrapper expects (`v0.4.3`
 here) or it will re-download on the first build, air gap or not.
 
+The air-gapped image does exactly this, and does not let either tool fetch for
+itself: its seed stage downloads `componentize-go-linux-<arch>.tar.gz` from the
+`COMPONENTIZE_GO_BINARY` release and `go-linux-<arch>-bootstrap.tbz` from the
+`PATCHED_GO_TAG` release, writes `version.txt`, and fails if the pinned
+componentize-go module's `release :=` names anything else. The warm-up builds
+that follow run with `RUN --network=none`, so an incomplete seed fails the image
+build rather than shipping.
+
 ## Verifying it
 
-The repo ships a container that has exactly these versions and no network, and
-builds every example in it:
+The repo ships a container that has exactly these versions and no network.
+Each example is built in its own fresh container, started from the image as
+shipped, so no example can depend on something another one's build left behind:
 
 ```shell
 make airgap-test     # fetch WIT deps, then build every example with --network none
 make airgap-fetch    # just the fetch: wit/deps into the checkout (needs network)
-make airgap-run      # just the offline build, against deps already fetched
+make airgap-run      # just the offline builds, against deps already fetched
+make airgap-run AIRGAP_MODULES=examples/components/http-server  # one module
 make airgap-shell    # same image, interactive, for debugging
 make airgap-versions # re-derive every version and check this document
 ```
@@ -222,8 +232,14 @@ network — the WIT equivalent of populating `GOMODCACHE`. It writes into the
 checkout rather than the image because the image tag only tracks
 `airgap/versions.env`, not each example's `wkg.lock`.
 
-This runs in CI on every change to the SDK, the examples, or the templates. A
-build that needs something not pinned here fails there.
+`--network none` makes any download fail, but a build also fails if a tool
+merely *tried*: `build-all.sh` rejects a build whose output shows a
+componentize-go, patched-Go, module or toolchain download, or that changed the
+seeded `componentize-go` cache, and names that as the reason.
+
+This runs in CI on every change to the SDK, the examples, or the templates, as
+one job per module (`Offline (<module>)`). A build that needs something not
+pinned here fails there.
 
 By default the container builds against the **released** SDK, exactly as the
 checked-in `go.mod` files declare — the situation a user cloning this repo is

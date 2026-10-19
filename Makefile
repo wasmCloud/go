@@ -19,6 +19,10 @@ AIRGAP_REF   := $(AIRGAP_IMAGE):$(AIRGAP_TAG)
 # Passed through to the container; see airgap/build-all.sh.
 AIRGAP_USE_LOCAL_SDK ?= 0
 
+# Which modules airgap-fetch and airgap-run cover. Defaults to every example and
+# template; narrow it with e.g. AIRGAP_MODULES=examples/components/http-server.
+AIRGAP_MODULES ?= $(shell find examples/components templates -name go.mod 2>/dev/null | xargs -n1 dirname | sort)
+
 DOCKER ?= docker
 
 .DEFAULT_GOAL := help
@@ -48,18 +52,28 @@ airgap-fetch: ## Fetch every example's WIT deps into the checkout (needs network
 		-e XDG_CONFIG_HOME=/tmp/config -e XDG_DATA_HOME=/tmp/data \
 		-v "$(CURDIR):/workspace" \
 		--entrypoint /bin/bash \
-		$(AIRGAP_REF) /workspace/airgap/fetch-wit.sh
+		$(AIRGAP_REF) /workspace/airgap/fetch-wit.sh $(AIRGAP_MODULES)
 
 # Split out so CI can run the suite against an image it pulled from GHCR
 # without rebuilding it. `docker build` is nearly free locally once layers are
 # cached, but on a fresh runner it re-does the whole seed stage — which is the
 # cost pulling exists to avoid.
+#
+# One fresh container per module: each example starts from the image exactly as
+# shipped, so nothing one build leaves in a cache can carry the next.
 .PHONY: airgap-run
-airgap-run: ## Run the offline suite against an existing (built or pulled) image
-	$(DOCKER) run --rm --network none \
-		-e AIRGAP_USE_LOCAL_SDK=$(AIRGAP_USE_LOCAL_SDK) \
-		-v "$(CURDIR):/workspace" \
-		$(AIRGAP_REF)
+airgap-run: ## Build each module with no network, each in its own fresh container
+	@passed=(); failed=(); \
+	for mod in $(AIRGAP_MODULES); do \
+		if $(DOCKER) run --rm --network none \
+			-e AIRGAP_USE_LOCAL_SDK=$(AIRGAP_USE_LOCAL_SDK) \
+			-v "$(CURDIR):/workspace" \
+			$(AIRGAP_REF) "$$mod"; \
+		then passed+=("$$mod"); else failed+=("$$mod"); fi; \
+	done; \
+	echo "######################################################################"; \
+	echo "offline builds passed: $${#passed[@]}/$$(( $${#passed[@]} + $${#failed[@]} ))"; \
+	if [ $${#failed[@]} -gt 0 ]; then printf '  FAILED %s\n' "$${failed[@]}"; exit 1; fi
 
 .PHONY: airgap-shell
 airgap-shell: airgap-image ## Interactive shell in the air-gapped image

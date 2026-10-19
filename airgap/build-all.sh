@@ -1,11 +1,18 @@
 #!/usr/bin/env bash
 #
-# Build every example and template in the repo, with no network.
+# Build examples and templates with no network.
 #
 # Runs as the entrypoint of the air-gapped image (see airgap/Dockerfile) with
-# the repo bind-mounted at /workspace. Collects failures and reports all of them
-# at the end rather than stopping at the first, so one broken example does not
-# hide the state of the other ten.
+# the repo bind-mounted at /workspace. With no arguments it builds every module;
+# given module directories (relative to the repo root) it builds just those —
+# `make airgap-run` and CI call it once per module, each in a fresh container.
+# Collects failures and reports all of them at the end rather than stopping at
+# the first, so one broken example does not hide the state of the others.
+#
+# `--network none` already turns any download into a failure. On top of that,
+# a build fails here if a tool *tried* to fetch something — a componentize-go
+# download message, or any change to the seeded toolchain cache — so the cause
+# is named rather than left as a DNS error in the middle of a build log.
 #
 # AIRGAP_USE_LOCAL_SDK=1 builds against the SDK in the checkout instead of the
 # released module. Off by default: the point of this image is to verify what a
@@ -21,9 +28,17 @@ cd "$WORKSPACE" || { echo "no workspace at $WORKSPACE" >&2; exit 1; }
 # Everything that produces a component. The two nats-request-reply halves are
 # separate modules, so the glob has to reach a level deeper.
 MODULES=()
-while IFS= read -r dir; do
-  MODULES+=("$dir")
-done < <(find examples/components templates -name go.mod 2>/dev/null | xargs -n1 dirname | sort)
+if [ $# -gt 0 ]; then
+  for dir in "$@"; do
+    dir=${dir%/}
+    [ -f "$dir/go.mod" ] || { echo "not a module: $dir" >&2; exit 1; }
+    MODULES+=("$dir")
+  done
+else
+  while IFS= read -r dir; do
+    MODULES+=("$dir")
+  done < <(find examples/components templates -name go.mod 2>/dev/null | xargs -n1 dirname | sort)
+fi
 
 if [ ${#MODULES[@]} -eq 0 ]; then
   echo "found no modules under examples/components or templates" >&2
@@ -44,6 +59,28 @@ fi
 
 passed=()
 failed=()
+
+# The toolchain the image seeded: the componentize-go binary + version.txt, and
+# the patched Go tree. A re-download rewrites these (or adds a new tree), which
+# changes mtimes even when names and sizes match. The patched tree's own files
+# are left out apart from its entry points: there are thousands of them and a
+# re-extract would rewrite bin/go and VERSION along with the rest.
+CG_CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/componentize-go"
+toolchain_state() {
+  {
+    # Directories by name only: overlayfs reports a different directory size
+    # once a lock file in it is opened for writing, which both tools do on
+    # every run.
+    find "$CG_CACHE" -maxdepth 2 -type d -printf '%P/\n'
+    find "$CG_CACHE" -maxdepth 2 -type f ! -name lock -printf '%P %s %T@\n'
+    find "$CG_CACHE"/v2/*/bin/go "$CG_CACHE"/v2/*/VERSION -printf '%P %s %T@\n'
+  } 2>/dev/null | sort | cksum
+}
+
+# What each tool prints just before it reaches for the network. GOPROXY=off and
+# GOTOOLCHAIN=local turn Go's own fetches into errors rather than messages, but
+# they are listed so a change to either setting cannot slip through quietly.
+DOWNLOAD_PATTERN='Downloading `componentize-go` binary|Downloading patched Go|^go: downloading |^go: toolchain'
 
 # The workspace is a bind mount of a real checkout, so every edit this script
 # makes has to be undone on every exit path, including the early ones.
@@ -110,13 +147,26 @@ for dir in "${MODULES[@]}"; do
     continue
   fi
 
-  if (cd "$dir" && wash build --skip-fetch); then
+  log=$(mktemp)
+  before=$(toolchain_state)
+  (cd "$dir" && wash build --skip-fetch) 2>&1 | tee "$log"
+  status=${PIPESTATUS[0]}
+  after=$(toolchain_state)
+
+  if attempt=$(grep -E "$DOWNLOAD_PATTERN" "$log"); then
+    failed+=("$dir (tried to download: $(head -n1 <<<"$attempt"))")
+    printf '    FAIL: download attempted\n\n'
+  elif [ "$before" != "$after" ]; then
+    failed+=("$dir (toolchain cache under $CG_CACHE changed during the build)")
+    printf '    FAIL: toolchain cache changed\n\n'
+  elif [ "$status" -eq 0 ]; then
     passed+=("$dir")
     printf '    PASS\n\n'
   else
     failed+=("$dir")
     printf '    FAIL\n\n'
   fi
+  rm -f "$log"
 
   restore "$dir"
 done

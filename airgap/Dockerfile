@@ -1,9 +1,10 @@
 # Air-gapped build image.
 #
-# Stage 1 has a network and is allowed to download; stage 2 is what ships and
-# must never need one. The air gap is enforced when the image is *run*
-# (`docker run --network none`), which is the honest test: building the image
-# online is fine, building components inside it offline is the thing under test.
+# Stage 1 has a network and downloads every pinned artifact explicitly; stage 2
+# is what ships and must never need one. The air gap is enforced when the image
+# is *run* (`docker run --network none`, one container per example), which is
+# the honest test: building the image online is fine, building components
+# inside it offline is the thing under test.
 #
 # Versions come from airgap/versions.env — see BUILDING.md.
 
@@ -59,44 +60,55 @@ RUN set -eux; \
       (cd "$dir" && go mod download all); \
     done
 
-# Populate the componentize-go caches by actually running the tool, rather than
-# reconstructing its cache layout by hand. Two builds are needed and BOTH
-# matter: the sync one fetches the componentize-go binary, the async one fetches
-# the patched Go. Skip the async build and the image silently ships unable to
-# build six of the eleven examples.
+# The componentize-go Go module is only a wrapper: on first run it downloads a
+# Rust binary named by the `release :=` string in its main.go, and an async
+# world makes that binary download a patched Go. Neither is left to the tools.
+# Both are fetched here, explicitly, at exactly the versions in versions.env,
+# into the cache layout the tools look in (see BUILDING.md, "Building offline").
+#
+# The wrapper re-downloads whenever version.txt differs from its own `release`,
+# so a COMPONENTIZE_GO_BINARY that disagrees with the module would be thrown
+# away on first use. Catch that here rather than in the offline run.
 RUN set -eux; \
-    cd /src/examples/components/http-server && wash build --skip-fetch; \
-    test -x "${XDG_CACHE_HOME}/componentize-go/bin/componentize-go"; \
-    grep -qx "${COMPONENTIZE_GO_BINARY}" "${XDG_CACHE_HOME}/componentize-go/version.txt"
+    mod=$(cd examples/components/http-server && \
+      go list -m -f '{{.Dir}}' github.com/bytecodealliance/componentize-go); \
+    grep -q "release := \"${COMPONENTIZE_GO_BINARY}\"" "${mod}/main.go" || { \
+      echo "COMPONENTIZE_GO_BINARY=${COMPONENTIZE_GO_BINARY} but ${mod}/main.go fetches:" >&2; \
+      grep 'release :=' "${mod}/main.go" >&2; exit 1; }
 
-RUN set -eux; \
-    cd /src/examples/components/http-p3-streaming && wash build --skip-fetch
-
-# If PATCHED_GO_TAG names a build the pinned componentize-go does not know about
-# — a newer dicej/go build, say — the async build above fetched the wrong one.
-# Nothing in a released wrapper will fetch it, so pull it directly and replace
-# the cached tree. When the tag already matches, this is a no-op.
 RUN set -eux; \
     case "${TARGETARCH}" in \
       amd64) goarch=amd64 ;; \
       arm64) goarch=arm64 ;; \
       *) echo "unsupported TARGETARCH: ${TARGETARCH}" >&2; exit 1 ;; \
     esac; \
+    cg="${XDG_CACHE_HOME}/componentize-go"; \
+    mkdir -p "${cg}/bin" "${cg}/v2"; \
+    \
+    curl -sSfL "https://github.com/bytecodealliance/componentize-go/releases/download/${COMPONENTIZE_GO_BINARY}/componentize-go-linux-${goarch}.tar.gz" \
+      | tar -xz -C "${cg}/bin"; \
+    chmod 0755 "${cg}/bin/componentize-go"; \
+    printf '%s' "${COMPONENTIZE_GO_BINARY}" > "${cg}/version.txt"; \
+    "${cg}/bin/componentize-go" --version | grep -F "${COMPONENTIZE_GO_BINARY#v}"; \
+    \
     name="go-linux-${goarch}-bootstrap"; \
-    dir="${XDG_CACHE_HOME}/componentize-go/v2/${name}"; \
+    curl -sSfL "https://github.com/dicej/go/releases/download/${PATCHED_GO_TAG}/${name}.tbz" \
+      | tar -xj -C "${cg}/v2"; \
     want="${PATCHED_GO_TAG#go}"; want="${want%%-*}"; \
-    have=""; \
-    if [ -f "${dir}/VERSION" ]; then have=$(head -n1 "${dir}/VERSION" | sed 's/^go//'); fi; \
-    if [ "${have}" = "${want}" ]; then \
-      echo "patched Go ${have} already cached, matches ${PATCHED_GO_TAG}"; \
-    else \
-      echo "cached patched Go '${have}' != wanted '${want}'; fetching ${PATCHED_GO_TAG}"; \
-      rm -rf "${dir}"; \
-      mkdir -p "${XDG_CACHE_HOME}/componentize-go/v2"; \
-      curl -sSfL "https://github.com/dicej/go/releases/download/${PATCHED_GO_TAG}/${name}.tbz" \
-        | tar -xj -C "${XDG_CACHE_HOME}/componentize-go/v2"; \
-    fi; \
-    grep -q wasiOnIdle "${dir}/src/runtime/lock_wasip1.go"
+    have=$(head -n1 "${cg}/v2/${name}/VERSION" | sed 's/^go//'); \
+    [ "${have}" = "${want}" ] || { echo "patched Go VERSION '${have}' != '${want}'" >&2; exit 1; }; \
+    grep -q wasiOnIdle "${cg}/v2/${name}/src/runtime/lock_wasip1.go"
+
+# Warm GOCACHE with one sync and one async build — and, since these run with no
+# network, prove the seeded caches are complete before the image ships. If
+# either tool still wanted to download something, the image build fails here.
+RUN --network=none set -eux; \
+    export GOPROXY=off GOSUMDB=off; \
+    cd /src/examples/components/http-server && wash build --skip-fetch
+
+RUN --network=none set -eux; \
+    export GOPROXY=off GOSUMDB=off; \
+    cd /src/examples/components/http-p3-streaming && wash build --skip-fetch
 
 # The builds above wrote artifacts into the source tree. They are throwaway —
 # the real run bind-mounts a clean checkout — so drop them rather than baking

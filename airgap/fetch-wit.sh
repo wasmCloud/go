@@ -21,11 +21,14 @@ WORKSPACE=${WORKSPACE:-/workspace}
 cd "$WORKSPACE" || { echo "no workspace at $WORKSPACE" >&2; exit 1; }
 
 # Only projects with their own wit/ have anything to fetch; the rest take their
-# worlds from the SDK module, which GOMODCACHE already covers.
+# worlds from the SDK module, which GOMODCACHE already covers. Module
+# directories given as arguments narrow the set, as for build-all.sh.
 DIRS=()
 while IFS= read -r dir; do
+  dir=${dir%/}
   [ -d "$dir/wit" ] && DIRS+=("$dir")
-done < <(find examples/components templates -name go.mod 2>/dev/null | xargs -n1 dirname | sort)
+done < <(if [ $# -gt 0 ]; then printf '%s\n' "$@"; else
+  find examples/components templates -name go.mod 2>/dev/null | xargs -n1 dirname | sort; fi)
 
 echo "Fetching WIT dependencies for ${#DIRS[@]} projects."
 echo
