@@ -9,8 +9,9 @@ set -euo pipefail
 # wasmCloud capability interfaces under imports/, and the export glue for the
 # optional handler callbacks under exports/.
 #
-# Mirrors go.bytecodealliance.org/wasi's regenerate_bindings.sh, and should be
-# run with the same wit-bindgen it was (see BUILDING.md).
+# Mirrors go.bytecodealliance.org/wasi's regenerate_bindings.sh. Run it from
+# this directory with the wit-bindgen release pinned as SDK_WIT_BINDGEN in
+# airgap/versions.env (see BUILDING.md).
 #
 # Uses the wit-bindgen binary from PATH by default; override with e.g.
 #   WIT_BINDGEN=~/source/bytecodealliance/wit-bindgen/target/debug/wit-bindgen ./regenerate_bindings.sh
