@@ -45,6 +45,7 @@ wash dev
 | [http-keyvalue-crud](./examples/components/http-keyvalue-crud) | HTTP CRUD over host-served `wasi:keyvalue` | |
 | [http-otel](./examples/components/http-otel) | OpenTelemetry tracing via the host's `wasi:otel` plugin | |
 | [http-p3-streaming](./examples/components/http-p3-streaming) | Async WASI P3: streaming echo + concurrent outbound fan-out | ✅ |
+| [http-local-routing](./examples/components/http-local-routing) | Same-host local routing: a caller served in-memory by a co-located callee | ✅ |
 | [nats-request-reply](./examples/components/nats-request-reply) | Core NATS request-reply: a responder plus an HTTP gateway that calls it | ✅ |
 | [nats-jetstream-orders](./examples/components/nats-jetstream-orders) | JetStream delivery into KV, with ack/nak and compare-and-swap | ✅ |
 | [nats-kv-watch](./examples/components/nats-kv-watch) | Watching a JetStream KV bucket and rebuilding derived state | ✅ |
