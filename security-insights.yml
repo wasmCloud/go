@@ -1,0 +1,65 @@
+header:
+  schema-version: 2.2.0
+  last-updated: '2026-10-30'
+  last-reviewed: '2026-10-30'
+  url: https://raw.githubusercontent.com/wasmCloud/go/main/security-insights.yml
+  project-si-source: https://raw.githubusercontent.com/wasmCloud/wasmCloud/main/security-insights.yml
+  comment: >-
+    Repository-level data for wasmCloud/go. Project-level data, including
+    vulnerability reporting, is in the wasmCloud/wasmCloud file above.
+
+repository:
+  url: https://github.com/wasmCloud/go
+  status: active
+  accepts-change-request: true
+  accepts-automated-change-request: true
+  core-team:
+    - name: wasmCloud Go maintainers (@wasmCloud/go-maintainers)
+      social: https://github.com/wasmCloud/go/blob/main/MAINTAINERS.md#wasmcloudgo-maintainers
+      primary: true
+  license:
+    url: https://github.com/wasmCloud/go/blob/main/LICENSE
+    expression: Apache-2.0
+  documentation:
+    contributing-guide: https://github.com/wasmCloud/go/blob/main/CONTRIBUTING.md
+    governance: https://github.com/wasmCloud/wasmCloud/blob/main/GOVERNANCE.md
+    security-policy: https://github.com/wasmCloud/.github/blob/main/SECURITY.md
+  release:
+    automated-pipeline: true
+    distribution-points:
+      - uri: https://github.com/wasmCloud/go/releases
+        comment: GitHub Releases, tagged component/v<version>, cut by release-train.yaml and release-tag.yaml.
+      - uri: https://pkg.go.dev/go.wasmcloud.dev/component
+        comment: The go.wasmcloud.dev/component module, fetched through the Go module proxy and checked against the Go checksum database.
+      - uri: https://github.com/wasmCloud/go/pkgs/container/go-airgap
+        comment: ghcr.io/wasmcloud/go-airgap image with the pinned toolchain for offline builds, published on each component/v* tag.
+    changelog: https://github.com/wasmCloud/go/releases
+  security:
+    assessments:
+      self:
+        comment: A self-assessment has not been completed yet.
+    tools:
+      - name: Dependabot
+        type: SCA
+        comment: Dependabot alerts and security-update PRs, plus version updates for Go modules and GitHub Actions.
+        rulesets:
+          - default
+        integration:
+          adhoc: true
+          ci: false
+          release: false
+        results: {}
+      - name: Renovate
+        type: SCA
+        comment: Go module updates, including indirect dependencies.
+        rulesets:
+          - default
+        integration:
+          adhoc: true
+          ci: false
+          release: false
+        results:
+          adhoc:
+            name: Renovate
+            predicate-uri: https://docs.renovatebot.com
+            location: https://github.com/wasmCloud/go/actions/workflows/renovate.yaml
