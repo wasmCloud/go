@@ -145,9 +145,10 @@ jobs:
           echo "modules=$(find examples/components templates -name go.mod -exec dirname {} \; | sort \
             | jq -R -s -c 'split("\n") | map(select(length > 0))')" >> "$GITHUB_OUTPUT"
 
-      # The image is tagged by a hash of airgap/versions.env, so a cache miss
-      # means the pinned version set changed — which is exactly when we want a
-      # fresh image rather than a stale one.
+      # The image is tagged by a hash of airgap/versions.env and every
+      # example's go.mod and go.sum (airgap/image-tag.sh), so a cache miss means
+      # the pinned version set or a module's dependencies changed — which is
+      # exactly when we want a fresh image rather than a stale one.
       #
       # The owner has to be lowercased: Docker repository names must be
       # lowercase and this org is `wasmCloud`. Computed rather than hardcoded so
@@ -157,7 +158,7 @@ jobs:
         run: |
           owner=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           echo "name=ghcr.io/${owner}/go-airgap" >> "$GITHUB_OUTPUT"
-          echo "tag=$(sha256sum airgap/versions.env | cut -c1-12)" >> "$GITHUB_OUTPUT"
+          echo "tag=$(bash airgap/image-tag.sh)" >> "$GITHUB_OUTPUT"
 
       - name: Pull published image
         id: pull
@@ -236,7 +237,7 @@ jobs:
         run: |
           owner=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           echo "name=ghcr.io/${owner}/go-airgap" >> "$GITHUB_OUTPUT"
-          echo "tag=$(sha256sum airgap/versions.env | cut -c1-12)" >> "$GITHUB_OUTPUT"
+          echo "tag=$(bash airgap/image-tag.sh)" >> "$GITHUB_OUTPUT"
 
       - name: Log in to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin

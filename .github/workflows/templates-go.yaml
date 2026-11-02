@@ -18,7 +18,10 @@ permissions:
   contents: read
 
 jobs:
+  # Pull requests only: on a push there is no checkout for paths-filter to diff
+  # in, and the push trigger's own path filter already did this job.
   changes:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -36,7 +39,7 @@ jobs:
 
   component:
     needs: [changes]
-    if: github.event_name == 'push' || needs.changes.outputs.templates == 'true'
+    if: ${{ !cancelled() && (needs.changes.result == 'skipped' || needs.changes.outputs.templates == 'true') }}
     strategy:
       fail-fast: false
       matrix:
