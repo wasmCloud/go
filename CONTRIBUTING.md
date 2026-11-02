@@ -25,13 +25,27 @@ including offline builds.
   pull request.
 - [`@wasmCloud/go-maintainers`](MAINTAINERS.md) review every change, as set in
   [`CODEOWNERS`](.github/CODEOWNERS).
-- CI builds and vets the SDK for `wasip1`, then builds each example with `wash` and smoke-tests it
-  with `wash dev`. A change to the SDK or an example should keep those passing.
+- CI compiles and vets the SDK with `GOOS=wasip1`, the only WASI port Go has, then builds each
+  example into a WASI P2 or P3 component with `wash build` and smoke-tests it with `wash dev`. A
+  change to the SDK or an example should keep those passing.
 
 ## Dependencies
 
-Dependabot and Renovate open dependency update PRs. Review them like any other change. Before adding
-a new dependency, check whether the standard library or a module already in use does the job.
+Before adding a new dependency, check whether the standard library or a module already in use does
+the job. A new dependency must be actively maintained and use a license on the
+[CNCF allowed license list](https://github.com/cncf/foundation/blob/main/policies-guidance/allowed-third-party-license-policy.md).
+
+- **Obtaining:** Go modules come from the Go module proxy and are pinned in each module's `go.sum`,
+  which the Go checksum database verifies. GitHub Actions are pinned to a full commit SHA, with the
+  version in a trailing comment.
+- **Tracking:** Renovate opens Go module update PRs, including indirect dependencies. Dependabot
+  opens GitHub Actions update PRs, and security-update PRs for both. Review them like any other
+  change.
+- **Fixing:** a known vulnerability in `go.wasmcloud.dev/component` or `go.wasmcloud.dev/plugin`, or
+  in a dependency they ship with, is fixed within 7 days for critical, 14 days for high and 90 days
+  for medium severity, on the timeline in [Code Scanning](#code-scanning). A release isn't cut
+  while a critical or high advisory affecting the SDK is open. Examples and templates get the same
+  update PRs, but their findings don't block a release.
 
 ## Code Scanning
 

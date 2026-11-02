@@ -10,10 +10,11 @@ SHELL := /bin/bash
 VERSIONS_FILE := airgap/versions.env
 AIRGAP_BUILD_ARGS := $(shell grep -vE '^[[:space:]]*(\#|$$)' $(VERSIONS_FILE) | sed 's/^/--build-arg /')
 
-# Tagging by a hash of the pinned version set means a cache miss *is* the signal
-# that something moved, rather than a silent rebuild against new versions.
+# Tagging by a hash of the pinned version set and every example's module files
+# means a cache miss *is* the signal that something moved, rather than a silent
+# rebuild against new versions. See airgap/image-tag.sh.
 AIRGAP_IMAGE ?= wasmcloud-go-airgap
-AIRGAP_TAG   ?= $(shell (sha256sum $(VERSIONS_FILE) 2>/dev/null || shasum -a 256 $(VERSIONS_FILE)) | cut -c1-12)
+AIRGAP_TAG   ?= $(shell bash airgap/image-tag.sh)
 AIRGAP_REF   := $(AIRGAP_IMAGE):$(AIRGAP_TAG)
 
 # Passed through to the container; see airgap/build-all.sh.

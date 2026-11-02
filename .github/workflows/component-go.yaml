@@ -22,7 +22,10 @@ permissions:
   contents: read
 
 jobs:
+  # Pull requests only: on a push there is no checkout for paths-filter to diff
+  # in, and the push trigger's own path filter already did this job.
   changes:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -42,7 +45,7 @@ jobs:
   sdk:
     name: SDK build
     needs: [changes]
-    if: github.event_name == 'push' || needs.changes.outputs.go == 'true'
+    if: ${{ !cancelled() && (needs.changes.result == 'skipped' || needs.changes.outputs.go == 'true') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
@@ -64,7 +67,7 @@ jobs:
   examples:
     name: Example (${{ matrix.example.folder }})
     needs: [changes]
-    if: github.event_name == 'push' || needs.changes.outputs.go == 'true'
+    if: ${{ !cancelled() && (needs.changes.result == 'skipped' || needs.changes.outputs.go == 'true') }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

@@ -2,8 +2,8 @@
 
 ## Supported releases
 
-The Go SDK, `go.wasmcloud.dev/component`, supports only its latest release. Today that is
-`component/v0.1.6`.
+The Go SDK, `go.wasmcloud.dev/component`, supports only its latest release, the newest
+`component/vX.Y.Z` on the [releases page](https://github.com/wasmCloud/go/releases).
 
 - Bug fixes and security fixes land on `main` and ship in the next `component/vX.Y.Z` release,
   cut by the [release train](.github/workflows/release-train.yaml).
@@ -14,12 +14,14 @@ The Go SDK, `go.wasmcloud.dev/component`, supports only its latest release. Toda
   including the `wash` version.
 
 The examples and templates in this repository aren't released separately. They track the latest
-SDK release.
+SDK release. The plugin SDK, `go.wasmcloud.dev/plugin`, hasn't been released yet.
 
 ## Unsupported modules
 
-The wasmCloud 1.x provider SDK (`go.wasmcloud.dev/provider`) and the TinyGo component SDK line
-(`component/v0.0.x`) are no longer developed and receive no fixes, including security fixes.
+The wasmCloud 1.x provider SDK (`go.wasmcloud.dev/provider`), the TinyGo component SDK line
+(`component/v0.0.x`), and the experimental `go.wasmcloud.dev/x/wasitel` and
+`go.wasmcloud.dev/x/wasmbus` modules are no longer developed and receive no fixes, including
+security fixes.
 Their existing versions keep resolving through the Go module proxy. See
 [MIGRATING.md](MIGRATING.md) to move to the current SDK.
 

@@ -7,9 +7,9 @@
 # into GOMODCACHE — so it has to land in the checkout before build-all.sh runs
 # `wash build --skip-fetch` with `--network none`.
 #
-# It runs in the checkout rather than being baked into the image: the image is
-# tagged by a hash of airgap/versions.env, which does not cover wkg.lock, so
-# deps baked in there would go stale without the tag ever changing.
+# It runs in the checkout rather than being baked into the image: the image tag
+# (airgap/image-tag.sh) does not cover wkg.lock, so deps baked in there would go
+# stale without the tag ever changing.
 #
 # Run from the bind mount (not COPY'd into the image) for the same reason — a
 # pulled image must not pin an old copy of this script.
