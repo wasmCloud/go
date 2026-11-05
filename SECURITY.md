@@ -42,7 +42,7 @@ To re-check modules already in your module cache, run `go mod verify`.
 
 Each `component/vX.Y.Z` tag is pushed by
 [release-tag.yaml](.github/workflows/release-tag.yaml)
-as the `wasmcloud-automation-app[bot]` GitHub App, never by a person.
+as the `octo-sts[bot]` GitHub App, never by a person.
 Releases are immutable, so GitHub signs a release attestation when each release is published,
 binding the tag to its commit.
 Verify it, and that it was published in this repository, with:
@@ -98,23 +98,24 @@ This repository follows the
 and rotation policy of the wasmCloud project.
 In this repository that means:
 
-- **What is stored:** the wasmCloud bot GitHub App's ID and private key,
-  as the repository secrets `BOT_APP_ID` and `BOT_APP_PRIVATE_KEY`.
+- **What is stored:** no credential for releases or Renovate.
   [release-train.yaml](.github/workflows/release-train.yaml),
   [release-tag.yaml](.github/workflows/release-tag.yaml)
-  and [renovate.yaml](.github/workflows/renovate.yaml) use them to mint short-lived app tokens.
+  and [renovate.yaml](.github/workflows/renovate.yaml)
+  exchange their job's OIDC token with [octo-sts](https://github.com/octo-sts/app)
+  for an app token that expires within an hour.
+  Each has a trust policy in [.github/chainguard](.github/chainguard/)
+  that admits only that workflow on `main`, with only the permissions it needs.
   Every other workflow uses only its job's `GITHUB_TOKEN` or OIDC.
-- **Storage:** secrets live only in GitHub Actions secrets,
+- **Storage:** any secret a workflow needs lives only in GitHub Actions secrets,
   never in the repository, images, artifacts or logs.
   Secret scanning and push protection block a push that contains a detected secret.
 - **Access:** only repository admins (`@wasmCloud/go-maintainers`) and org maintainers
   can create, update or delete them.
-  Anyone with write access can run a workflow that reads them,
-  so write access is granted only as described in [MAINTAINERS.md](MAINTAINERS.md).
-  Pull requests, including those from forks, never run a workflow that reads them.
+  Changing a trust policy takes a reviewed pull request to `main`.
+  Pull requests, including those from forks, never run a workflow that reads a secret
+  or gets an octo-sts token.
 - **Rotation:** a secret is rotated immediately if it may have been exposed,
   when someone who held it or administers it loses that access,
   and at least once a year.
-  To rotate the app key, generate a new private key in the app's settings,
-  update `BOT_APP_PRIVATE_KEY`, run the Renovate workflow to confirm it works,
-  then delete the old key.
+  octo-sts tokens need no rotation: each is minted per job and revoked when the job ends.

@@ -1,0 +1,12 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/octo-sts/app/refs/heads/main/pkg/octosts/octosts.TrustPolicy.json
+
+issuer: https://token.actions.githubusercontent.com
+subject: repo:wasmCloud/go:ref:refs/heads/main
+claim_pattern:
+  job_workflow_ref: wasmCloud/go/.github/workflows/renovate.yaml@refs/heads/main
+
+# Push update branches and open their PRs. An app token, unlike GITHUB_TOKEN,
+# lets those PRs trigger CI.
+permissions:
+  contents: write
+  pull_requests: write

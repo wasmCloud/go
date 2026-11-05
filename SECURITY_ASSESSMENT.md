@@ -28,7 +28,7 @@ Project/repository assets that should be watched closely:
 - the `component/vX.Y.Z` tags
 - the `go.wasmcloud.dev` vanity import pages in [docs/](docs/)
 - the toolchain versions pinned in [airgap/versions.env](airgap/versions.env)
-- the GitHub Actions workflows, the tokens they get and the bot app's credentials
+- the GitHub Actions workflows, the tokens they get and the octo-sts trust policies in [.github/chainguard](.github/chainguard/)
 - the repository settings and the `main` ruleset
 
 ## Threats and mitigations
@@ -69,8 +69,9 @@ Project/repository assets that should be watched closely:
   except the OSPS Baseline publishing workflow, which grc.store requires by tag.
 - Untrusted values reach shell steps through environment variables, not `${{ }}` expansion.
 - zizmor audits the workflows on every pull request.
-- The release workflows ask the bot app for only the permissions each needs.
-  Renovate's token keeps the app's full set.
+- The release and Renovate workflows get their app tokens from octo-sts, not a stored key.
+  Each trust policy admits only its own workflow on `main`,
+  with only the permissions that workflow needs.
 - [bench.yml](.github/workflows/bench.yml) runs the ref it's given,
   including a pull request's, on a persistent self-hosted runner.
   Only someone with write access can start it.
@@ -100,8 +101,7 @@ Project/repository assets that should be watched closely:
 
 ### Secrets committed to the repository
 
-- The repository's only secrets are the bot app's ID and private key,
-  used by the release and Renovate workflows, which pull requests can't trigger.
+- The repository stores no secrets of its own.
   A few organization secrets are visible to it, but no workflow here references them.
   [bench.yml](.github/workflows/bench.yml) names four `WASMCLOUD_BENCH_*` secrets,
   which aren't set here.
@@ -210,9 +210,6 @@ since [capabilities.wit](component/wit/capabilities.wit) is not a build target.
 - The async WASI P3 examples build with `dicej/go` `go1.27.1-wasi-on-idle`,
   a patched Go 1.27.1 without the standard library fixes in 1.27.2 and 1.27.3.
   [vex/](vex/) records why the SDK isn't affected; the examples' own code isn't covered.
-- `BOT_APP_ID` and `BOT_APP_PRIVATE_KEY` are repository secrets,
-  not secrets of a deployment environment restricted to `main` and release tags,
-  so any workflow on any branch can read them.
 
 ## Vulnerabilities
 
