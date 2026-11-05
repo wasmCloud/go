@@ -34,6 +34,7 @@
 // Reads (optional):
 //   BENCH_OUTPUT_DIR        default ./bench-output
 //   GITHUB_RUN_ID           default "local"
+//   WASMCLOUD_BENCH_SHA     commit that was benched; default HEAD
 
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -46,8 +47,9 @@ const distId = required('WASMCLOUD_BENCH_CF_DISTRIBUTION_ID');
 
 const outDir = process.env.BENCH_OUTPUT_DIR ?? join(process.cwd(), 'bench-output');
 const runId = process.env.GITHUB_RUN_ID ?? 'local';
-const sha = run('git', ['rev-parse', 'HEAD']);
-const shortSha = run('git', ['rev-parse', '--short=12', 'HEAD']);
+// The workflow benches one ref and pushes from a checkout of another, so it
+// passes the benched commit in; run locally, it is the checked-out commit.
+const shortSha = (process.env.WASMCLOUD_BENCH_SHA || run('git', ['rev-parse', 'HEAD'])).slice(0, 12);
 const date = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
 const prefix = `runs/${date}/${shortSha}/${runId}/${bench}`;
 
