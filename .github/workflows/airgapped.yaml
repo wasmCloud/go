@@ -343,3 +343,24 @@ jobs:
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
           create-storage-record: false
+
+      # An SPDX SBOM of the pushed image, from syft, attested and pushed beside
+      # it. Verify with the command above plus
+      # `--predicate-type https://spdx.dev/Document/v2.3`.
+      - name: Generate SBOM
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+        with:
+          image: ${{ steps.img.outputs.name }}@${{ steps.push.outputs.digest }}
+          format: spdx-json
+          output-file: go-airgap.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Attest SBOM
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-name: ${{ steps.img.outputs.name }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          sbom-path: go-airgap.spdx.json
+          push-to-registry: true
+          create-storage-record: false

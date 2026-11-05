@@ -100,7 +100,7 @@ The wasmCloud host that runs the components is covered by wasmCloud's own
    - publishes the release only after the air-gapped build on the tag passes
 4. The air-gapped build on the tag also publishes the `ghcr.io/wasmcloud/go-airgap`
    toolchain image,
-   with a signed build provenance attestation pushed alongside it.
+   with signed build provenance and SBOM attestations pushed alongside it.
 
 The tag makes the module public:
 the proxy serves any pushed tag,
