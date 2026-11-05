@@ -78,8 +78,7 @@ Reviewers don't approve a change that's missing its tests.
 ## Dependencies
 
 Before adding a new dependency, check whether the standard library or a module already in use does
-the job. A new dependency must be actively maintained and use a license on the
-[CNCF allowed license list](https://github.com/cncf/foundation/blob/main/policies-guidance/allowed-third-party-license-policy.md).
+the job. A new dependency must be actively maintained.
 
 - **Obtaining:** Go modules come from the Go module proxy and are pinned in each module's `go.sum`,
   which the Go checksum database verifies. GitHub Actions are pinned to a full commit SHA, with the
@@ -87,11 +86,35 @@ the job. A new dependency must be actively maintained and use a license on the
 - **Tracking:** Renovate opens Go module update PRs, including indirect dependencies. Dependabot
   opens GitHub Actions update PRs, and security-update PRs for both. Review them like any other
   change.
-- **Fixing:** a known vulnerability in `go.wasmcloud.dev/component` or `go.wasmcloud.dev/plugin`, or
-  in a dependency they ship with, is fixed within 7 days for critical, 14 days for high and 90 days
-  for medium severity, on the timeline in [Code Scanning](#code-scanning). A release isn't cut
-  while a critical or high advisory affecting the SDK is open. Examples and templates get the same
-  update PRs, but their findings don't block a release.
+- **Dependency review:** the [Dependency review](.github/workflows/dependency-review.yml) workflow
+  runs software composition analysis (SCA) on every pull request.
+  Dependency review must check every change for known vulnerabilities and malicious dependencies before merging:
+  GitHub's dependency review checks each dependency a pull request adds or updates,
+  and osv-scanner checks every module against [OSV](https://osv.dev),
+  which carries the OpenSSF malicious packages feed.
+  Both checks must pass, and a pull request with a violation is blocked from merging until it is fixed.
+- **Vulnerability threshold:** dependency review must block a dependency with a known vulnerability
+  of any severity, from low to critical.
+  A known vulnerability that reaches `main` in `go.wasmcloud.dev/component` or `go.wasmcloud.dev/plugin`,
+  or in a dependency they ship with,
+  must be fixed within 7 days for critical, 14 days for high and 90 days for medium severity,
+  on the timeline in [Code Scanning](#code-scanning).
+- **License threshold:** every dependency must use Apache-2.0 or a license approved in the
+  [CNCF allowlist](https://github.com/cncf/foundation/blob/main/policies-guidance/allowed-third-party-license-policy.md).
+  Dependency review blocks any other license,
+  and a dependency under a license that isn't approved must be replaced or removed,
+  unless the CNCF Governing Board has granted it an exception.
+- **Releases:** SCA findings that affect the SDK must be fixed before any release.
+  A release is blocked while a critical or high advisory affecting the SDK is open.
+  Findings in the examples and the template still block pull requests,
+  and are fixed on the same deadlines.
+- **Exceptions:** a non-exploitable finding,
+  one that can't be reached from the code in this repository,
+  may be declared and suppressed with a written justification.
+  For osv-scanner, add it to [osv-scanner.toml](osv-scanner.toml) with the reason and an expiry.
+  For dependency review, add its advisory ID to `allow-ghsas` in the workflow, with the reason in a comment.
+  If it affects a released SDK version, also record it as `not_affected` in an OpenVEX document in [vex/](vex/).
+  A maintainer other than the author must approve the exception in review.
 
 ## Code Scanning
 

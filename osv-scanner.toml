@@ -1,0 +1,12 @@
+# Findings that the osv-scanner job in .github/workflows/dependency-review.yml
+# should not fail on, because they don't affect this repository.
+#
+# A finding goes here only when it is not exploitable here, never to unblock a
+# merge. Each entry needs a reason a reviewer can check, and an expiry no more
+# than 90 days out, so it is looked at again. A finding that affects a released
+# SDK version also gets a statement in vex/. See CONTRIBUTING.md#dependencies.
+#
+# [[IgnoredVulns]]
+# id = "GO-YYYY-NNNN"
+# ignoreUntil = 2026-12-31
+# reason = "Only reachable on GOOS=windows; every module here builds for wasip1."

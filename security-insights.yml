@@ -120,6 +120,43 @@ repository:
             name: Renovate
             predicate-uri: https://docs.renovatebot.com
             location: https://github.com/wasmCloud/go/actions/workflows/renovate.yaml
+      - name: GitHub dependency review
+        type: SCA
+        comment: >-
+          Runs on every pull request and fails on an added or updated
+          dependency with a known vulnerability of any severity, or a license
+          outside the CNCF allowlist. Policy and exceptions are in
+          CONTRIBUTING.md#dependencies.
+        rulesets:
+          - fail-on-severity-low
+          - cncf-license-allowlist
+        integration:
+          adhoc: false
+          ci: true
+          release: false
+        results:
+          ci:
+            name: dependency-review
+            predicate-uri: https://github.com/actions/dependency-review-action
+            location: https://github.com/wasmCloud/go/actions/workflows/dependency-review.yml
+      - name: osv-scanner
+        type: SCA
+        comment: >-
+          Runs on every pull request and fails if any module has a known
+          vulnerability or is a known malicious package in OSV, which carries
+          the OpenSSF malicious packages feed. Non-exploitable findings are
+          declared in osv-scanner.toml.
+        rulesets:
+          - default
+        integration:
+          adhoc: false
+          ci: true
+          release: false
+        results:
+          ci:
+            name: osv-scanner
+            predicate-uri: https://google.github.io/osv-scanner/
+            location: https://github.com/wasmCloud/go/actions/workflows/dependency-review.yml
       - name: GitHub secret scanning
         type: secret
         comment: >-
