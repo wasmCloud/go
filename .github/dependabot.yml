@@ -2,6 +2,10 @@ version: 2
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
+    # Conventional Commits, as commitlint requires: `chore(deps): bump ...`.
+    commit-message:
+      prefix: "chore"
+      include: "scope"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -23,8 +27,31 @@ updates:
         patterns:
           - "*"
 
-  # Security updates only: a limit of 0 turns off version updates for Go
-  # modules, and the group batches one advisory's fixes into a single PR.
+  # commitlint, pinned for the commitlint workflow.
+  - package-ecosystem: "npm"
+    directory: "/.github/commitlint"
+    # Conventional Commits, as commitlint requires: `chore(deps): bump ...`.
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/New_York"
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+      semver-minor-days: 7
+      semver-patch-days: 3
+    groups:
+      commitlint:
+        applies-to: version-updates
+        patterns:
+          - "*"
+
+  # Version updates, including indirect dependencies, batched by family, and
+  # security updates batched into a single PR per advisory.
   - package-ecosystem: "gomod"
     directories:
       - "/component"
@@ -42,6 +69,10 @@ updates:
       - "/examples/components/nats-request-reply/service"
       - "/examples/components/nats-stream-replay"
       - "/scripts/bench/httpbench"
+    # Conventional Commits, as commitlint requires: `chore(deps): bump ...`.
+    commit-message:
+      prefix: "chore"
+      include: "scope"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -52,8 +83,26 @@ updates:
       semver-major-days: 14
       semver-minor-days: 7
       semver-patch-days: 3
-    open-pull-requests-limit: 0
+    allow:
+      - dependency-type: "all"
     groups:
+      golang-x:
+        applies-to: version-updates
+        patterns:
+          - "golang.org/x/*"
+      opentelemetry-go:
+        applies-to: version-updates
+        patterns:
+          - "go.opentelemetry.io/otel"
+          - "go.opentelemetry.io/otel/*"
+      genproto:
+        applies-to: version-updates
+        patterns:
+          - "google.golang.org/genproto/googleapis/*"
+      go-modules:
+        applies-to: version-updates
+        patterns:
+          - "*"
       go-security:
         applies-to: security-updates
         patterns:

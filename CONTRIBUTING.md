@@ -39,6 +39,12 @@ including offline builds.
 - Sign off every commit with `git commit -s` to certify the
   [Developer Certificate of Origin](https://developercertificate.org/). The DCO check runs on every
   pull request.
+- Write every commit message, and the pull request title, as a
+  [Conventional Commit](https://www.conventionalcommits.org/) with a subject line under 70
+  characters, such as `fix(keyvalue): return ErrNoSuchStore for a missing bucket`. A squash merge
+  appends ` (#NNN)` to the title, and that counts too. The
+  [commitlint](.github/workflows/commitlint.yml) check runs on every pull request; its rules are in
+  [`.github/commitlint`](.github/commitlint/commitlint.config.mjs).
 - [`@wasmCloud/go-maintainers`](MAINTAINERS.md) review every change, as set in
   [`CODEOWNERS`](.github/CODEOWNERS).
 - CI must pass before a pull request merges. What it runs is in [Testing](#testing).
@@ -99,9 +105,9 @@ the job. A new dependency must be actively maintained.
 - **Obtaining:** Go modules come from the Go module proxy and are pinned in each module's `go.sum`,
   which the Go checksum database verifies. GitHub Actions are pinned to a full commit SHA, with the
   version in a trailing comment.
-- **Tracking:** Renovate opens Go module update PRs, including indirect dependencies. Dependabot
-  opens GitHub Actions update PRs, and security-update PRs for both. Review them like any other
-  change.
+- **Tracking:** Dependabot opens weekly version-update PRs for Go modules, including indirect
+  dependencies, and for GitHub Actions, plus security-update PRs for both. It waits out a cooldown
+  before proposing a new version. Review them like any other change.
 - **Dependency review:** the [Dependency review](.github/workflows/dependency-review.yml) workflow
   runs software composition analysis (SCA) on every pull request.
   Dependency review must check every change for known vulnerabilities and malicious dependencies before merging:
