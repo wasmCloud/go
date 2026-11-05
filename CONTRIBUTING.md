@@ -25,10 +25,55 @@ including offline builds.
   pull request.
 - [`@wasmCloud/go-maintainers`](MAINTAINERS.md) review every change, as set in
   [`CODEOWNERS`](.github/CODEOWNERS).
-- CI compiles and vets the SDK with `GOOS=wasip1`, the only WASI port Go has, runs its unit tests
-  with `go test ./...` in `component/`, then builds each
-  example into a WASI P2 or P3 component with `wash build` and smoke-tests it with `wash dev`. A
-  change to the SDK or an example should keep those passing.
+- CI must pass before a pull request merges. What it runs is in [Testing](#testing).
+
+## Testing
+
+### When tests run
+
+CI runs these on every pull request,
+and again on each push to `main` that changes the files they test:
+
+- **Component / Go** ([component-go.yaml](.github/workflows/component-go.yaml))
+  compiles and vets the SDK with `GOOS=wasip1`, the only WASI port Go has,
+  runs its unit tests,
+  builds each example into a WASI P2 or P3 component with `wash build`,
+  and smoke-tests under `wash dev` the examples that a released `wash` can serve.
+- **Templates** ([templates-go.yaml](.github/workflows/templates-go.yaml))
+  creates a project from the template with `wash new` and builds it.
+- **Air-gapped build** ([airgapped.yaml](.github/workflows/airgapped.yaml))
+  builds every example and template with no network,
+  from the versions pinned in [BUILDING.md](BUILDING.md).
+
+On a pull request, each workflow skips its jobs when none of its paths changed,
+and its gate job (`component-gate`, `templates-gate`, `airgapped-gate`) still reports,
+so the required checks always run.
+
+### How to run them
+
+From a checkout, with the toolchain in [BUILDING.md](BUILDING.md):
+
+```shell
+# SDK unit tests. They cover the Go side of the WIT types and run natively.
+cd component && go test ./...
+
+# What CI compiles and vets.
+GOOS=wasip1 GOARCH=wasm go build ./...
+GOOS=wasip1 GOARCH=wasm go vet $(go list ./... | grep -vE '/(imports|exports)/')
+
+# An example, built and served the way CI smoke-tests it.
+cd examples/components/http-server && wash build && wash dev
+
+# Every example and template, offline.
+make airgap-test
+```
+
+### Tests for new changes
+
+Every change to the SDK's behaviour must add or update the unit tests that cover it,
+in the package it changes, and a bug fix must add a test that fails without the fix.
+A new example must build in CI, and must pass the `wash dev` smoke test if a released `wash` can serve it.
+Reviewers don't approve a change that's missing its tests.
 
 ## Dependencies
 
