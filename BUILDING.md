@@ -13,7 +13,7 @@ every value from its real upstream source and fails if the two disagree.
 
 | What | Version |
 |---|---|
-| Go | 1.27.1 (`go.bytecodealliance.org/pkg` and `/wasi` declare `go 1.27.1`) |
+| Go | 1.27.3 (`go.bytecodealliance.org/pkg` and `/wasi` declare `go 1.27.1`, the minimum) |
 | `go.wasmcloud.dev/component` | v0.1.6 |
 | `go.bytecodealliance.org/pkg` | v0.4.0 |
 | `go.bytecodealliance.org/wasi` | v0.1.1 |

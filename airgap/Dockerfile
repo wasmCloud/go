@@ -8,7 +8,7 @@
 #
 # Versions come from airgap/versions.env — see BUILDING.md.
 
-ARG GO_VERSION=1.27.1
+ARG GO_VERSION=1.27.3
 
 # =============================================================================
 # Stage 1: seed
