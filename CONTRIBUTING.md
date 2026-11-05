@@ -12,6 +12,22 @@ what happened, what you expected, and your versions of Go, componentize-go and `
 Don't report security vulnerabilities as issues. Follow the
 [security policy](https://github.com/wasmCloud/go/security/policy) to report them privately.
 
+## Escalating to the CRA Steward
+
+The wasmCloud security team escalates two kinds of event to the Linux Foundation, wasmCloud's CRA
+steward, at steward@linuxfoundation.org:
+
+- **Actively exploited vulnerabilities:** a vulnerability in this repository's SDKs, examples or
+  template for which the security team has reliable evidence that a malicious actor has exploited
+  it.
+- **Severe incidents:** a security compromise of the project's own infrastructure, such as its
+  GitHub organization, release pipeline, signing identities, or published modules.
+
+A vulnerability with no evidence of exploitation is not an escalation event and follows the normal
+process in the [security policy](https://github.com/wasmCloud/go/security/policy). Remediation never
+waits on the escalation decision. The same policy covers all of wasmCloud; see
+[wasmCloud's CONTRIBUTING.md](https://github.com/wasmCloud/wasmCloud/blob/main/CONTRIBUTING.md#escalating-to-the-cra-steward).
+
 ## Building
 
 [BUILDING.md](BUILDING.md) lists the pinned toolchain versions and how to build components,
