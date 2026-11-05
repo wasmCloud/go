@@ -14,8 +14,7 @@ on:
 env:
   GO_VERSION: "1.27"
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   # Pull requests only: on a push there is no checkout for paths-filter to diff
@@ -46,6 +45,8 @@ jobs:
         template-name:
           - http-hello-world
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
