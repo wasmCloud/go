@@ -69,6 +69,12 @@ Project/repository assets that should be watched closely:
 - zizmor audits the workflows on every pull request.
 - The release workflows ask the bot app for only the permissions each needs.
   Renovate's token keeps the app's full set.
+- [bench.yml](.github/workflows/bench.yml) runs the ref it's given,
+  including a pull request's, on a persistent self-hosted runner.
+  Only someone with write access can start it.
+  For a pull request's ref it skips the AWS role,
+  so the code under test never runs alongside AWS credentials,
+  and its checkout doesn't persist the job's token.
 
 ### A tampered release
 
@@ -91,6 +97,8 @@ Project/repository assets that should be watched closely:
 - The repository's only secrets are the bot app's ID and private key,
   used by the release and Renovate workflows, which pull requests can't trigger.
   A few organization secrets are visible to it, but no workflow here references them.
+  [bench.yml](.github/workflows/bench.yml) names four `WASMCLOUD_BENCH_*` secrets,
+  which aren't set here.
 - Secret scanning and push protection are on,
   so a push with a detected secret is blocked.
 
@@ -119,6 +127,9 @@ Project/repository assets that should be watched closely:
 - Renovate's Go module updates have no cooldown.
 - The SDKs have no unit tests;
   CI builds them and smoke-tests the examples that a released `wash` can serve.
+- Once bench.yml is set up, a pull request benched on the self-hosted runner
+  runs on a persistent host that later benchmark runs reuse,
+  in a job that can request an OIDC token.
 - Pull requests aren't blocked on vulnerable dependencies;
   Dependabot alerts are handled under the fix deadlines instead.
 

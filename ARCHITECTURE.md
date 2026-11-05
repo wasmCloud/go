@@ -34,6 +34,16 @@ The wasmCloud host that runs the components is covered by wasmCloud's own
   whose pull requests and tags start other workflows,
   which `GITHUB_TOKEN` can't do.
   Its credentials are the repository's only secrets.
+- **The bench workflow**, [bench.yml](.github/workflows/bench.yml),
+  is meant to run benchmarks on the wasmCloud organization's self-hosted bench runner,
+  a persistent host shared with wasmCloud/wasmCloud's benchmarks.
+  Anyone with write access can start it on any ref, including a pull request's,
+  and it also starts when a release is published.
+  For any ref but a pull request's,
+  it assumes an AWS role through OIDC to push the results to the shared benchmark bucket.
+  It isn't set up here yet:
+  its secrets and variable aren't set,
+  and every run so far has been cancelled.
 - **GitHub Pages** serves `go.wasmcloud.dev` from [docs/](docs/):
   the `go-import` meta tags that point the module paths at this repository.
 - **The Go module proxy and checksum database** (`proxy.golang.org`, `sum.golang.org`)
