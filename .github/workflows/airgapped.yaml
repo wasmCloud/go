@@ -8,8 +8,9 @@ name: Air-gapped build
 # against NATS and `wash dev`. This one is build-only and answers a different
 # question — can someone offline build this at all.
 
-# NOTE: the two path lists are duplicated on purpose — GitHub Actions does not
-# support YAML anchors, so they have to be kept in sync by hand.
+# NOTE: the push paths and the `changes` filter are duplicated on purpose —
+# GitHub Actions does not support YAML anchors, so they have to be kept in sync
+# by hand.
 on:
   push:
     branches: ["main"]
@@ -25,31 +26,54 @@ on:
       - "component/**"
       - "examples/components/**"
       - "templates/**"
+  # Runs on every pull request so the required `airgapped-gate` check always
+  # reports; the `changes` job skips the build when none of the paths changed.
   pull_request:
     branches: ["main"]
-    paths:
-      - ".github/workflows/airgapped.yaml"
-      - "airgap/**"
-      - "BUILDING.md"
-      - "Makefile"
-      - "component/**"
-      - "examples/components/**"
-      - "templates/**"
   # The pinned toolchain is fetched from GitHub Releases, which can be re-cut
   # under us. A weekly run catches that without waiting for a code change.
   schedule:
     - cron: "17 6 * * 1"
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
+  # Pull requests only: on a push there is no checkout for paths-filter to diff
+  # in, and the push trigger's own path filter already did this job.
+  changes:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      airgap: ${{ steps.filter.outputs.airgap }}
+    steps:
+      - uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4.0.2
+        id: filter
+        with:
+          filters: |
+            airgap:
+              - ".github/workflows/airgapped.yaml"
+              - "airgap/**"
+              - "BUILDING.md"
+              - "Makefile"
+              - "component/**"
+              - "examples/components/**"
+              - "templates/**"
+
   # Cheap and fast: catches BUILDING.md drifting from reality without building
   # anything. Runs first so a stale doc fails in seconds, not minutes.
+  #
+  # Every job below `changes` checks its needs' results itself: a job whose
+  # chain includes a skipped `changes` would otherwise be skipped too.
   versions:
     name: Version drift
     runs-on: ubuntu-latest
     needs: release-state
+    if: ${{ !cancelled() && needs.release-state.result == 'success' }}
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
@@ -82,6 +106,10 @@ jobs:
   release-state:
     name: SDK release state
     runs-on: ubuntu-latest
+    needs: [changes]
+    if: ${{ !cancelled() && (needs.changes.result == 'skipped' || needs.changes.outputs.airgap == 'true') }}
+    permissions:
+      contents: read
     outputs:
       pending: ${{ steps.state.outputs.pending }}
     steps:
@@ -135,7 +163,9 @@ jobs:
     name: Prepare air-gapped image
     runs-on: ubuntu-latest
     needs: [versions, release-state]
-    if: needs.release-state.outputs.pending != 'true'
+    if: ${{ !cancelled() && needs.versions.result == 'success' && needs.release-state.outputs.pending != 'true' }}
+    permissions:
+      contents: read
     outputs:
       modules: ${{ steps.modules.outputs.modules }}
     steps:
@@ -202,6 +232,9 @@ jobs:
     name: Offline (${{ matrix.module }})
     runs-on: ubuntu-latest
     needs: image
+    if: ${{ !cancelled() && needs.image.result == 'success' }}
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -242,6 +275,18 @@ jobs:
           MODULE: ${{ matrix.module }}
         run: make airgap-run AIRGAP_IMAGE="$IMAGE" AIRGAP_MODULES="$MODULE"
 
+  # The required check for this workflow. It runs even when a job above fails
+  # or is skipped, and fails if any of them failed. A release PR skips the
+  # image and the build, and passes.
+  airgapped-gate:
+    needs: [changes, release-state, versions, image, build]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if a job failed
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1
+
   # Publishes the image so PR runs pull instead of rebuilding. Only from main
   # and the weekly run — never from a pull request, which cannot be trusted
   # with a write token.
@@ -249,7 +294,7 @@ jobs:
     name: Publish image
     runs-on: ubuntu-latest
     needs: build
-    if: github.event_name != 'pull_request'
+    if: ${{ !cancelled() && needs.build.result == 'success' && github.event_name != 'pull_request' }}
     permissions:
       contents: read
       packages: write

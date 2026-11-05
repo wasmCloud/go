@@ -5,8 +5,7 @@ on:
     tags:
     - 'component-wit-v*'
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   build:

@@ -1,7 +1,7 @@
 header:
   schema-version: 2.2.0
-  last-updated: '2026-11-02'
-  last-reviewed: '2026-10-30'
+  last-updated: '2026-11-05'
+  last-reviewed: '2026-11-05'
   url: https://raw.githubusercontent.com/wasmCloud/go/main/security-insights.yml
   project-si-source: https://raw.githubusercontent.com/wasmCloud/wasmCloud/main/security-insights.yml
   comment: >-
@@ -39,13 +39,14 @@ repository:
   security:
     assessments:
       self:
-        name: wasmCloud security self-assessment
-        evidence: https://github.com/wasmCloud/wasmCloud/blob/main/SELF_ASSESSMENT.md
-        date: '2026-10-27'
+        name: wasmCloud Go security self-assessment
+        evidence: https://github.com/wasmCloud/go/blob/main/SECURITY_ASSESSMENT.md
+        date: '2026-11-05'
         comment: >-
-          The wasmCloud project self-assessment. The threat model it refers to,
-          wasmCloud/wasmCloud THREAT_MODEL.md, covers the host sandbox that
-          components built with this SDK run in.
+          Covers this repository's SDKs, CI and releases, and the risks users
+          inherit from the SDK toolchain and the examples. The host sandbox the
+          components run in is covered by the wasmCloud self-assessment and
+          its threat model, THREAT_MODEL.md in wasmCloud/wasmCloud.
     tools:
       - name: CodeQL
         type: SAST

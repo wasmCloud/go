@@ -33,8 +33,7 @@ on:
           - minor
           - major
 
-permissions:
-  contents: read
+permissions: {}
 
 concurrency:
   group: release-train
@@ -46,6 +45,8 @@ jobs:
     runs-on: ubuntu-latest
     # The bot app's secrets only exist upstream, same as renovate.yaml.
     if: ${{ github.repository == 'wasmCloud/go' }}
+    permissions:
+      contents: read
     steps:
       # An app token, not GITHUB_TOKEN: a PR opened with GITHUB_TOKEN does not
       # trigger workflows, so no CI would run on it.
