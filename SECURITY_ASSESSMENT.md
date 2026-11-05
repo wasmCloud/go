@@ -72,9 +72,10 @@ Project/repository assets that should be watched closely:
 - [bench.yml](.github/workflows/bench.yml) runs the ref it's given,
   including a pull request's, on a persistent self-hosted runner.
   Only someone with write access can start it.
-  For a pull request's ref it skips the AWS role,
-  so the code under test never runs alongside AWS credentials,
+  The job that runs the benched code can't request an OIDC token,
   and its checkout doesn't persist the job's token.
+  A separate job, which runs only the workflow's own push script,
+  assumes the AWS role, and is skipped for a pull request's ref.
 
 ### A tampered release
 
@@ -121,15 +122,17 @@ Project/repository assets that should be watched closely:
 - No ruleset protects the `component/v*` tags;
   a repository admin could push or delete one outside the release workflow.
   The checksum database still rejects a changed version.
-- The `go-airgap` image and the GitHub Releases carry no signature or provenance.
+- The GitHub Releases carry no signature or attestation.
+  The `go-airgap` image carries a signed build provenance attestation.
 - The `dicej/go` and componentize-go downloads in the air-gapped image build
   aren't pinned by SHA256, as BUILDING.md notes.
 - Renovate's Go module updates have no cooldown.
-- The SDKs have no unit tests;
-  CI builds them and smoke-tests the examples that a released `wash` can serve.
+- Unit tests cover only the component SDK's conversions between WIT and Go types;
+  the plugin SDK has none,
+  and calls into the host are exercised only by the examples' smoke tests.
 - Once bench.yml is set up, a pull request benched on the self-hosted runner
   runs on a persistent host that later benchmark runs reuse,
-  in a job that can request an OIDC token.
+  including the job that assumes the AWS role.
 - Pull requests aren't blocked on vulnerable dependencies;
   Dependabot alerts are handled under the fix deadlines instead.
 

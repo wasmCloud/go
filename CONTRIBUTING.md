@@ -25,7 +25,8 @@ including offline builds.
   pull request.
 - [`@wasmCloud/go-maintainers`](MAINTAINERS.md) review every change, as set in
   [`CODEOWNERS`](.github/CODEOWNERS).
-- CI compiles and vets the SDK with `GOOS=wasip1`, the only WASI port Go has, then builds each
+- CI compiles and vets the SDK with `GOOS=wasip1`, the only WASI port Go has, runs its unit tests
+  with `go test ./...` in `component/`, then builds each
   example into a WASI P2 or P3 component with `wash build` and smoke-tests it with `wash dev`. A
   change to the SDK or an example should keep those passing.
 
