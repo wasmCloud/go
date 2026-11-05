@@ -86,6 +86,9 @@ Project/repository assets that should be watched closely:
   and publishes the GitHub Release only after the offline build on the tag passes.
 - Once fetched, a version's hash is fixed in the checksum database,
   so `go` refuses a module that was changed after release.
+- Each release attaches the module zip and `SHA256SUMS` with Sigstore-signed SLSA provenance.
+  [README.md](README.md#verifying-a-release) shows how to verify it,
+  including that `release-tag.yaml` signed it.
 
 ### A redirected module path
 
@@ -122,8 +125,7 @@ Project/repository assets that should be watched closely:
 - No ruleset protects the `component/v*` tags;
   a repository admin could push or delete one outside the release workflow.
   The checksum database still rejects a changed version.
-- The GitHub Releases carry no signature or attestation.
-  The `go-airgap` image carries a signed build provenance attestation.
+- The `go-airgap` image carries no signature or provenance.
 - The `dicej/go` and componentize-go downloads in the air-gapped image build
   aren't pinned by SHA256, as BUILDING.md notes.
 - Renovate's Go module updates have no cooldown.

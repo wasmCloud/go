@@ -26,6 +26,23 @@ See [BUILDING.md](./BUILDING.md) for the exact versions of Go, componentize-go,
 wit-bindgen and `wash` needed to build against a released SDK, and for how to
 build with no network at all.
 
+## Verifying a release
+
+Each `component/vX.Y.Z` [release](https://github.com/wasmCloud/go/releases)
+attaches `component-vX.Y.Z.zip`, the module zip that `go get` downloads, and
+`SHA256SUMS`. Both carry Sigstore-signed SLSA build provenance. To verify a
+download with the [GitHub CLI](https://cli.github.com/):
+
+```shell
+gh attestation verify component-v0.1.6.zip \
+  --repo wasmCloud/go \
+  --signer-workflow wasmCloud/go/.github/workflows/release-tag.yaml
+```
+
+`--signer-workflow` checks that the release workflow signed it, not just any
+workflow in the repository. `go` itself checks every module download against
+the Go checksum database.
+
 ## Quickstart
 
 ```shell

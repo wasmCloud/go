@@ -94,8 +94,10 @@ The wasmCloud host that runs the components is covered by wasmCloud's own
    - pushes the annotated `component/vX.Y.Z` tag at the merge commit,
      refusing a tag that already exists elsewhere
    - checks the published module against `proxy.golang.org` and `sum.golang.org`
-   - creates the GitHub Release as a draft with generated notes,
-     and publishes it only after the air-gapped build on the tag passes
+   - creates the GitHub Release as a draft with generated notes
+   - builds the module zip from the tag, checks it matches the proxy's,
+     and attaches it with `SHA256SUMS` and a Sigstore bundle of their SLSA build provenance
+   - publishes the release only after the air-gapped build on the tag passes
 4. The air-gapped build on the tag also publishes the `ghcr.io/wasmcloud/go-airgap`
    toolchain image,
    with a signed build provenance attestation pushed alongside it.

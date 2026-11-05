@@ -10,10 +10,13 @@ name: Release tag
 #      push runs the air-gapped suite, which cannot run any earlier: it has to
 #      download the tagged SDK.
 #   4. Checks the published module against proxy.golang.org / sum.golang.org.
-#   5. Creates the component/vX.Y.Z GitHub Release as a draft, waits for the
-#      air-gapped run on the tag to pass, and only then publishes it. If that
-#      run fails the release stays a draft; fix forward, re-run the air-gapped
-#      workflow on the tag, then re-run this one to publish.
+#   5. Creates the component/vX.Y.Z GitHub Release as a draft, and attaches
+#      the module zip, SHA256SUMS and a Sigstore bundle of their SLSA build
+#      provenance.
+#   6. Waits for the air-gapped run on the tag to pass, and only then publishes
+#      the release. If that run fails the release stays a draft; fix forward,
+#      re-run the air-gapped workflow on the tag, then re-run this one to
+#      publish.
 #
 # The tag itself, and so the Go module, is public from step 3 — the proxy serves
 # any pushed tag. What the draft gates is the announced release.
@@ -50,6 +53,12 @@ jobs:
       contents: read
       # Reading the air-gapped run on the tag.
       actions: read
+      # Sigstore signing and the attestation store.
+      id-token: write
+      attestations: write
+      # actions/attest writes an artifact storage record alongside the
+      # attestation; without this it warns on every subject.
+      artifact-metadata: write
     steps:
       # An app token so the tag push triggers the air-gapped workflow; pushes
       # made with GITHUB_TOKEN trigger nothing. The checkout keeps no
@@ -75,6 +84,14 @@ jobs:
           BEFORE: ${{ github.event.before }}
         run: |
           set -euo pipefail
+          # A dispatch can name any commit, and this job pushes tags and signs
+          # provenance. Only a commit on main goes further, checked before
+          # anything from the checkout is sourced or run.
+          if ! git merge-base --is-ancestor HEAD origin/main; then
+            echo "::error::$(git rev-parse HEAD) is not on main"
+            exit 1
+          fi
+
           version=$(. airgap/versions.env && echo "$SDK_VERSION")
           if ! [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "::error::SDK_VERSION '$version' is not vX.Y.Z"
@@ -83,7 +100,7 @@ jobs:
 
           # On push, only a commit that changes SDK_VERSION is a release; other
           # edits to versions.env (toolchain bumps) are not. A dispatch trusts
-          # the caller.
+          # the caller to name a release commit.
           if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
             previous=$(git show "${BEFORE}:airgap/versions.env" 2>/dev/null \
               | sed -n 's/^SDK_VERSION=//p' || true)
@@ -183,6 +200,49 @@ jobs:
           args=(--draft --title "$TAG" --generate-notes --verify-tag)
           [ -n "$PREVIOUS_TAG" ] && args+=(--notes-start-tag "$PREVIOUS_TAG")
           gh release create "$TAG" "${args[@]}"
+
+      # The release scripts come from this workflow's own commit on main. The
+      # release commit a dispatch names may predate them.
+      - name: Check out the release scripts
+        if: steps.ver.outputs.release == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+          path: release-scripts
+          sparse-checkout: .github/scripts
+
+      # The assets go outside the checkout, so nothing from the commit can land
+      # among the uploaded files.
+      - name: Build the module zip
+        if: steps.ver.outputs.release == 'true'
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: node release-scripts/.github/scripts/release-assets.mjs "$VERSION" "$RUNNER_TEMP/release-assets"
+
+      - name: Attest build provenance
+        id: provenance
+        if: steps.ver.outputs.release == 'true'
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: |
+            ${{ runner.temp }}/release-assets/component-${{ steps.ver.outputs.version }}.zip
+            ${{ runner.temp }}/release-assets/SHA256SUMS
+
+      # --clobber, so dispatching with an earlier release commit attaches the
+      # assets to a release that is already published.
+      - name: Attach the release assets
+        if: steps.ver.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          TAG: ${{ steps.ver.outputs.tag }}
+          VERSION: ${{ steps.ver.outputs.version }}
+          BUNDLE: ${{ steps.provenance.outputs.bundle-path }}
+        run: |
+          set -euo pipefail
+          dist="$RUNNER_TEMP/release-assets"
+          cp "$BUNDLE" "$dist/component-${VERSION}.provenance.sigstore.json"
+          gh release upload "$TAG" "$dist"/* --clobber
 
       # The same commit also ran the air-gapped workflow when it landed on main,
       # with the build skipped (the tag did not exist yet) — so match the run by
