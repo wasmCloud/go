@@ -2,6 +2,10 @@ version: 2
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
+    # Conventional Commits, as commitlint requires: `chore(deps): bump ...`.
+    commit-message:
+      prefix: "chore"
+      include: "scope"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -26,6 +30,10 @@ updates:
   # commitlint, pinned for the commitlint workflow.
   - package-ecosystem: "npm"
     directory: "/.github/commitlint"
+    # Conventional Commits, as commitlint requires: `chore(deps): bump ...`.
+    commit-message:
+      prefix: "chore"
+      include: "scope"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -61,6 +69,10 @@ updates:
       - "/examples/components/nats-request-reply/service"
       - "/examples/components/nats-stream-replay"
       - "/scripts/bench/httpbench"
+    # Conventional Commits, as commitlint requires: `chore(deps): bump ...`.
+    commit-message:
+      prefix: "chore"
+      include: "scope"
     schedule:
       interval: "weekly"
       day: "monday"
