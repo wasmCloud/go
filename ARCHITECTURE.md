@@ -40,7 +40,8 @@ The wasmCloud host that runs the components is covered by wasmCloud's own
   Anyone with write access can start it on any ref, including a pull request's,
   and it also starts when a release is published.
   For any ref but a pull request's,
-  it assumes an AWS role through OIDC to push the results to the shared benchmark bucket.
+  a separate job assumes an AWS role through OIDC to push the results to the shared benchmark bucket;
+  the job that runs the benched code can't request an OIDC token.
   It isn't set up here yet:
   its secrets and variable aren't set,
   and every run so far has been cancelled.
@@ -60,6 +61,7 @@ The wasmCloud host that runs the components is covered by wasmCloud's own
 1. A contributor opens a pull request against `main`.
 2. CI runs on the pull request:
    - **Component / Go** compiles and vets the SDK for `GOOS=wasip1`,
+     runs its unit tests,
      builds every example into a component with `wash build`,
      and smoke-tests under `wash dev` those that a released `wash` can serve.
    - **Templates** creates a project from the template with `wash new` and builds it.
@@ -97,7 +99,8 @@ The wasmCloud host that runs the components is covered by wasmCloud's own
      and attaches it with `SHA256SUMS` and a Sigstore bundle of their SLSA build provenance
    - publishes the release only after the air-gapped build on the tag passes
 4. The air-gapped build on the tag also publishes the `ghcr.io/wasmcloud/go-airgap`
-   toolchain image.
+   toolchain image,
+   with a signed build provenance attestation pushed alongside it.
 
 The tag makes the module public:
 the proxy serves any pushed tag,

@@ -76,5 +76,7 @@ func EncodeFloat64(f float64) types.HashableF64 {
 // DecodeFloat64 reassembles a float64 from the WIT `hashable-f64`
 // sign/mantissa/exponent triple produced by the database or [EncodeFloat64].
 func DecodeFloat64(v types.HashableF64) float64 {
-	return float64(v.F2) * float64(v.F0) * math.Pow(2, float64(v.F1))
+	// Ldexp, not mantissa * math.Pow(2, exponent): the smallest subnormals
+	// have an exponent of -1075, and 2^-1075 itself underflows to zero.
+	return float64(v.F2) * math.Ldexp(float64(v.F0), int(v.F1))
 }
