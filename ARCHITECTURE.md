@@ -73,6 +73,8 @@ The wasmCloud host that runs the components is covered by wasmCloud's own
    - **CodeQL** analyzes the component and plugin SDKs.
    - **zizmor** audits the workflows.
    - **DCO** checks that every commit is signed off.
+   - **commitlint** checks that every commit, and the pull request title,
+     is a Conventional Commit with a subject under 70 characters.
 3. A maintainer who didn't push the last commit approves it,
    including a code owner for each changed path,
    and every review thread is resolved.

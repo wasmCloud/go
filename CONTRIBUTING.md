@@ -23,6 +23,12 @@ including offline builds.
 - Sign off every commit with `git commit -s` to certify the
   [Developer Certificate of Origin](https://developercertificate.org/). The DCO check runs on every
   pull request.
+- Write every commit message, and the pull request title, as a
+  [Conventional Commit](https://www.conventionalcommits.org/) with a subject line under 70
+  characters, such as `fix(keyvalue): return ErrNoSuchStore for a missing bucket`. A squash merge
+  appends ` (#NNN)` to the title, and that counts too. The
+  [commitlint](.github/workflows/commitlint.yml) check runs on every pull request; its rules are in
+  [`.github/commitlint`](.github/commitlint/commitlint.config.mjs).
 - [`@wasmCloud/go-maintainers`](MAINTAINERS.md) review every change, as set in
   [`CODEOWNERS`](.github/CODEOWNERS).
 - CI must pass before a pull request merges. What it runs is in [Testing](#testing).

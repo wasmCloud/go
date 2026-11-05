@@ -23,6 +23,25 @@ updates:
         patterns:
           - "*"
 
+  # commitlint, pinned for the commitlint workflow.
+  - package-ecosystem: "npm"
+    directory: "/.github/commitlint"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/New_York"
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+      semver-minor-days: 7
+      semver-patch-days: 3
+    groups:
+      commitlint:
+        applies-to: version-updates
+        patterns:
+          - "*"
+
   # Version updates, including indirect dependencies, batched by family, and
   # security updates batched into a single PR per advisory.
   - package-ecosystem: "gomod"

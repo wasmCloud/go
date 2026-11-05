@@ -1,0 +1,57 @@
+name: commitlint
+
+# Checks that every commit in a pull request, and the commit a squash merge
+# would make from its title, follow Conventional Commits with a subject line
+# under 70 characters. Rules are in .github/commitlint/commitlint.config.mjs.
+
+on:
+  pull_request:
+    branches: ["main"]
+    # edited re-checks the title when it changes.
+    types: [opened, edited, synchronize, reopened]
+
+permissions: {}
+
+concurrency:
+  group: commitlint-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+    # Dependabot's titles can't be shortened from its config, and run past
+    # the limit once a squash merge appends the PR number.
+    if: ${{ github.event.pull_request.user.login != 'dependabot[bot]' }}
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+          package-manager-cache: false
+
+      - name: Install commitlint
+        run: npm ci --prefix .github/commitlint --ignore-scripts --no-audit --no-fund
+
+      - name: Lint commits
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          .github/commitlint/node_modules/.bin/commitlint \
+            --config .github/commitlint/commitlint.config.mjs \
+            --from "$BASE" --to "$HEAD" --verbose
+
+      - name: Lint the squash merge subject
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+          NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          printf '%s (#%s)\n' "$TITLE" "$NUMBER" |
+            .github/commitlint/node_modules/.bin/commitlint \
+              --config .github/commitlint/commitlint.config.mjs --verbose
