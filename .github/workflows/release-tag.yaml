@@ -186,8 +186,9 @@ jobs:
 
       # The same commit also ran the air-gapped workflow when it landed on main,
       # with the build skipped (the tag did not exist yet) — so match the run by
-      # the tag, and require the build job itself to have passed, not merely a
-      # green run.
+      # the tag, and require the offline build jobs themselves to have passed,
+      # not merely a green run. There is one `Offline (<module>)` job per
+      # example and template.
       - name: Wait for the air-gapped build on the tag
         if: steps.ver.outputs.release == 'true' && steps.draft.outputs.published != 'true'
         env:
@@ -201,10 +202,11 @@ jobs:
             runs=$(gh run list --workflow airgapped.yaml --commit "$sha" --event push \
               --limit 20 --json databaseId,headBranch,status,conclusion \
               --jq "[.[] | select(.headBranch == \"$TAG\")]")
-            # A passing run whose offline build job succeeded.
+            # A passing run in which every offline build job succeeded.
             for id in $(echo "$runs" | jq -r '.[] | select(.status == "completed" and .conclusion == "success") | .databaseId'); do
-              build=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${id}/jobs" \
-                --jq '[.jobs[] | select(.name == "Build all examples offline")][0].conclusion')
+              build=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${id}/jobs?per_page=100" \
+                --jq '[.jobs[] | select(.name | startswith("Offline (")) | .conclusion]
+                  | if length > 0 and all(. == "success") then "success" else "missing" end')
               if [ "$build" = "success" ]; then
                 echo "air-gapped run $id passed on $TAG"
                 exit 0
