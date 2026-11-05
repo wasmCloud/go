@@ -44,7 +44,9 @@ and — except for PR refs — pushed by
 per-run artifacts under `runs/<date>/<sha>/<run-id>/<bench>/`, plus a
 read-merge-write of the public `history.json` aggregate (deduped on
 `(sha, bench, group, param, run_attempt, metric)`) and a CloudFront
-invalidation. The site renders whatever bench names appear in
+invalidation. The push runs in its own `publish` job, the only one with
+the OIDC token permission, from a checkout of the workflow's ref rather
+than the benched one. The site renders whatever bench names appear in
 `history.json` — no site change is needed for a new bench.
 
 Repo prerequisites for the push (mirroring the Rust repo):
