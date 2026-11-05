@@ -4,16 +4,14 @@ name: zizmor
 # scanning, where they show on pull requests and in the Security tab.
 
 on:
+  # Every pull request, not only those that change .github/**, so the check
+  # can be required.
   pull_request:
     branches:
       - main
-    paths:
-      - '.github/**'
   push:
     branches:
       - main
-    paths:
-      - '.github/**'
   schedule:
     # Weekly Monday at 08:47 UTC, for audits that use online data.
     - cron: '47 8 * * 1'
