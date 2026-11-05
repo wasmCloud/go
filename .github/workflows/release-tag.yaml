@@ -53,15 +53,19 @@ jobs:
       actions: read
     steps:
       # An app token so the tag push triggers the air-gapped workflow; pushes
-      # made with GITHUB_TOKEN trigger nothing.
+      # made with GITHUB_TOKEN trigger nothing. The checkout keeps no
+      # credentials; the push authenticates with this token.
       - id: app-token
         uses: actions/create-github-app-token@67018539274d69449ef7c02e8e71183d1719ab42 # v2.1.4
         with:
           app-id: ${{ secrets.BOT_APP_ID }}
           private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+          # Pushes the tag and creates and publishes the GitHub Release.
+          permission-contents: write
 
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
+          persist-credentials: false
           ref: ${{ inputs.sha || github.sha }}
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
@@ -126,9 +130,11 @@ jobs:
 
       - name: Check go.sum against the commit being tagged
         if: steps.ver.outputs.release == 'true' && steps.ver.outputs.tag_exists != 'true'
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
         run: |
-          if ! bash airgap/verify-sdk-sums.sh --local "${{ steps.ver.outputs.version }}"; then
-            echo "::error::component/ changed on main after the release PR was prepared, so the examples' go.sum is wrong for this commit. Nothing was tagged. Bump the examples again (airgap/bump-sdk.sh --provisional ${{ steps.ver.outputs.version }}) in a PR, then dispatch this workflow with the new merge commit."
+          if ! bash airgap/verify-sdk-sums.sh --local "$VERSION"; then
+            echo "::error::component/ changed on main after the release PR was prepared, so the examples' go.sum is wrong for this commit. Nothing was tagged. Bump the examples again (airgap/bump-sdk.sh --provisional $VERSION) in a PR, then dispatch this workflow with the new merge commit."
             exit 1
           fi
 
@@ -147,11 +153,13 @@ jobs:
           # annotated one that gets pushed.
           git tag -d "$TAG" 2>/dev/null || true
           git tag -a "$TAG" HEAD -m "Release $TAG"
-          git push origin "refs/tags/$TAG"
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "refs/tags/$TAG"
 
       - name: Check the published module
         if: steps.ver.outputs.release == 'true'
-        run: bash airgap/verify-sdk-sums.sh --published "${{ steps.ver.outputs.version }}"
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: bash airgap/verify-sdk-sums.sh --published "$VERSION"
 
       - name: Create draft GitHub Release
         id: draft

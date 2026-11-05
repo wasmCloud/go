@@ -16,6 +16,8 @@ jobs:
       packages: write # for publishing the wit to ghcr.io
     steps:
     - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      with:
+        persist-credentials: false
     - name: Extract tag context
       id: ctx
       run: |
@@ -49,8 +51,10 @@ jobs:
       run: |
         wash wit publish package.wasm
     - name: Package tarball for release
+      env:
+        TARBALL: ${{ steps.ctx.outputs.tarball }}
       run: |
-        tar -cvzf ${{ steps.ctx.outputs.tarball }} -C ./component wit
+        tar -cvzf "$TARBALL" -C ./component wit
     - name: Release
       uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
       with:
