@@ -125,7 +125,9 @@ Project/repository assets that should be watched closely:
 - No ruleset protects the `component/v*` tags;
   a repository admin could push or delete one outside the release workflow.
   The checksum database still rejects a changed version.
-- The `go-airgap` image carries no signature or provenance.
+- Releases published before 2026-11-05, when releases became immutable,
+  carry no release attestation or provenance.
+  Later releases, and the `go-airgap` image, are attested.
 - The `dicej/go` and componentize-go downloads in the air-gapped image build
   aren't pinned by SHA256, as BUILDING.md notes.
 - Renovate's Go module updates have no cooldown.

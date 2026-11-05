@@ -40,13 +40,29 @@ repository:
         comment: ghcr.io/wasmcloud/go-airgap image with the pinned toolchain for offline builds, published on each component/v* tag with a signed build provenance attestation.
     changelog: https://github.com/wasmCloud/go/releases
     attestations:
-      - name: SLSA build provenance
+      - name: Release asset build provenance
         location: https://github.com/wasmCloud/go/attestations
         predicate-uri: https://slsa.dev/provenance/v1
         comment: >-
           Covers the module zip and SHA256SUMS attached to each component/v<version>
           release. Verify with `gh attestation verify <file> --repo wasmCloud/go
           --signer-workflow wasmCloud/go/.github/workflows/release-tag.yaml`.
+      - name: go-airgap image build provenance
+        location: https://github.com/wasmCloud/go/attestations
+        predicate-uri: https://slsa.dev/provenance/v1
+        comment: >-
+          SLSA build provenance for each ghcr.io/wasmcloud/go-airgap image,
+          signed by airgapped.yaml and pushed to the registry beside it. Verify
+          with `gh attestation verify oci://ghcr.io/wasmcloud/go-airgap:<tag>
+          --repo wasmCloud/go`.
+      - name: GitHub release attestation
+        location: https://github.com/wasmCloud/go/attestations
+        predicate-uri: https://in-toto.io/attestation/release/v0.1
+        comment: >-
+          Releases are immutable, so GitHub signs an attestation of each
+          release's tag, commit and assets when it is published. Releases
+          published before 2026-11-05 predate this. Verify with
+          `gh release verify component/vX.Y.Z --repo wasmCloud/go`.
   security:
     assessments:
       self:
