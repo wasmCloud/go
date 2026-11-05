@@ -54,10 +54,14 @@ jobs:
         with:
           app-id: ${{ secrets.BOT_APP_ID }}
           private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+          # Pushes the release branch and opens its PR.
+          permission-contents: write
+          permission-pull-requests: write
 
       # Full history for the tags, which are the source of the current version.
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
+          persist-credentials: false
           ref: main
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
@@ -119,7 +123,9 @@ jobs:
       # Tags HEAD locally and resolves the SDK from it. That tag is never
       # pushed: release-tag.yaml tags the merge commit instead.
       - name: Bump
-        run: bash airgap/bump-sdk.sh --provisional "${{ steps.ver.outputs.version }}"
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: bash airgap/bump-sdk.sh --provisional "$VERSION"
 
       - name: Commit and open PR
         env:
@@ -138,7 +144,7 @@ jobs:
           git switch -c "$BRANCH"
           # --signoff for DCO.
           git commit -a --signoff -m "release: component/$VERSION"
-          git push origin "$BRANCH"
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$BRANCH"
 
           body=$(mktemp)
           # Backticks are literal Markdown here.

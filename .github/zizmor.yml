@@ -1,0 +1,11 @@
+# zizmor configuration: https://docs.zizmor.sh/configuration/
+rules:
+  github-app:
+    ignore:
+      # Renovate needs the bot app's full permission set: contents, pull
+      # requests, issues, checks, statuses and workflows.
+      - renovate.yaml
+  superfluous-actions:
+    ignore:
+      # The WIT release step keeps softprops/action-gh-release.
+      - component-wit.yaml
