@@ -24,13 +24,13 @@ The wasmCloud host that runs the components is covered by wasmCloud's own
   review and merge pull requests, triage issues, start releases
   and manage the repository settings.
   Code owners for each path are in [CODEOWNERS](.github/CODEOWNERS).
-- **Renovate** opens pull requests for Go module updates,
-  and **Dependabot** for GitHub Actions updates and security updates.
+- **Dependabot** opens pull requests for Go module and GitHub Actions updates,
+  and for security updates.
   They're reviewed and merged like any other pull request.
 - **GitHub Actions workflows** in [.github/workflows](.github/workflows)
   build, test, scan and release the repository.
   Each job's token gets only the permissions that job asks for.
-- **[octo-sts](https://github.com/octo-sts/app)** gives the release and Renovate workflows a GitHub App token
+- **[octo-sts](https://github.com/octo-sts/app)** gives the release workflows a GitHub App token
   in exchange for the job's OIDC token, so no app key is stored.
   Their pull requests and tags start other workflows,
   which `GITHUB_TOKEN` can't do.

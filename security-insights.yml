@@ -98,9 +98,9 @@ repository:
       - name: Dependabot
         type: SCA
         comment: >-
-          Dependabot alerts and security-update PRs for Go modules and GitHub
-          Actions, plus weekly version updates for GitHub Actions. Renovate
-          proposes Go module version updates.
+          Dependabot alerts, security-update PRs and weekly version-update PRs
+          for Go modules, including indirect dependencies, and GitHub Actions,
+          each after a cooldown.
         rulesets:
           - default
         integration:
@@ -108,20 +108,6 @@ repository:
           ci: false
           release: false
         results: {}
-      - name: Renovate
-        type: SCA
-        comment: Go module updates, including indirect dependencies.
-        rulesets:
-          - default
-        integration:
-          adhoc: true
-          ci: false
-          release: false
-        results:
-          adhoc:
-            name: Renovate
-            predicate-uri: https://docs.renovatebot.com
-            location: https://github.com/wasmCloud/go/actions/workflows/renovate.yaml
       - name: GitHub dependency review
         type: SCA
         comment: >-

@@ -83,9 +83,9 @@ the job. A new dependency must be actively maintained.
 - **Obtaining:** Go modules come from the Go module proxy and are pinned in each module's `go.sum`,
   which the Go checksum database verifies. GitHub Actions are pinned to a full commit SHA, with the
   version in a trailing comment.
-- **Tracking:** Renovate opens Go module update PRs, including indirect dependencies. Dependabot
-  opens GitHub Actions update PRs, and security-update PRs for both. Review them like any other
-  change.
+- **Tracking:** Dependabot opens weekly version-update PRs for Go modules, including indirect
+  dependencies, and for GitHub Actions, plus security-update PRs for both. It waits out a cooldown
+  before proposing a new version. Review them like any other change.
 - **Dependency review:** the [Dependency review](.github/workflows/dependency-review.yml) workflow
   runs software composition analysis (SCA) on every pull request.
   Dependency review must check every change for known vulnerabilities and malicious dependencies before merging:

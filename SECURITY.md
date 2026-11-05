@@ -98,10 +98,9 @@ This repository follows the
 and rotation policy of the wasmCloud project.
 In this repository that means:
 
-- **What is stored:** no credential for releases or Renovate.
-  [release-train.yaml](.github/workflows/release-train.yaml),
-  [release-tag.yaml](.github/workflows/release-tag.yaml)
-  and [renovate.yaml](.github/workflows/renovate.yaml)
+- **What is stored:** no credential for releases.
+  [release-train.yaml](.github/workflows/release-train.yaml)
+  and [release-tag.yaml](.github/workflows/release-tag.yaml)
   exchange their job's OIDC token with [octo-sts](https://github.com/octo-sts/app)
   for an app token that expires within an hour.
   Each has a trust policy in [.github/chainguard](.github/chainguard/)

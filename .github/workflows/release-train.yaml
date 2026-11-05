@@ -43,7 +43,7 @@ jobs:
   release:
     name: Open release PR
     runs-on: ubuntu-latest
-    # The octo-sts trust policy only admits upstream, same as renovate.yaml.
+    # The octo-sts trust policy only admits upstream.
     if: ${{ github.repository == 'wasmCloud/go' }}
     permissions:
       contents: read

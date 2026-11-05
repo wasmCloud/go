@@ -49,7 +49,7 @@ Project/repository assets that should be watched closely:
 
 - Each module commits its `go.sum`,
   and the Go checksum database verifies every module download.
-- Renovate and Dependabot open update pull requests,
+- Dependabot opens update pull requests,
   reviewed like any other change.
   Dependabot waits out a cooldown before proposing a new version.
 - Dependency review and osv-scanner block a pull request that adds
@@ -69,7 +69,7 @@ Project/repository assets that should be watched closely:
   except the OSPS Baseline publishing workflow, which grc.store requires by tag.
 - Untrusted values reach shell steps through environment variables, not `${{ }}` expansion.
 - zizmor audits the workflows on every pull request.
-- The release and Renovate workflows get their app tokens from octo-sts, not a stored key.
+- The release workflows get their app tokens from octo-sts, not a stored key.
   Each trust policy admits only its own workflow on `main`,
   with only the permissions that workflow needs.
 - [bench.yml](.github/workflows/bench.yml) runs the ref it's given,
@@ -200,7 +200,6 @@ since [capabilities.wit](component/wit/capabilities.wit) is not a build target.
   Later releases, and the `go-airgap` image, are attested.
 - The `dicej/go` and componentize-go downloads in the air-gapped image build
   aren't pinned by SHA256, as BUILDING.md notes.
-- Renovate's Go module updates have no cooldown.
 - Unit tests cover only the component SDK's conversions between WIT and Go types;
   the plugin SDK has none,
   and calls into the host are exercised only by the examples' smoke tests.
