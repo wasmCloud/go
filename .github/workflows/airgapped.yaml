@@ -298,6 +298,9 @@ jobs:
     permissions:
       contents: read
       packages: write
+      # Signs the image's build provenance with Sigstore, and stores it.
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -318,6 +321,7 @@ jobs:
         run: echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
 
       - name: Build and push
+        id: push
         env:
           IMAGE: ${{ steps.img.outputs.name }}
           TAG: ${{ steps.img.outputs.tag }}
@@ -327,3 +331,15 @@ jobs:
           # A moving tag for humans; the hash tag is what CI resolves.
           docker tag "$IMAGE:$TAG" "$IMAGE:latest"
           docker push "$IMAGE:latest"
+          digest=$(docker inspect --format '{{index .RepoDigests 0}}' "$IMAGE:$TAG")
+          echo "digest=${digest#*@}" >> "$GITHUB_OUTPUT"
+
+      # Verify with `gh attestation verify oci://ghcr.io/wasmcloud/go-airgap:<tag>
+      # --repo wasmCloud/go`.
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-name: ${{ steps.img.outputs.name }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
+          create-storage-record: false
