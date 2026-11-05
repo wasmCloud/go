@@ -42,6 +42,8 @@ gh attestation verify component-v0.1.6.zip \
 `--signer-workflow` checks that the release workflow signed it, not just any
 workflow in the repository. `go` itself checks every module download against
 the Go checksum database.
+[SECURITY.md](SECURITY.md#verifying-a-release) also covers the release
+attestation and the `go-airgap` image.
 
 ## Quickstart
 

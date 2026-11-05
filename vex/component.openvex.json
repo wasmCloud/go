@@ -1,0 +1,305 @@
+{
+  "@context": "https://openvex.dev/ns/v0.2.0",
+  "@id": "https://github.com/wasmCloud/go/blob/main/vex/component.openvex.json",
+  "author": "wasmCloud Go maintainers <security@wasmcloud.com>",
+  "role": "Document Creator",
+  "timestamp": "2026-11-05T00:00:00Z",
+  "version": 1,
+  "tooling": "govulncheck v1.1.4",
+  "statements": [
+    {
+      "vulnerability": {
+        "name": "GO-2026-6599",
+        "aliases": [
+          "CVE-2026-94448"
+        ]
+      },
+      "products": [
+        {
+          "@id": "pkg:golang/go.wasmcloud.dev/component@v0.1.6",
+          "subcomponents": [
+            {
+              "@id": "pkg:golang/stdlib@1.27.1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "go.wasmcloud.dev/component v0.1.6 declares go 1.27.1, whose standard library has this vulnerability (fixed in Go 1.27.2). govulncheck, run with Go 1.27.1 for GOOS=wasip1 GOARCH=wasm, finds no call path from the SDK to the affected symbols. A component that calls them itself is affected; build with Go 1.27.2 or later."
+    },
+    {
+      "vulnerability": {
+        "name": "GO-2026-6600",
+        "aliases": [
+          "CVE-2026-97030"
+        ]
+      },
+      "products": [
+        {
+          "@id": "pkg:golang/go.wasmcloud.dev/component@v0.1.6",
+          "subcomponents": [
+            {
+              "@id": "pkg:golang/stdlib@1.27.1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "go.wasmcloud.dev/component v0.1.6 declares go 1.27.1, whose standard library has this vulnerability (fixed in Go 1.27.2). govulncheck, run with Go 1.27.1 for GOOS=wasip1 GOARCH=wasm, finds no call path from the SDK to the affected symbols. A component that calls them itself is affected; build with Go 1.27.2 or later."
+    },
+    {
+      "vulnerability": {
+        "name": "GO-2026-6603",
+        "aliases": [
+          "CVE-2026-78659"
+        ]
+      },
+      "products": [
+        {
+          "@id": "pkg:golang/go.wasmcloud.dev/component@v0.1.6",
+          "subcomponents": [
+            {
+              "@id": "pkg:golang/stdlib@1.27.1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "go.wasmcloud.dev/component v0.1.6 declares go 1.27.1, whose standard library has this vulnerability (fixed in Go 1.27.2). govulncheck, run with Go 1.27.1 for GOOS=wasip1 GOARCH=wasm, finds no call path from the SDK to the affected symbols. A component that calls them itself is affected; build with Go 1.27.2 or later."
+    },
+    {
+      "vulnerability": {
+        "name": "GO-2026-6604",
+        "aliases": [
+          "CVE-2026-56857"
+        ]
+      },
+      "products": [
+        {
+          "@id": "pkg:golang/go.wasmcloud.dev/component@v0.1.6",
+          "subcomponents": [
+            {
+              "@id": "pkg:golang/stdlib@1.27.1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "go.wasmcloud.dev/component v0.1.6 declares go 1.27.1, whose standard library has this vulnerability (fixed in Go 1.27.2). govulncheck, run with Go 1.27.1 for GOOS=wasip1 GOARCH=wasm, finds no call path from the SDK to the affected symbols. A component that calls them itself is affected; build with Go 1.27.2 or later."
+    },
+    {
+      "vulnerability": {
+        "name": "GO-2026-6605",
+        "aliases": [
+          "CVE-2026-56866"
+        ]
+      },
+      "products": [
+        {
+          "@id": "pkg:golang/go.wasmcloud.dev/component@v0.1.6",
+          "subcomponents": [
+            {
+              "@id": "pkg:golang/stdlib@1.27.1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "go.wasmcloud.dev/component v0.1.6 declares go 1.27.1, whose standard library has this vulnerability (fixed in Go 1.27.2). govulncheck, run with Go 1.27.1 for GOOS=wasip1 GOARCH=wasm, finds no call path from the SDK to the affected symbols. A component that calls them itself is affected; build with Go 1.27.2 or later."
+    },
+    {
+      "vulnerability": {
+        "name": "GO-2026-6607",
+        "aliases": [
+          "CVE-2026-97031"
+        ]
+      },
+      "products": [
+        {
+          "@id": "pkg:golang/go.wasmcloud.dev/component@v0.1.6",
+          "subcomponents": [
+            {
+              "@id": "pkg:golang/stdlib@1.27.1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "go.wasmcloud.dev/component v0.1.6 declares go 1.27.1, whose standard library has this vulnerability (fixed in Go 1.27.2). govulncheck, run with Go 1.27.1 for GOOS=wasip1 GOARCH=wasm, finds no call path from the SDK to the affected symbols. A component that calls them itself is affected; build with Go 1.27.2 or later."
+    },
+    {
+      "vulnerability": {
+        "name": "GO-2026-6608",
+        "aliases": [
+          "CVE-2026-94440"
+        ]
+      },
+      "products": [
+        {
+          "@id": "pkg:golang/go.wasmcloud.dev/component@v0.1.6",
+          "subcomponents": [
+            {
+              "@id": "pkg:golang/stdlib@1.27.1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "go.wasmcloud.dev/component v0.1.6 declares go 1.27.1, whose standard library has this vulnerability (fixed in Go 1.27.2). govulncheck, run with Go 1.27.1 for GOOS=wasip1 GOARCH=wasm, finds no call path from the SDK to the affected symbols. A component that calls them itself is affected; build with Go 1.27.2 or later."
+    },
+    {
+      "vulnerability": {
+        "name": "GO-2026-6609",
+        "aliases": [
+          "CVE-2026-78667"
+        ]
+      },
+      "products": [
+        {
+          "@id": "pkg:golang/go.wasmcloud.dev/component@v0.1.6",
+          "subcomponents": [
+            {
+              "@id": "pkg:golang/stdlib@1.27.1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "go.wasmcloud.dev/component v0.1.6 declares go 1.27.1, whose standard library has this vulnerability (fixed in Go 1.27.2). govulncheck, run with Go 1.27.1 for GOOS=wasip1 GOARCH=wasm, finds no call path from the SDK to the affected symbols. A component that calls them itself is affected; build with Go 1.27.2 or later."
+    },
+    {
+      "vulnerability": {
+        "name": "GO-2026-6610",
+        "aliases": [
+          "CVE-2026-78660"
+        ]
+      },
+      "products": [
+        {
+          "@id": "pkg:golang/go.wasmcloud.dev/component@v0.1.6",
+          "subcomponents": [
+            {
+              "@id": "pkg:golang/stdlib@1.27.1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "go.wasmcloud.dev/component v0.1.6 declares go 1.27.1, whose standard library has this vulnerability (fixed in Go 1.27.2). govulncheck, run with Go 1.27.1 for GOOS=wasip1 GOARCH=wasm, finds no call path from the SDK to the affected symbols. A component that calls them itself is affected; build with Go 1.27.2 or later."
+    },
+    {
+      "vulnerability": {
+        "name": "GO-2026-6611",
+        "aliases": [
+          "CVE-2026-78669"
+        ]
+      },
+      "products": [
+        {
+          "@id": "pkg:golang/go.wasmcloud.dev/component@v0.1.6",
+          "subcomponents": [
+            {
+              "@id": "pkg:golang/stdlib@1.27.1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "go.wasmcloud.dev/component v0.1.6 declares go 1.27.1, whose standard library has this vulnerability (fixed in Go 1.27.2). govulncheck, run with Go 1.27.1 for GOOS=wasip1 GOARCH=wasm, finds no call path from the SDK to the affected symbols. A component that calls them itself is affected; build with Go 1.27.2 or later."
+    },
+    {
+      "vulnerability": {
+        "name": "GO-2026-6612",
+        "aliases": [
+          "CVE-2026-78663"
+        ]
+      },
+      "products": [
+        {
+          "@id": "pkg:golang/go.wasmcloud.dev/component@v0.1.6",
+          "subcomponents": [
+            {
+              "@id": "pkg:golang/stdlib@1.27.1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "go.wasmcloud.dev/component v0.1.6 declares go 1.27.1, whose standard library has this vulnerability (fixed in Go 1.27.2). govulncheck, run with Go 1.27.1 for GOOS=wasip1 GOARCH=wasm, finds no call path from the SDK to the affected symbols. A component that calls them itself is affected; build with Go 1.27.2 or later."
+    },
+    {
+      "vulnerability": {
+        "name": "GO-2026-6613",
+        "aliases": [
+          "CVE-2026-94439"
+        ]
+      },
+      "products": [
+        {
+          "@id": "pkg:golang/go.wasmcloud.dev/component@v0.1.6",
+          "subcomponents": [
+            {
+              "@id": "pkg:golang/stdlib@1.27.1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "go.wasmcloud.dev/component v0.1.6 declares go 1.27.1, whose standard library has this vulnerability (fixed in Go 1.27.2). govulncheck, run with Go 1.27.1 for GOOS=wasip1 GOARCH=wasm, finds no call path from the SDK to the affected symbols. A component that calls them itself is affected; build with Go 1.27.2 or later."
+    },
+    {
+      "vulnerability": {
+        "name": "GO-2026-6617",
+        "aliases": [
+          "CVE-2026-97032"
+        ]
+      },
+      "products": [
+        {
+          "@id": "pkg:golang/go.wasmcloud.dev/component@v0.1.6",
+          "subcomponents": [
+            {
+              "@id": "pkg:golang/stdlib@1.27.1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "go.wasmcloud.dev/component v0.1.6 declares go 1.27.1, whose standard library has this vulnerability (fixed in Go 1.27.2). govulncheck, run with Go 1.27.1 for GOOS=wasip1 GOARCH=wasm, finds no call path from the SDK to the affected symbols. A component that calls them itself is affected; build with Go 1.27.2 or later."
+    },
+    {
+      "vulnerability": {
+        "name": "GO-2026-6809",
+        "aliases": [
+          "CVE-2026-111943"
+        ]
+      },
+      "products": [
+        {
+          "@id": "pkg:golang/go.wasmcloud.dev/component@v0.1.6",
+          "subcomponents": [
+            {
+              "@id": "pkg:golang/stdlib@1.27.1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "go.wasmcloud.dev/component v0.1.6 declares go 1.27.1, whose standard library has this vulnerability (fixed in Go 1.27.3). govulncheck, run with Go 1.27.1 for GOOS=wasip1 GOARCH=wasm, finds no call path from the SDK to the affected symbols. A component that calls them itself is affected; build with Go 1.27.3 or later."
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+name: Dependency review
+
+# Blocks a pull request that adds a dependency with a known vulnerability, a
+# malicious package, or a license outside the CNCF allowlist. The policy, and
+# how to declare a finding that doesn't affect the project, is in
+# CONTRIBUTING.md#dependencies.
+#
+# Both jobs run on every pull request, with no path filter, so both can be
+# required checks.
+
+on:
+  pull_request:
+    branches: ["main"]
+
+permissions: {}
+
+jobs:
+  # GitHub's dependency review: compares the dependency graph of the pull
+  # request with its base, and fails on a new or updated dependency that has a
+  # known vulnerability or a license that isn't allowed.
+  dependency-review:
+    name: dependency-review
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: low
+          # Apache-2.0 plus the CNCF allowlist:
+          # https://github.com/cncf/foundation/blob/main/policies-guidance/allowed-third-party-license-policy.md
+          # The LicenseRef is the Google patent grant that the golang.org/x
+          # modules carry, which the allowlist names.
+          allow-licenses: >-
+            Apache-2.0, 0BSD, BSD-2-Clause, BSD-2-Clause-FreeBSD, BSD-3-Clause,
+            MIT, MIT-0, ISC, OpenSSL, OpenSSL-standalone, PSF-2.0, Python-2.0,
+            Python-2.0.1, PostgreSQL, SSLeay-standalone, UPL-1.0, X11, Zlib,
+            LicenseRef-scancode-google-patent-license-golang
+
+  # OSV, which also carries the OpenSSF malicious-packages feed: fails if any
+  # module in the repository, not only one this pull request changes, has a
+  # known vulnerability or is a known malicious package. A finding that doesn't
+  # affect the project is declared in osv-scanner.toml.
+  osv-scanner:
+    name: osv-scanner
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+        with:
+          go-version: "1.27"
+          cache: false
+      # Fetched through the Go module proxy and verified against the Go
+      # checksum database, like any other module.
+      - name: Scan every module
+        run: go run github.com/google/osv-scanner/v2/cmd/osv-scanner@v2.7.0 scan source --recursive --config=osv-scanner.toml ./

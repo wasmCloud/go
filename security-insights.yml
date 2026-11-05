@@ -25,7 +25,7 @@ repository:
     dependency-management-policy: https://github.com/wasmCloud/go/blob/main/CONTRIBUTING.md#dependencies
     review-policy: https://github.com/wasmCloud/go/blob/main/CONTRIBUTING.md#submitting-changes
     governance: https://github.com/wasmCloud/wasmCloud/blob/main/GOVERNANCE.md
-    security-policy: https://github.com/wasmCloud/.github/blob/main/SECURITY.md
+    security-policy: https://github.com/wasmCloud/go/blob/main/SECURITY.md
   release:
     automated-pipeline: true
     distribution-points:
@@ -37,16 +37,32 @@ repository:
       - uri: https://pkg.go.dev/go.wasmcloud.dev/component
         comment: The go.wasmcloud.dev/component module, fetched through the Go module proxy and checked against the Go checksum database.
       - uri: https://github.com/wasmCloud/go/pkgs/container/go-airgap
-        comment: ghcr.io/wasmcloud/go-airgap image with the pinned toolchain for offline builds, published on each component/v* tag with a signed build provenance attestation.
+        comment: ghcr.io/wasmcloud/go-airgap image with the pinned toolchain for offline builds, published on each component/v* tag with signed build provenance and SPDX SBOM attestations.
     changelog: https://github.com/wasmCloud/go/releases
     attestations:
-      - name: SLSA build provenance
+      - name: Release asset build provenance
         location: https://github.com/wasmCloud/go/attestations
         predicate-uri: https://slsa.dev/provenance/v1
         comment: >-
           Covers the module zip and SHA256SUMS attached to each component/v<version>
           release. Verify with `gh attestation verify <file> --repo wasmCloud/go
           --signer-workflow wasmCloud/go/.github/workflows/release-tag.yaml`.
+      - name: go-airgap image build provenance
+        location: https://github.com/wasmCloud/go/attestations
+        predicate-uri: https://slsa.dev/provenance/v1
+        comment: >-
+          SLSA build provenance for each ghcr.io/wasmcloud/go-airgap image,
+          signed by airgapped.yaml and pushed to the registry beside it. Verify
+          with `gh attestation verify oci://ghcr.io/wasmcloud/go-airgap:<tag>
+          --repo wasmCloud/go`.
+      - name: GitHub release attestation
+        location: https://github.com/wasmCloud/go/attestations
+        predicate-uri: https://in-toto.io/attestation/release/v0.1
+        comment: >-
+          Releases are immutable, so GitHub signs an attestation of each
+          release's tag, commit and assets when it is published. Releases
+          published before 2026-11-05 predate this. Verify with
+          `gh release verify component/vX.Y.Z --repo wasmCloud/go`.
   security:
     assessments:
       self:
@@ -54,8 +70,10 @@ repository:
         evidence: https://github.com/wasmCloud/go/blob/main/SECURITY_ASSESSMENT.md
         date: '2026-11-05'
         comment: >-
-          Covers this repository's SDKs, CI and releases, and the risks users
-          inherit from the SDK toolchain and the examples. The host sandbox the
+          Covers this repository's SDKs, CI and releases, a threat model and
+          attack surface analysis of the SDK code that runs inside components,
+          and the risks users inherit from the SDK toolchain and the examples.
+          The host sandbox the
           components run in is covered by the wasmCloud self-assessment and
           its threat model, THREAT_MODEL.md in wasmCloud/wasmCloud.
     tools:
@@ -104,6 +122,43 @@ repository:
             name: Renovate
             predicate-uri: https://docs.renovatebot.com
             location: https://github.com/wasmCloud/go/actions/workflows/renovate.yaml
+      - name: GitHub dependency review
+        type: SCA
+        comment: >-
+          Runs on every pull request and fails on an added or updated
+          dependency with a known vulnerability of any severity, or a license
+          outside the CNCF allowlist. Policy and exceptions are in
+          CONTRIBUTING.md#dependencies.
+        rulesets:
+          - fail-on-severity-low
+          - cncf-license-allowlist
+        integration:
+          adhoc: false
+          ci: true
+          release: false
+        results:
+          ci:
+            name: dependency-review
+            predicate-uri: https://github.com/actions/dependency-review-action
+            location: https://github.com/wasmCloud/go/actions/workflows/dependency-review.yml
+      - name: osv-scanner
+        type: SCA
+        comment: >-
+          Runs on every pull request and fails if any module has a known
+          vulnerability or is a known malicious package in OSV, which carries
+          the OpenSSF malicious packages feed. Non-exploitable findings are
+          declared in osv-scanner.toml.
+        rulesets:
+          - default
+        integration:
+          adhoc: false
+          ci: true
+          release: false
+        results:
+          ci:
+            name: osv-scanner
+            predicate-uri: https://google.github.io/osv-scanner/
+            location: https://github.com/wasmCloud/go/actions/workflows/dependency-review.yml
       - name: GitHub secret scanning
         type: secret
         comment: >-
@@ -123,7 +178,7 @@ repository:
       - name: OSPS Baseline Scanner (grc.store)
         type: other
         comment: >-
-          OSPS Baseline Maturity Level 2 assessment weekly and on demand,
+          OSPS Baseline Maturity Level 3 assessment weekly and on demand,
           published to grc.store as a signed log by the publish-results
           workflow.
         rulesets:

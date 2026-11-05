@@ -1,6 +1,6 @@
 name: publish-results
 
-# Publishes this repo's OSPS Baseline Maturity Level 2 evaluation to
+# Publishes this repo's OSPS Baseline Maturity Level 3 evaluation to
 # grc.store as a signed log: https://grc.store/targets/wasmcloud/go
 # The `wasmcloud` namespace trusts wasmCloud/go on refs/heads/main.
 
@@ -67,7 +67,7 @@ jobs:
               catalogs:
                 - osps-baseline
               applicability:
-                - maturity-2
+                - maturity-3
             vars:
               owner: wasmCloud
               repo: go

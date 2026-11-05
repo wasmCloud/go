@@ -1,0 +1,12 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/octo-sts/app/refs/heads/main/pkg/octosts/octosts.TrustPolicy.json
+
+issuer: https://token.actions.githubusercontent.com
+subject: repo:wasmCloud/go:ref:refs/heads/main
+claim_pattern:
+  job_workflow_ref: wasmCloud/go/.github/workflows/release-tag.yaml@refs/heads/main
+
+# Push the component/vX.Y.Z tag and create and publish the GitHub Release. An
+# app token, unlike GITHUB_TOKEN, lets the tag push trigger the air-gapped
+# workflow.
+permissions:
+  contents: write
