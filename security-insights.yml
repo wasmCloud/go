@@ -25,7 +25,7 @@ repository:
     dependency-management-policy: https://github.com/wasmCloud/go/blob/main/CONTRIBUTING.md#dependencies
     review-policy: https://github.com/wasmCloud/go/blob/main/CONTRIBUTING.md#submitting-changes
     governance: https://github.com/wasmCloud/wasmCloud/blob/main/GOVERNANCE.md
-    security-policy: https://github.com/wasmCloud/.github/blob/main/SECURITY.md
+    security-policy: https://github.com/wasmCloud/go/blob/main/SECURITY.md
   release:
     automated-pipeline: true
     distribution-points:
