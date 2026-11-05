@@ -51,7 +51,21 @@ Verify it, and that it was published in this repository, with:
 gh release verify component/vX.Y.Z --repo wasmCloud/go
 ```
 
-Releases published before 2026-11-05 predate immutable releases and have no attestation;
+### The release assets
+
+Each release attaches `component-vX.Y.Z.zip`, the module zip that `go get` downloads,
+and `SHA256SUMS`.
+Both carry Sigstore-signed SLSA build provenance.
+Check a download and that release-tag.yaml signed it:
+
+```shell
+gh attestation verify component-vX.Y.Z.zip \
+  --repo wasmCloud/go \
+  --signer-workflow wasmCloud/go/.github/workflows/release-tag.yaml
+```
+
+Releases published before 2026-11-05 predate immutable releases
+and have neither the release attestation nor these assets;
 for those, rely on the checksum database.
 
 ### The go-airgap image
