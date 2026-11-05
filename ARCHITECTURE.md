@@ -63,7 +63,8 @@ The wasmCloud host that runs the components is covered by wasmCloud's own
      builds every example into a component with `wash build`,
      and smoke-tests under `wash dev` those that a released `wash` can serve.
    - **Templates** creates a project from the template with `wash new` and builds it.
-   - **Air-gapped build**, when the toolchain, an example or the template changes,
+   - **Air-gapped build**, when the SDK, the toolchain, an example, the template,
+     BUILDING.md or the Makefile changes,
      builds every example and the template with `--network none`
      from the versions pinned in [airgap/versions.env](airgap/versions.env).
    - **CodeQL** analyzes the component and plugin SDKs.
@@ -133,7 +134,7 @@ interfaces a component imports and exports, and the Go packages that bind them.
 | World | Exports | Imports |
 | --- | --- | --- |
 | `wasip2` (default) | `wasi:http/incoming-handler@0.2.8` | `wasi:cli/imports@0.2.8`, `wasi:http/outgoing-handler@0.2.8`, `wasi:config/store@0.2.0-rc.1`, `wasi:logging/logging@0.1.0-draft` |
-| `wasip3` | `wasi:http/service@0.3.0` | `wasi:config/store@0.2.0-rc.1`, `wasi:logging/logging@0.1.0-draft` |
+| `wasip3` | `wasi:http/service@0.3.0` | the HTTP client, CLI, clocks and random imports that `wasi:http/service@0.3.0` includes, `wasi:config/store@0.2.0-rc.1`, `wasi:logging/logging@0.1.0-draft` |
 | `headless` | | `wasi:cli/imports@0.2.8`, `wasi:config/store@0.2.0-rc.1`, `wasi:logging/logging@0.1.0-draft` |
 
 Its packages also bind the wasmCloud host plugin interfaces in
