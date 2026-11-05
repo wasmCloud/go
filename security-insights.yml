@@ -178,7 +178,7 @@ repository:
       - name: OSPS Baseline Scanner (grc.store)
         type: other
         comment: >-
-          OSPS Baseline Maturity Level 2 assessment weekly and on demand,
+          OSPS Baseline Maturity Level 3 assessment weekly and on demand,
           published to grc.store as a signed log by the publish-results
           workflow.
         rulesets:
