@@ -34,7 +34,7 @@ repository:
       - uri: https://pkg.go.dev/go.wasmcloud.dev/component
         comment: The go.wasmcloud.dev/component module, fetched through the Go module proxy and checked against the Go checksum database.
       - uri: https://github.com/wasmCloud/go/pkgs/container/go-airgap
-        comment: ghcr.io/wasmcloud/go-airgap image with the pinned toolchain for offline builds, published on each component/v* tag.
+        comment: ghcr.io/wasmcloud/go-airgap image with the pinned toolchain for offline builds, published on each component/v* tag with a signed build provenance attestation.
     changelog: https://github.com/wasmCloud/go/releases
   security:
     assessments:
