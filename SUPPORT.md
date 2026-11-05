@@ -33,5 +33,8 @@ Their existing versions keep resolving through the Go module proxy. See
   [CONTRIBUTING.md](CONTRIBUTING.md#reporting-bugs) for what to include.
 - Report security vulnerabilities privately, as described in the
   [security policy](https://github.com/wasmCloud/go/security/policy).
+- Fixed vulnerabilities are published as
+  [GitHub Security Advisories](https://github.com/wasmCloud/go/security/advisories) in this
+  repository.
 
 Support is provided by the community on a best-effort basis.
