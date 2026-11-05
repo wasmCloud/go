@@ -66,6 +66,11 @@ jobs:
       - name: Vet SDK
         working-directory: ./component
         run: GOOS=wasip1 GOARCH=wasm go vet $(go list ./... | grep -vE '/(imports|exports)/')
+      # The unit tests cover the handwritten conversions between the WIT types
+      # and Go, and never call into the host, so they run natively.
+      - name: Test SDK
+        working-directory: ./component
+        run: go test ./...
 
   examples:
     name: Example (${{ matrix.example.folder }})
