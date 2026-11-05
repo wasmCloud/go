@@ -201,34 +201,24 @@ jobs:
           [ -n "$PREVIOUS_TAG" ] && args+=(--notes-start-tag "$PREVIOUS_TAG")
           gh release create "$TAG" "${args[@]}"
 
-      # The module zip is what `go get` downloads. Building it from the tag with
-      # GOPROXY=direct gives the same bytes the proxy serves, and the checksum
-      # database still verifies it; the cmp makes sure.
+      # The release scripts come from this workflow's own commit on main. The
+      # release commit a dispatch names may predate them.
+      - name: Check out the release scripts
+        if: steps.ver.outputs.release == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+          path: release-scripts
+          sparse-checkout: .github/scripts
+
+      # The assets go outside the checkout, so nothing from the commit can land
+      # among the uploaded files.
       - name: Build the module zip
         if: steps.ver.outputs.release == 'true'
         env:
           VERSION: ${{ steps.ver.outputs.version }}
-        run: |
-          set -euo pipefail
-          # Outside the checkout, so nothing from the commit can land among the
-          # uploaded assets.
-          dist="$RUNNER_TEMP/release-assets"
-          mkdir -p "$dist" "$RUNNER_TEMP/mod"
-          (
-            cd "$RUNNER_TEMP/mod"
-            go mod init release.invalid/attest
-            GOMODCACHE="$RUNNER_TEMP/modcache" GOPROXY=direct \
-              go mod download -json "go.wasmcloud.dev/component@${VERSION}" > download.json
-          )
-          zip=$(jq -r .Zip "$RUNNER_TEMP/mod/download.json")
-          curl -sSfL -o "$RUNNER_TEMP/proxy.zip" \
-            "https://proxy.golang.org/go.wasmcloud.dev/component/@v/${VERSION}.zip"
-          if ! cmp -s "$zip" "$RUNNER_TEMP/proxy.zip"; then
-            echo "::error::the module zip built from the tag differs from proxy.golang.org's"
-            exit 1
-          fi
-          cp "$zip" "$dist/component-${VERSION}.zip"
-          (cd "$dist" && sha256sum "component-${VERSION}.zip" > SHA256SUMS)
+        run: node release-scripts/.github/scripts/release-assets.mjs "$VERSION" "$RUNNER_TEMP/release-assets"
 
       - name: Attest build provenance
         id: provenance
