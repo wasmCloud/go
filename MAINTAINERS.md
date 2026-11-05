@@ -18,6 +18,13 @@ The team below has admin access to this repository:
 its settings, branch ruleset, secrets and releases.
 Code owners for each path are in [CODEOWNERS](.github/CODEOWNERS).
 
+Write, maintain or admin access is granted only after maintainers approve a pull request adding the person here.
+An org maintainer then grants the lowest access the role needs,
+and removes it when the person steps down,
+as set out in wasmCloud's
+[Granting Access](https://github.com/wasmCloud/wasmCloud/blob/main/CONTRIBUTION_LADDER.md#granting-access) policy.
+Org maintainers review who holds that access once a year.
+
 ## @wasmCloud/go-maintainers
 
 _Covers the Go SDKs, examples, templates and CI in this repository._
