@@ -10,10 +10,13 @@ name: Release tag
 #      push runs the air-gapped suite, which cannot run any earlier: it has to
 #      download the tagged SDK.
 #   4. Checks the published module against proxy.golang.org / sum.golang.org.
-#   5. Creates the component/vX.Y.Z GitHub Release as a draft, waits for the
-#      air-gapped run on the tag to pass, and only then publishes it. If that
-#      run fails the release stays a draft; fix forward, re-run the air-gapped
-#      workflow on the tag, then re-run this one to publish.
+#   5. Creates the component/vX.Y.Z GitHub Release as a draft, and attaches
+#      the module zip, SHA256SUMS and a Sigstore bundle of their SLSA build
+#      provenance.
+#   6. Waits for the air-gapped run on the tag to pass, and only then publishes
+#      the release. If that run fails the release stays a draft; fix forward,
+#      re-run the air-gapped workflow on the tag, then re-run this one to
+#      publish.
 #
 # The tag itself, and so the Go module, is public from step 3 — the proxy serves
 # any pushed tag. What the draft gates is the announced release.
@@ -50,6 +53,12 @@ jobs:
       contents: read
       # Reading the air-gapped run on the tag.
       actions: read
+      # Sigstore signing and the attestation store.
+      id-token: write
+      attestations: write
+      # actions/attest writes an artifact storage record alongside the
+      # attestation; without this it warns on every subject.
+      artifact-metadata: write
     steps:
       # An app token so the tag push triggers the air-gapped workflow; pushes
       # made with GITHUB_TOKEN trigger nothing. The checkout keeps no
@@ -183,6 +192,55 @@ jobs:
           args=(--draft --title "$TAG" --generate-notes --verify-tag)
           [ -n "$PREVIOUS_TAG" ] && args+=(--notes-start-tag "$PREVIOUS_TAG")
           gh release create "$TAG" "${args[@]}"
+
+      # The module zip is what `go get` downloads. Building it from the tag with
+      # GOPROXY=direct gives the same bytes the proxy serves, and the checksum
+      # database still verifies it; the cmp makes sure.
+      - name: Build the module zip
+        if: steps.ver.outputs.release == 'true'
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist "$RUNNER_TEMP/mod"
+          (
+            cd "$RUNNER_TEMP/mod"
+            go mod init release.invalid/attest
+            GOMODCACHE="$RUNNER_TEMP/modcache" GOPROXY=direct \
+              go mod download -json "go.wasmcloud.dev/component@${VERSION}" > download.json
+          )
+          zip=$(jq -r .Zip "$RUNNER_TEMP/mod/download.json")
+          curl -sSfL -o "$RUNNER_TEMP/proxy.zip" \
+            "https://proxy.golang.org/go.wasmcloud.dev/component/@v/${VERSION}.zip"
+          if ! cmp -s "$zip" "$RUNNER_TEMP/proxy.zip"; then
+            echo "::error::the module zip built from the tag differs from proxy.golang.org's"
+            exit 1
+          fi
+          cp "$zip" "dist/component-${VERSION}.zip"
+          (cd dist && sha256sum "component-${VERSION}.zip" > SHA256SUMS)
+
+      - name: Attest build provenance
+        id: provenance
+        if: steps.ver.outputs.release == 'true'
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: |
+            dist/component-${{ steps.ver.outputs.version }}.zip
+            dist/SHA256SUMS
+
+      # --clobber, so dispatching with an earlier release commit attaches the
+      # assets to a release that is already published.
+      - name: Attach the release assets
+        if: steps.ver.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          TAG: ${{ steps.ver.outputs.tag }}
+          VERSION: ${{ steps.ver.outputs.version }}
+          BUNDLE: ${{ steps.provenance.outputs.bundle-path }}
+        run: |
+          set -euo pipefail
+          cp "$BUNDLE" "dist/component-${VERSION}.provenance.sigstore.json"
+          gh release upload "$TAG" dist/* --clobber
 
       # The same commit also ran the air-gapped workflow when it landed on main,
       # with the build skipped (the tag did not exist yet) — so match the run by
