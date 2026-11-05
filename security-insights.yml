@@ -70,8 +70,10 @@ repository:
         evidence: https://github.com/wasmCloud/go/blob/main/SECURITY_ASSESSMENT.md
         date: '2026-11-05'
         comment: >-
-          Covers this repository's SDKs, CI and releases, and the risks users
-          inherit from the SDK toolchain and the examples. The host sandbox the
+          Covers this repository's SDKs, CI and releases, a threat model and
+          attack surface analysis of the SDK code that runs inside components,
+          and the risks users inherit from the SDK toolchain and the examples.
+          The host sandbox the
           components run in is covered by the wasmCloud self-assessment and
           its threat model, THREAT_MODEL.md in wasmCloud/wasmCloud.
     tools:
