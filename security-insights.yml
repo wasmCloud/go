@@ -30,12 +30,23 @@ repository:
     automated-pipeline: true
     distribution-points:
       - uri: https://github.com/wasmCloud/go/releases
-        comment: GitHub Releases, tagged component/v<version>, cut by release-train.yaml and release-tag.yaml.
+        comment: >-
+          GitHub Releases, tagged component/v<version>, cut by release-train.yaml
+          and release-tag.yaml. Each attaches the module zip, SHA256SUMS and a
+          Sigstore bundle of their SLSA build provenance.
       - uri: https://pkg.go.dev/go.wasmcloud.dev/component
         comment: The go.wasmcloud.dev/component module, fetched through the Go module proxy and checked against the Go checksum database.
       - uri: https://github.com/wasmCloud/go/pkgs/container/go-airgap
         comment: ghcr.io/wasmcloud/go-airgap image with the pinned toolchain for offline builds, published on each component/v* tag.
     changelog: https://github.com/wasmCloud/go/releases
+    attestations:
+      - name: SLSA build provenance
+        location: https://github.com/wasmCloud/go/attestations
+        predicate-uri: https://slsa.dev/provenance/v1
+        comment: >-
+          Covers the module zip and SHA256SUMS attached to each component/v<version>
+          release. Verify with `gh attestation verify <file> --repo wasmCloud/go
+          --signer-workflow wasmCloud/go/.github/workflows/release-tag.yaml`.
   security:
     assessments:
       self:
