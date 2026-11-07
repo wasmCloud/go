@@ -3,7 +3,7 @@ module github.com/wasmCloud/go/examples/components/http-otel
 go 1.27.1
 
 require (
-	go.bytecodealliance.org/pkg v0.4.0
+	go.bytecodealliance.org/pkg v0.4.1
 	go.bytecodealliance.org/wasi v0.1.1
 	go.opentelemetry.io/otel v1.45.0
 	go.opentelemetry.io/otel/sdk v1.45.0
