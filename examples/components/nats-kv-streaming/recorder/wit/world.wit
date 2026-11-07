@@ -1,0 +1,18 @@
+package wasmcloud:examples@0.1.0;
+
+// The recorder is the workload's service: the host starts it through
+// `wasi:cli/run@0.3.0` and keeps it running. It waits between exports on the
+// host's async clock, which is what go.wasmcloud.dev/component/sleep imports.
+//
+// The build merges this world with wasmcloud:component-go/headless and
+// wasmcloud:archive/client (the store it writes to); see .wash/config.yaml.
+world nats-kv-recorder {
+  import wasi:clocks/monotonic-clock@0.3.0;
+  export wasi:cli/run@0.3.0;
+}
+
+// Generates only the export glue for `run` (wit_exports/). The clock import
+// needs no bindings: the SDK's sleep package declares it itself.
+world run-exports {
+  export wasi:cli/run@0.3.0;
+}

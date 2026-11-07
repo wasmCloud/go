@@ -1,0 +1,3 @@
+# Lets componentize-go find this module's own world. The build names every
+# world it merges with -w, so none is listed here.
+wit_paths = ["wit"]

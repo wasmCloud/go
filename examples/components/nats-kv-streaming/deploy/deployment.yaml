@@ -1,0 +1,89 @@
+# Deploys the archive on wasmCloud v2: three components and a service in ONE
+# workload. That is what lets them call each other. The host links each
+# import of wasmcloud:archive/store or /query to the component in the same
+# workload that exports it, and the stream<u8> handles they pass go straight
+# from one component to the next.
+#
+#   nats kv add archive --history 1
+#   kubectl apply -f deploy/deployment.yaml
+#
+# As in the other nats-* examples, the binding is split. The host group's
+# `wasmcloud-nats` plugin entry declares the servers and the grant
+# (`bucket-allow: archive`), and this manifest only asks for the interfaces.
+# See "Declaring the binding host-side" in the README. `wash dev` defaults the
+# other way round, so .wash/config.yaml in api/ carries the whole binding.
+apiVersion: v1
+kind: Service
+metadata:
+  name: nats-kv-streaming
+spec:
+  type: NodePort
+  ports:
+    # The port must be named `http`: the operator writes this selectorless
+    # Service's EndpointSlices with a port named `http`, and Kubernetes
+    # matches slice ports to Service ports by name. Unnamed, nothing routes.
+    - name: http
+      port: 80
+      protocol: TCP
+---
+apiVersion: runtime.wasmcloud.dev/v1alpha1
+kind: WorkloadDeployment
+metadata:
+  name: nats-kv-streaming
+spec:
+  replicas: 1
+  template:
+    spec:
+      kubernetes:
+        service:
+          name: nats-kv-streaming
+      components:
+        # Serves HTTP, imports wasmcloud:archive/store and /query.
+        - name: api
+          image: ghcr.io/[your-org]/nats-kv-streaming-api:0.1.0
+        # Exports wasmcloud:archive/store. The only component that touches
+        # NATS.
+        - name: store
+          image: ghcr.io/[your-org]/nats-kv-streaming-store:0.1.0
+        # Exports wasmcloud:archive/query. Pure compute: no NATS, no HTTP.
+        - name: query
+          image: ghcr.io/[your-org]/nats-kv-streaming-query:0.1.0
+      # Starts with the workload and runs until it stops. It imports
+      # wasmcloud:archive/store like the api does, so it is linked to the same
+      # store component.
+      service:
+        image: ghcr.io/[your-org]/nats-kv-streaming-recorder:0.1.0
+        # A service that returns or traps is restarted, up to this many times.
+        maxRestarts: 10
+        localResources:
+          environment:
+            config:
+              RECORDER_OBJECT: readings
+              RECORDER_RECORDS: "100000"
+              RECORDER_INTERVAL: 5m
+      hostInterfaces:
+        # wasi:logging is a host plugin like any other: a component that
+        # imports it and does not declare it here fails to start with
+        # "a matching implementation was not found in the linker". `wash
+        # dev` derives this entry from the component's imports, so the
+        # omission only shows up on a real host.
+        - namespace: wasi
+          package: logging
+          interfaces: [logging]
+        # The api exports wasi:http/handler@0.3.0; the host serves it behind
+        # the same `incoming-handler` entry as a P2 component.
+        - namespace: wasi
+          package: http
+          interfaces:
+            - incoming-handler
+          config:
+            # The host routes incoming requests by `Host` header, across every
+            # workload on the host. Name the Service, not `localhost`, so
+            # co-deployed examples do not steal each other's requests.
+            host: nats-kv-streaming
+        - namespace: wasmcloud
+          package: nats
+          version: "0.1.0"
+          interfaces: [types, kv]
+          # No `config`: the store only calls the bucket it is granted, and
+          # granting it is the host's job.

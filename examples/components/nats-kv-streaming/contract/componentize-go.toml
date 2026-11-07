@@ -1,0 +1,5 @@
+# Found by componentize-go through `go list -m all` in every component that
+# requires this module, which is how they all see the same wasmcloud:archive
+# package. No default worlds: each component names the worlds it is built from
+# with `-w`.
+wit_paths = ["wit"]

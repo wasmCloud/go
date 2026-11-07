@@ -1,0 +1,36 @@
+build:
+  # The SDK's async WASI P3 HTTP world plus the archive client: this component
+  # serves HTTP and calls the store and query components.
+  command: >-
+    go tool componentize-go
+    -w wasmcloud:component-go/wasip3@0.2.0
+    -w wasmcloud:archive/client@0.1.0
+    build -o build/api.wasm
+  component_path: build/api.wasm
+
+# `wash dev` here runs the whole workload: this component, the store and query
+# components, and the recorder service. wash dev builds only this directory,
+# so run `wash build` in store/, query/ and recorder/ first. The shape mirrors
+# ../deploy/deployment.yaml; the NATS binding here is the whole of it, servers
+# and grant included, because wash dev has no host group to declare them.
+dev:
+  components:
+    - name: store
+      file: ../store/build/store.wasm
+    - name: query
+      file: ../query/build/query.wasm
+  service_file: ../recorder/build/recorder.wasm
+  host_interfaces:
+    - namespace: wasmcloud
+      package: nats
+      version: 0.1.0
+      interfaces: [types, kv]
+      config:
+        servers: nats://127.0.0.1:4222
+        bucket-allow: archive
+
+workload:
+  environment:
+    RECORDER_OBJECT: readings
+    RECORDER_RECORDS: "100000"
+    RECORDER_INTERVAL: 5m

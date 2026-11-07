@@ -167,6 +167,24 @@ jobs:
           - folder: nats-request-reply/gateway
             skip-dev-test: true
             test-command: "true"
+
+          # Build-only: one workload of four components, and `wash dev` in
+          # api/ loads the other three from their build/ directories, which
+          # this one-folder-per-leg harness never builds. The contract module
+          # they share is a library with no wash config; each leg compiles it
+          # through its `replace => ../contract`.
+          - folder: nats-kv-streaming/store
+            skip-dev-test: true
+            test-command: "true"
+          - folder: nats-kv-streaming/query
+            skip-dev-test: true
+            test-command: "true"
+          - folder: nats-kv-streaming/recorder
+            skip-dev-test: true
+            test-command: "true"
+          - folder: nats-kv-streaming/api
+            skip-dev-test: true
+            test-command: "true"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
