@@ -68,6 +68,20 @@ fi
 actual_gopkg=$(grep -oE 'go\.bytecodealliance\.org/pkg v[^ ]*' component/go.mod | awk '{print $2}')
 check "go-pkg" "$GO_PKG" "$actual_gopkg"
 
+# Every other module pins it too, though only indirectly needed: a released SDK
+# may still name an older go-pkg, and the air-gapped image seeds GOMODCACHE from
+# these modules alone, so a version only component/ names is never downloaded.
+# shellcheck disable=SC2207
+gopkg_pins=($(grep -rhoE 'go\.bytecodealliance\.org/pkg v[0-9][^ ]*' \
+  --include=go.mod examples templates plugin | awk '{print $2}' | sort -u))
+if [ "${#gopkg_pins[@]}" -eq 1 ] && [ "${gopkg_pins[0]}" = "$GO_PKG" ]; then
+  printf '  ok    %-28s all modules at %s\n' "go-pkg (module pins)" "$GO_PKG"
+else
+  printf '  DRIFT %-28s expected all at %s, found: %s\n' \
+    "go-pkg (module pins)" "$GO_PKG" "${gopkg_pins[*]}"
+  problems=$((problems + 1))
+fi
+
 # --- go-wasi ----------------------------------------------------------------
 # shellcheck disable=SC2207
 wasi_pins=($(grep -rhoE 'go\.bytecodealliance\.org/wasi v[0-9][^ ]*' \

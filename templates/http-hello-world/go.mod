@@ -15,8 +15,9 @@ require (
 	// See BUILDING.md.
 	github.com/bytecodealliance/componentize-go v0.4.3 // indirect
 	github.com/gofrs/flock v0.13.0 // indirect
-	// Pseudo-version of go-pkg main (post-#12); bump to the next tagged release.
-	go.bytecodealliance.org/pkg v0.4.0 // indirect
+	// v0.4.1 stops the GC running inside cabi_realloc, which traps on large
+	// payloads (bytecodealliance/go-pkg#13). Do not go below it.
+	go.bytecodealliance.org/pkg v0.4.1 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 )
 

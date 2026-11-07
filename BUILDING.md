@@ -15,7 +15,7 @@ every value from its real upstream source and fails if the two disagree.
 |---|---|
 | Go | 1.27.3 (`go.bytecodealliance.org/pkg` and `/wasi` declare `go 1.27.1`, the minimum) |
 | `go.wasmcloud.dev/component` | v0.1.6 |
-| `go.bytecodealliance.org/pkg` | v0.4.0 |
+| `go.bytecodealliance.org/pkg` | v0.4.1 |
 | `go.bytecodealliance.org/wasi` | v0.1.1 |
 | componentize-go | v0.4.3 (module and toolchain) |
 | wit-bindgen-go | 0.61.1 (rev `4f9a02d7`) |
@@ -72,12 +72,25 @@ the pinned module and fails if it does not match the module's own version.
 
 ## go-pkg and go-wasi
 
-`go.bytecodealliance.org/pkg` v0.4.0 is only the WIT runtime the generated
-bindings link against (`wit/types`, `wit/runtime`, `wit/async`). The
+Since v0.4.0, `go.bytecodealliance.org/pkg` is only the WIT runtime the
+generated bindings link against (`wit/types`, `wit/runtime`, `wit/async`). The
 vendor-neutral packages that used to live beside it — `wasihttp`, `wasilog`,
 `wasiconfig` and the `wasi:*` bindings — moved to
 [`go.bytecodealliance.org/wasi`](https://github.com/bytecodealliance/go-wasi)
 (go-wasi). Apps import those from go-wasi; this SDK does not wrap them.
+
+**v0.4.1 is the floor.** Before it, the Go garbage collector could start a
+cycle inside `cabi_realloc`, the allocator the host calls to copy a value into
+the component's memory. A GC cycle calls imports (clocks, I/O polling), and the
+component model forbids imports during `cabi_realloc`, so the component traps.
+It only shows up once a single value is large enough to trigger GC: a
+`list<record>` of ~40k records, or one multi-megabyte NATS KV value, with
+`gcStart` and `cabi_realloc` in the backtrace.
+[go-pkg#13](https://github.com/bytecodealliance/go-pkg/pull/13) defers GC work
+until the allocation returns. Every module here requires v0.4.1, so Go's
+minimum version selection picks it even under an SDK release that still names
+v0.4.0. If you copied an example before this, add
+`require go.bytecodealliance.org/pkg v0.4.1` to your own go.mod.
 
 go-wasi carries its own `componentize-go.toml` and WIT, as this SDK does, and
 componentize-go loads both. The `wasi:*` packages under `component/wit/deps`

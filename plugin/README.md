@@ -69,7 +69,7 @@ under `wit/` and provides:
    same release this module does:
 
    ```
-   require go.bytecodealliance.org/pkg v0.4.0
+   require go.bytecodealliance.org/pkg v0.4.1
    ```
 
 3. **Build** with componentize-go (async support is enabled automatically
