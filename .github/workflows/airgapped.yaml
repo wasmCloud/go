@@ -26,6 +26,8 @@ on:
       - "component/**"
       - "examples/components/**"
       - "templates/**"
+      # check-versions.sh reads its go-pkg pin.
+      - "plugin/go.mod"
   # Runs on every pull request so the required `airgapped-gate` check always
   # reports; the `changes` job skips the build when none of the paths changed.
   pull_request:
@@ -61,6 +63,7 @@ jobs:
               - "component/**"
               - "examples/components/**"
               - "templates/**"
+              - "plugin/go.mod"
 
   # Cheap and fast: catches BUILDING.md drifting from reality without building
   # anything. Runs first so a stale doc fails in seconds, not minutes.

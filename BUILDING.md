@@ -89,8 +89,11 @@ It only shows up once a single value is large enough to trigger GC: a
 [go-pkg#13](https://github.com/bytecodealliance/go-pkg/pull/13) defers GC work
 until the allocation returns. Every module here requires v0.4.1, so Go's
 minimum version selection picks it even under an SDK release that still names
-v0.4.0. If you copied an example before this, add
-`require go.bytecodealliance.org/pkg v0.4.1` to your own go.mod.
+v0.4.0. If you copied an example before this, run
+`go get go.bytecodealliance.org/pkg@v0.4.1` in your module. That updates go.mod
+and go.sum together. Editing go.mod by hand does not, and the next build fails
+with `missing go.sum entry` (or, if you added a second `require` line,
+`go: updates to go.mod needed`).
 
 go-wasi carries its own `componentize-go.toml` and WIT, as this SDK does, and
 componentize-go loads both. The `wasi:*` packages under `component/wit/deps`

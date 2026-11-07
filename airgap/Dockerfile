@@ -53,8 +53,12 @@ COPY . .
 
 # Fill GOMODCACHE for every module in the repo. Done before any build so a
 # failure here is unambiguously a module-resolution problem.
+#
+# component/ is seeded too: an in-repo SDK build replaces the released SDK
+# with it, so its own requirements must be here even when no example happens
+# to name the same versions.
 RUN set -eux; \
-    for mod in $(find examples/components templates -name go.mod); do \
+    for mod in $(find component examples/components templates -name go.mod); do \
       dir=$(dirname "$mod"); \
       echo "==> downloading deps for ${dir}"; \
       (cd "$dir" && go mod download all); \
