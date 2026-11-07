@@ -25,11 +25,8 @@ USE_LOCAL_SDK=${AIRGAP_USE_LOCAL_SDK:-0}
 
 cd "$WORKSPACE" || { echo "no workspace at $WORKSPACE" >&2; exit 1; }
 
-# Everything that produces a component. The nats-request-reply and
-# nats-kv-streaming components are separate modules, so the glob has to reach
-# a level deeper. A module with no .wash/config.yaml is a library the
-# components build against (nats-kv-streaming/contract), not a component:
-# it builds as part of each module that requires it.
+# Everything that produces a component. The two nats-request-reply halves are
+# separate modules, so the glob has to reach a level deeper.
 MODULES=()
 if [ $# -gt 0 ]; then
   for dir in "$@"; do
@@ -39,7 +36,7 @@ if [ $# -gt 0 ]; then
   done
 else
   while IFS= read -r dir; do
-    [ -f "$dir/.wash/config.yaml" ] && MODULES+=("$dir")
+    MODULES+=("$dir")
   done < <(find examples/components templates -name go.mod 2>/dev/null | xargs -n1 dirname | sort)
 fi
 

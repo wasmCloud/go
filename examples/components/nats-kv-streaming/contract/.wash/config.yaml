@@ -1,0 +1,11 @@
+build:
+  # The contract is a WIT package, not a component: `wash build` encodes it
+  # into the binary WIT package wasmcloud:archive@0.1.0. Any component, in any
+  # language, can depend on that instead of copying the .wit file. The Go
+  # bindings the components here import are generated from the same WIT and
+  # committed; refresh them with ../../regenerate_bindings.sh.
+  #
+  # The output goes in this directory rather than build/ because
+  # `wash wit build` does not create a missing parent directory.
+  command: wash wit build --output-file archive-0.1.0.wasm
+  component_path: archive-0.1.0.wasm
