@@ -32,6 +32,28 @@ check() {
 
 note() { printf '  --    %-28s %s\n' "$1" "$2"; }
 
+# check_module_pins <label> <module-path-regex> <expected> <dir>...
+#
+# Every go.mod under <dir>... that names the module must pin exactly <expected>.
+# Plain word-splitting rather than mapfile: this script runs on developer
+# machines, and macOS still ships bash 3.2.
+check_module_pins() {
+  local label=$1 module_re=$2 expected=$3
+  shift 3
+  local -a pins
+  # shellcheck disable=SC2207
+  pins=($(grep -rhoE "${module_re} v[0-9][^ ]*" --include=go.mod "$@" \
+    | awk '{print $2}' | sort -u))
+  if [ "${#pins[@]}" -eq 1 ] && [ "${pins[0]}" = "$expected" ]; then
+    printf '  ok    %-28s all modules at %s\n' "$label" "$expected"
+  else
+    # :-none, because bash 3.2 treats an empty array as unset under `set -u`.
+    printf '  DRIFT %-28s expected all at %s, found: %s\n' \
+      "$label" "$expected" "${pins[*]:-none}"
+    problems=$((problems + 1))
+  fi
+}
+
 echo "Resolving pinned versions from their sources..."
 echo
 
@@ -51,48 +73,23 @@ else
 fi
 
 # --- every consumer module must require exactly that ------------------------
-# Plain word-splitting rather than mapfile: this script runs on developer
-# machines, and macOS still ships bash 3.2.
-# shellcheck disable=SC2207
-sdk_pins=($(grep -rhoE 'go\.wasmcloud\.dev/component v[0-9][^ ]*' \
-  --include=go.mod examples templates | awk '{print $2}' | sort -u))
-if [ "${#sdk_pins[@]}" -eq 1 ] && [ "${sdk_pins[0]}" = "$SDK_VERSION" ]; then
-  printf '  ok    %-28s all modules at %s\n' "SDK (module pins)" "$SDK_VERSION"
-else
-  printf '  DRIFT %-28s expected all at %s, found: %s\n' \
-    "SDK (module pins)" "$SDK_VERSION" "${sdk_pins[*]}"
-  problems=$((problems + 1))
-fi
+check_module_pins "SDK (module pins)" 'go\.wasmcloud\.dev/component' \
+  "$SDK_VERSION" examples templates
 
 # --- go-pkg -----------------------------------------------------------------
 actual_gopkg=$(grep -oE 'go\.bytecodealliance\.org/pkg v[^ ]*' component/go.mod | awk '{print $2}')
 check "go-pkg" "$GO_PKG" "$actual_gopkg"
 
-# Every other module pins it too, though only indirectly needed: a released SDK
-# may still name an older go-pkg, and the air-gapped image seeds GOMODCACHE from
-# these modules alone, so a version only component/ names is never downloaded.
-# shellcheck disable=SC2207
-gopkg_pins=($(grep -rhoE 'go\.bytecodealliance\.org/pkg v[0-9][^ ]*' \
-  --include=go.mod examples templates plugin | awk '{print $2}' | sort -u))
-if [ "${#gopkg_pins[@]}" -eq 1 ] && [ "${gopkg_pins[0]}" = "$GO_PKG" ]; then
-  printf '  ok    %-28s all modules at %s\n' "go-pkg (module pins)" "$GO_PKG"
-else
-  printf '  DRIFT %-28s expected all at %s, found: %s\n' \
-    "go-pkg (module pins)" "$GO_PKG" "${gopkg_pins[*]}"
-  problems=$((problems + 1))
-fi
+# Every other module pins the same go-pkg. The examples and the template build
+# against the released SDK, which may still name an older one, so only their
+# own requirement makes Go's minimum version selection pick the pinned
+# version. The plugin SDK moves in lockstep with component/.
+check_module_pins "go-pkg (module pins)" 'go\.bytecodealliance\.org/pkg' \
+  "$GO_PKG" examples templates plugin
 
 # --- go-wasi ----------------------------------------------------------------
-# shellcheck disable=SC2207
-wasi_pins=($(grep -rhoE 'go\.bytecodealliance\.org/wasi v[0-9][^ ]*' \
-  --include=go.mod examples templates | awk '{print $2}' | sort -u))
-if [ "${#wasi_pins[@]}" -eq 1 ] && [ "${wasi_pins[0]}" = "$GO_WASI" ]; then
-  printf '  ok    %-28s all modules at %s\n' "go-wasi (module pins)" "$GO_WASI"
-else
-  printf '  DRIFT %-28s expected all at %s, found: %s\n' \
-    "go-wasi (module pins)" "$GO_WASI" "${wasi_pins[*]}"
-  problems=$((problems + 1))
-fi
+check_module_pins "go-wasi (module pins)" 'go\.bytecodealliance\.org/wasi' \
+  "$GO_WASI" examples templates
 
 # --- componentize-go: module vs binary --------------------------------------
 actual_cg_mod=$(grep -rhoE 'github\.com/bytecodealliance/componentize-go v[^ ]*' \
@@ -213,9 +210,11 @@ fi
 echo
 echo "Checking BUILDING.md agrees..."
 echo
+# go-pkg is matched against its table row: the prose names the v0.4.1 floor on
+# purpose, so a bare version match would pass with a stale table.
 for pair in \
   "SDK:${SDK_VERSION}" \
-  "go-pkg:${GO_PKG}" \
+  "go-pkg:| \`go.bytecodealliance.org/pkg\` | ${GO_PKG} |" \
   "go-wasi:${GO_WASI}" \
   "SDK wit-bindgen:${SDK_WIT_BINDGEN}" \
   "componentize-go module:${COMPONENTIZE_GO_MODULE}" \
