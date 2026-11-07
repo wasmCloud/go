@@ -27,7 +27,7 @@ component to the next.
 | [`store/`](./store) | Exports `wasmcloud:archive/store`. The only component that talks to NATS. | SDK `headless` + `archive/store-exports` + its own `wasmcloud:nats` world |
 | [`query/`](./query) | Exports `wasmcloud:archive/query`. Pure compute: filters and re-encodes NDJSON as it streams. Imports nothing but logging. | SDK `headless` + `archive/query-exports` |
 | [`api/`](./api) | `net/http` on `wasi:http/handler@0.3.0`, calling the store and query components. | SDK `wasip3` + `archive/client` |
-| [`contract/`](./contract) | Not a component. The shared WIT, the Go bindings generated from it (one package per side), and `streamio`, which turns a stream and its future into an `io.Reader`/`io.Writer`. | — |
+| [`contract/`](./contract) | The shared WIT package, `wasmcloud:archive@0.1.0`, which `wash build` encodes into `archive-0.1.0.wasm`. Also the Go bindings generated from it (one package per side), and `streamio`, which turns a stream and its future into an `io.Reader`/`io.Writer`. | `wash wit build` |
 
 Measured on a laptop against a stock `nats-server -js` (1 MiB `max_payload`):
 the recorder stores 100,000 readings (10.9 MB, 21 chunks) in about 350 ms, a
@@ -160,6 +160,12 @@ world), and the generated packages in `contract/bindings/` are what the Go
 code imports. Because the package imports nothing, it has no WIT
 dependencies to fetch.
 
+`wash build` in `contract/` encodes the package into `archive-0.1.0.wasm`.
+That binary is the contract in a form any toolchain can consume: publish it
+to a registry and a component in another language can depend on
+`wasmcloud:archive` through `wash wit fetch`, the same way these components
+depend on `wasmcloud:nats`.
+
 ## How objects are stored
 
 ```
@@ -214,10 +220,12 @@ on macOS.
 ## Build
 
 ```bash
-for d in store query recorder api; do (cd $d && wash build); done
+for d in contract store query recorder api; do (cd $d && wash build); done
 ```
 
-Each runs the recipe in its own `.wash/config.yaml`. For example, the store:
+Each runs the recipe in its own `.wash/config.yaml`. The contract's is
+`wash wit build`; the components don't need its output, since they compile
+the WIT through the committed Go bindings. The store's is:
 
 ```bash
 go tool componentize-go \
