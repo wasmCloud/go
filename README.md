@@ -67,6 +67,7 @@ wash dev
 | [nats-request-reply](./examples/components/nats-request-reply) | Core NATS request-reply: a responder plus an HTTP gateway that calls it | ✅ |
 | [nats-jetstream-orders](./examples/components/nats-jetstream-orders) | JetStream delivery into KV, with ack/nak and compare-and-swap | ✅ |
 | [nats-kv-watch](./examples/components/nats-kv-watch) | Watching a JetStream KV bucket and rebuilding derived state | ✅ |
+| [nats-kv-streaming](./examples/components/nats-kv-streaming) | 10 MB objects on NATS KV, streamed between components and a service in one workload | ✅ |
 | [nats-stream-replay](./examples/components/nats-stream-replay) | JetStream replay by sequence or range, and a pull consumer you settle yourself | ✅ |
 
 The unmarked examples build as sync WASI P2 components with stock Go. The

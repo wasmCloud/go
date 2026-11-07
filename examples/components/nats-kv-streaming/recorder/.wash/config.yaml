@@ -1,0 +1,11 @@
+build:
+  # The SDK's headless world, the archive client (the store it writes to), and
+  # its own world: the `wasi:cli/run@0.3.0` export that makes it a service,
+  # and the async clock it sleeps on.
+  command: >-
+    go tool componentize-go
+    -w wasmcloud:component-go/headless@0.2.0
+    -w wasmcloud:archive/client@0.1.0
+    -w wasmcloud:examples/nats-kv-recorder@0.1.0
+    build -o build/recorder.wasm
+  component_path: build/recorder.wasm
