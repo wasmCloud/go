@@ -5,7 +5,7 @@ go 1.27.1
 require (
 	github.com/wagslane/go-password-validator v0.3.0
 	go.bytecodealliance.org/wasi v0.1.1
-	go.wasmcloud.dev/component v0.1.6
+	go.wasmcloud.dev/component v0.2.0
 )
 
 require (
