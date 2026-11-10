@@ -4,7 +4,7 @@ Every version you need to build a component against a released
 `go.wasmcloud.dev/component`, and how to build with no network at all.
 
 The versions below are verified against
-[`component/v0.1.6`](https://github.com/wasmCloud/go/releases/tag/component%2Fv0.1.6).
+[`component/v0.2.0`](https://github.com/wasmCloud/go/releases/tag/component%2Fv0.2.0).
 They live in [`airgap/versions.env`](./airgap/versions.env), which is the file
 the tooling reads; this document is the prose. `make airgap-versions` re-derives
 every value from its real upstream source and fails if the two disagree.
@@ -14,7 +14,7 @@ every value from its real upstream source and fails if the two disagree.
 | What | Version |
 |---|---|
 | Go | 1.27.3 (`go.bytecodealliance.org/pkg` and `/wasi` declare `go 1.27.1`, the minimum) |
-| `go.wasmcloud.dev/component` | v0.1.6 |
+| `go.wasmcloud.dev/component` | v0.2.0 |
 | `go.bytecodealliance.org/pkg` | v0.4.1 |
 | `go.bytecodealliance.org/wasi` | v0.1.1 |
 | componentize-go | v0.4.3 (module and toolchain) |
