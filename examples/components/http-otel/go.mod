@@ -5,9 +5,9 @@ go 1.27.1
 require (
 	go.bytecodealliance.org/pkg v0.4.1
 	go.bytecodealliance.org/wasi v0.1.1
-	go.opentelemetry.io/otel v1.45.0
-	go.opentelemetry.io/otel/sdk v1.45.0
-	go.opentelemetry.io/otel/trace v1.45.0
+	go.opentelemetry.io/otel v1.47.0
+	go.opentelemetry.io/otel/sdk v1.47.0
+	go.opentelemetry.io/otel/trace v1.47.0
 	go.wasmcloud.dev/component v0.2.0
 )
 
@@ -20,8 +20,9 @@ require (
 	github.com/gofrs/flock v0.13.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
-	go.opentelemetry.io/otel/metric v1.45.0 // indirect
-	golang.org/x/sys v0.47.0 // indirect
+	go.opentelemetry.io/otel/log v1.47.0 // indirect
+	go.opentelemetry.io/otel/metric v1.47.0 // indirect
+	golang.org/x/sys v0.48.0 // indirect
 )
 
 // NOTE: Uncomment to build against the SDK in this repository instead of the
