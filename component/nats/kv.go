@@ -170,7 +170,7 @@ func (b *Bucket) Keys(filter string) (KeyPage, error) {
 //
 // The call is bounded: the host probes for the key before opening the history
 // consumer, and the drain runs under the binding's `request-timeout-ms` (ten
-// seconds if it names none), returning a [TimeoutError] rather than blocking.
+// seconds if it names none), returning an [ErrTimeout] rather than blocking.
 // It cannot pin the instance's admission permit indefinitely, which an earlier
 // revision could.
 func (b *Bucket) History(key string) ([]Entry, error) {
