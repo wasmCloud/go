@@ -77,9 +77,9 @@ To pick it up in your own component:
 go get go.bytecodealliance.org/pkg@v0.4.1
 ```
 
-Go's minimum version selection uses v0.4.1 even though the wasmCloud SDK
-(`go.wasmcloud.dev/component` v0.1.6) still requires v0.4.0. Every module
-in this example pins v0.4.1 directly for that reason.
+The wasmCloud SDK requires v0.4.1 from `go.wasmcloud.dev/component` v0.2.0,
+so moving to that release picks it up too. On an older SDK, the `go get`
+above is enough: Go's minimum version selection takes the higher version.
 
 The fix stops the trap. The design here is still the one to copy for large
 data, for three reasons:
