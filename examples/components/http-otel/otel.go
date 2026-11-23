@@ -15,9 +15,9 @@ import (
 
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
 
-	"github.com/wasmCloud/go/examples/components/http-otel/wasi_clocks_wall_clock"
-	"github.com/wasmCloud/go/examples/components/http-otel/wasi_otel_tracing"
-	"github.com/wasmCloud/go/examples/components/http-otel/wasi_otel_types"
+	"github.com/wasmCloud/go/examples/components/http-otel/imports/wasi_clocks_wall_clock"
+	"github.com/wasmCloud/go/examples/components/http-otel/imports/wasi_otel_tracing"
+	"github.com/wasmCloud/go/examples/components/http-otel/imports/wasi_otel_types"
 )
 
 // setupOTelSDK configures the global OpenTelemetry SDK to forward span
@@ -61,7 +61,7 @@ func parentFromHost(ctx context.Context) context.Context {
 	}
 
 	var flags trace.TraceFlags
-	if host.TraceFlags&wasi_otel_tracing.TraceFlagsSampled != 0 {
+	if host.TraceFlags&wasi_otel_tracing.TraceFlags_Sampled != 0 {
 		flags = flags.WithSampled(true)
 	}
 
@@ -113,7 +113,7 @@ func toWitSpanContext(sc trace.SpanContext) wasi_otel_tracing.SpanContext {
 		// trace-id and span-id are hex strings in wasi:otel.
 		TraceId:    sc.TraceID().String(),
 		SpanId:     sc.SpanID().String(),
-		TraceFlags: wasi_otel_tracing.TraceFlags(sc.TraceFlags()) & wasi_otel_tracing.TraceFlagsSampled,
+		TraceFlags: wasi_otel_tracing.TraceFlags(sc.TraceFlags()) & wasi_otel_tracing.TraceFlags_Sampled,
 		IsRemote:   sc.IsRemote(),
 		TraceState: traceState,
 	}
@@ -161,15 +161,15 @@ func toWitSpanData(s sdktrace.ReadOnlySpan) wasi_otel_tracing.SpanData {
 func toWitSpanKind(kind trace.SpanKind) wasi_otel_tracing.SpanKind {
 	switch kind {
 	case trace.SpanKindClient:
-		return wasi_otel_tracing.SpanKindClient
+		return wasi_otel_tracing.SpanKind_Client
 	case trace.SpanKindServer:
-		return wasi_otel_tracing.SpanKindServer
+		return wasi_otel_tracing.SpanKind_Server
 	case trace.SpanKindProducer:
-		return wasi_otel_tracing.SpanKindProducer
+		return wasi_otel_tracing.SpanKind_Producer
 	case trace.SpanKindConsumer:
-		return wasi_otel_tracing.SpanKindConsumer
+		return wasi_otel_tracing.SpanKind_Consumer
 	default:
-		return wasi_otel_tracing.SpanKindInternal
+		return wasi_otel_tracing.SpanKind_Internal
 	}
 }
 

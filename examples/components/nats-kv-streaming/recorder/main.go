@@ -32,12 +32,12 @@ import (
 	"go.bytecodealliance.org/wasi/wasilog"
 	"go.wasmcloud.dev/component/sleep"
 
-	store "github.com/wasmCloud/go/examples/components/nats-kv-streaming/contract/bindings/client/wasmcloud_archive_store"
+	store "github.com/wasmCloud/go/examples/components/nats-kv-streaming/contract/bindings/client/imports/wasmcloud_archive_store"
 	"github.com/wasmCloud/go/examples/components/nats-kv-streaming/contract/streamio"
-	runexports "github.com/wasmCloud/go/examples/components/nats-kv-streaming/recorder/export_wasi_cli_run"
+	runexports "github.com/wasmCloud/go/examples/components/nats-kv-streaming/recorder/exports/export_wasi_cli_run"
 
 	// Links the //go:wasmexport glue for wasi:cli/run@0.3.0.
-	_ "github.com/wasmCloud/go/examples/components/nats-kv-streaming/recorder/wit_exports"
+	_ "github.com/wasmCloud/go/examples/components/nats-kv-streaming/recorder/exports/wit_exports"
 
 	// Puts the SDK's WIT, and the headless world this component is built
 	// with, where componentize-go looks for them.
@@ -154,13 +154,13 @@ func generate(w io.Writer, records int, generation uint64, now time.Time) error 
 
 func storeError(e store.Error) error {
 	switch e.Tag() {
-	case store.ErrorNotFound:
+	case store.Error_NotFound:
 		return fmt.Errorf("store: not found")
-	case store.ErrorInvalidName:
+	case store.Error_InvalidName:
 		return fmt.Errorf("store: invalid name %q", e.InvalidName())
-	case store.ErrorAborted:
+	case store.Error_Aborted:
 		return fmt.Errorf("store: aborted: %s", e.Aborted())
-	case store.ErrorStorage:
+	case store.Error_Storage:
 		return fmt.Errorf("store: %s", e.Storage())
 	default:
 		return fmt.Errorf("store: unknown error (tag %d)", e.Tag())

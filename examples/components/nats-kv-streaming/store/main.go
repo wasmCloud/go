@@ -38,13 +38,13 @@ import (
 	"go.bytecodealliance.org/wasi/wasilog"
 	"go.wasmcloud.dev/component/nats"
 
-	exports "github.com/wasmCloud/go/examples/components/nats-kv-streaming/contract/bindings/storeexports/export_wasmcloud_archive_store"
-	store "github.com/wasmCloud/go/examples/components/nats-kv-streaming/contract/bindings/storeexports/wasmcloud_archive_store"
+	exports "github.com/wasmCloud/go/examples/components/nats-kv-streaming/contract/bindings/storeexports/exports/export_wasmcloud_archive_store"
+	store "github.com/wasmCloud/go/examples/components/nats-kv-streaming/contract/bindings/storeexports/imports/wasmcloud_archive_store"
 	"github.com/wasmCloud/go/examples/components/nats-kv-streaming/contract/streamio"
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
 
 	// Links the //go:wasmexport glue for wasmcloud:archive/store.
-	_ "github.com/wasmCloud/go/examples/components/nats-kv-streaming/contract/bindings/storeexports/wit_exports"
+	_ "github.com/wasmCloud/go/examples/components/nats-kv-streaming/contract/bindings/storeexports/exports/wit_exports"
 
 	// Puts the SDK's WIT, and the headless world this component is built
 	// with, where componentize-go looks for them.
