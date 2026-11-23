@@ -71,7 +71,16 @@ gomodsum=$(field GoModSum)
 echo "${module}@${version} (${mode#--}): ${sum}, go.mod ${gomodsum}"
 
 problems=0
+checked=0
 while IFS= read -r gosum; do
+  # An example that does not require the SDK (a WIT-only contract, say) has
+  # no entry for it: `go mod tidy` drops one. Nothing to check there.
+  if ! go mod edit -json "$(dirname "$gosum")/go.mod" |
+       grep -qE "\"Path\": \"${module//./\\.}\""; then
+    echo "  skip  ${gosum} (does not require ${module})"
+    continue
+  fi
+  checked=$((checked + 1))
   if grep -qxF "${module} ${version} ${sum}" "$gosum" &&
      grep -qxF "${module} ${version}/go.mod ${gomodsum}" "$gosum"; then
     echo "  ok    ${gosum}"
@@ -82,6 +91,10 @@ while IFS= read -r gosum; do
   fi
 done < <(find examples/components -name go.sum | sort)
 
+if [ "$checked" -eq 0 ]; then
+  echo "no example go.sum requires ${module}; nothing was checked" >&2
+  exit 1
+fi
 if [ "$problems" -gt 0 ]; then
   echo "${problems} go.sum file(s) disagree with ${mode#--} ${module}@${version}" >&2
   exit 1
