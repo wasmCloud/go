@@ -83,7 +83,7 @@ spec:
             host: nats-kv-streaming
         - namespace: wasmcloud
           package: nats
-          version: "0.1.0"
+          version: "0.1.4"
           interfaces: [types, kv]
           # No `config`: the store only calls the bucket it is granted, and
           # granting it is the host's job.
