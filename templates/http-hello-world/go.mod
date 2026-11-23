@@ -18,7 +18,7 @@ require (
 	// v0.4.1 stops the GC running inside cabi_realloc, which traps on large
 	// payloads (bytecodealliance/go-pkg#13). Do not go below it.
 	go.bytecodealliance.org/pkg v0.4.1 // indirect
-	golang.org/x/sys v0.49.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
 )
 
 tool github.com/bytecodealliance/componentize-go
