@@ -11,9 +11,12 @@
 // Every put writes its chunks under a fresh upload id and writes the manifest
 // last, so the manifest swap is the commit: a reader that started before it
 // keeps reading the old chunks, one that started after it reads the new ones,
-// and nobody sees a mix. The replaced version's chunks are kept until the put
-// after next, which gives a reader that was mid-way through an object one full
-// generation to finish.
+// and nobody sees a mix. The replaced version's chunks are kept until the
+// next commit of the same name, which gives a reader that was mid-way through
+// an object until then to finish.
+//
+// Delete is a commit too: it swaps in a deleted marker with the same
+// compare-and-swap, so it only ever removes the version it read.
 //
 // Bytes come in and go out as `stream<u8>`, a chunk at a time, so this
 // component's memory use is one chunk however large the object is.
@@ -85,6 +88,9 @@ type manifest struct {
 	// generation so a read of it that was in flight can finish.
 	Previous       string `json:"previous,omitempty"`
 	PreviousChunks uint32 `json:"previousChunks,omitempty"`
+	// Deleted marks a manifest left by delete. It names no chunks, and the
+	// object reads as not found until the next put of the name.
+	Deleted bool `json:"deleted,omitempty"`
 }
 
 func (m *manifest) info() store.ObjectInfo {
@@ -181,8 +187,9 @@ func put(name, contentType string, data *witTypes.StreamReader[uint8], done *exp
 		return fail[store.ObjectInfo](storageError(err))
 	}
 
-	// The version before the one just replaced has had a full generation to
-	// be read; nothing that started before this commit can still need it.
+	// The version before the one just replaced was kept for its readers
+	// until this commit. A reader still on it now fails part way, with an
+	// error on its future, rather than reading a mix of versions.
 	if replaced != nil && replaced.Previous != "" {
 		purgeChunks(bucket, name, replaced.Previous, replaced.PreviousChunks)
 	}
@@ -197,6 +204,7 @@ func put(name, contentType string, data *witTypes.StreamReader[uint8], done *exp
 // name cannot both believe they replaced the same version. It returns the
 // manifest it replaced, if there was one.
 func commit(bucket *nats.Bucket, m *manifest) (*manifest, error) {
+	var lastErr error
 	for range maxCommitAttempts {
 		current, revision, err := readManifest(bucket, m.Name)
 		if err != nil && !errors.Is(err, nats.ErrKeyNotFound) {
@@ -218,14 +226,29 @@ func commit(bucket *nats.Bucket, m *manifest) (*manifest, error) {
 		if err == nil {
 			return current, nil
 		}
-		// Another put committed between our read and our write. Re-read and
-		// replace whatever it wrote instead.
-		var mismatch *nats.RevisionMismatchError
-		if current != nil && !errors.As(err, &mismatch) {
+		if !lostRace(bucket, m.Name, current, err) {
 			return nil, err
 		}
+		// Another put committed between our read and our write. Re-read and
+		// replace whatever it wrote instead.
+		lastErr = err
 	}
-	return nil, fmt.Errorf("manifest for %q kept changing; gave up after %d attempts", m.Name, maxCommitAttempts)
+	return nil, fmt.Errorf("manifest for %q kept changing; gave up after %d attempts: %w", m.Name, maxCommitAttempts, lastErr)
+}
+
+// lostRace reports whether a failed manifest write failed because another
+// writer committed first, rather than because storage failed.
+//
+// A failed Update says so itself, with a RevisionMismatchError. A failed
+// Create does not say why, so the manifest is read back: if one exists now,
+// someone else created it.
+func lostRace(bucket *nats.Bucket, name string, current *manifest, err error) bool {
+	if current != nil {
+		var mismatch *nats.RevisionMismatchError
+		return errors.As(err, &mismatch)
+	}
+	_, _, readErr := readManifest(bucket, name)
+	return readErr == nil
 }
 
 // get returns the manifest and a stream that a goroutine fills one chunk at a
@@ -256,28 +279,50 @@ func get(name string) witTypes.Result[witTypes.Tuple3[store.ObjectInfo, *witType
 	return witTypes.Ok[result, store.Error](result{F0: m.info(), F1: dataReader, F2: doneReader})
 }
 
-// copyChunks writes every chunk of m to out, in order, and checks the SHA-256
-// of what it wrote against the manifest.
+// copyChunks writes every chunk of m to out, in order, and checks the size
+// and SHA-256 against the manifest.
+//
+// The last chunk is checked before it is written, so an object that fails
+// the check always reaches the reader short. A reader that knows the size,
+// as an HTTP client does from Content-Length, can then tell it is incomplete
+// without waiting for the error on the future.
 func copyChunks(out io.Writer, bucket *nats.Bucket, m *manifest) error {
 	sum := sha256.New()
-	var written uint64
+	var read uint64
 	for n := range m.Chunks {
 		entry, err := bucket.Get(chunkKey(m.Name, m.Upload, n))
 		if err != nil {
 			return fmt.Errorf("chunk %d of %d: %w", n, m.Chunks, err)
 		}
 		sum.Write(entry.Value)
+		read += uint64(len(entry.Value))
+
+		if read > m.Size {
+			return fmt.Errorf("chunk %d of %d runs past the manifest size of %d bytes", n, m.Chunks, m.Size)
+		}
+		if n == m.Chunks-1 {
+			if err := verify(m, read, sum.Sum(nil)); err != nil {
+				return err
+			}
+		}
+
 		// Write blocks until the reader takes the chunk, so a slow reader
 		// paces the KV reads instead of chunks piling up here.
 		if _, err := out.Write(entry.Value); err != nil {
 			return err
 		}
-		written += uint64(len(entry.Value))
 	}
-	if written != m.Size {
-		return fmt.Errorf("read %d bytes, manifest says %d", written, m.Size)
+	if m.Chunks == 0 {
+		return verify(m, 0, sum.Sum(nil))
 	}
-	if got := hex.EncodeToString(sum.Sum(nil)); got != m.SHA256 {
+	return nil
+}
+
+func verify(m *manifest, size uint64, sum []byte) error {
+	if size != m.Size {
+		return fmt.Errorf("read %d bytes, manifest says %d", size, m.Size)
+	}
+	if got := hex.EncodeToString(sum); got != m.SHA256 {
 		return fmt.Errorf("sha256 is %s, manifest says %s", got, m.SHA256)
 	}
 	return nil
@@ -318,30 +363,65 @@ func listObjects() witTypes.Result[[]store.ObjectInfo, store.Error] {
 		if err != nil {
 			return fail[[]store.ObjectInfo](storageError(err))
 		}
+		if m.Deleted {
+			continue
+		}
 		infos = append(infos, m.info())
 	}
 	sort.Slice(infos, func(i, j int) bool { return infos[i].Name < infos[j].Name })
 	return witTypes.Ok[[]store.ObjectInfo, store.Error](infos)
 }
 
+// deleteObject replaces the manifest with a deleted marker, then purges the
+// chunks of the version it replaced and of the one before that.
+//
+// Purging the manifest instead would race a put: a put that commits between
+// the read and the purge would lose its manifest, and its chunks would be
+// left with nothing naming them. The marker is written with compare-and-swap
+// against the manifest that was read, so delete only removes what it read,
+// and once the marker is in, no manifest names either version's chunks.
+//
+// A download of the deleted version that is still in progress fails part way.
 func deleteObject(name string) witTypes.Result[witTypes.Unit, store.Error] {
-	bucket, m, err := openObject(name)
+	if !validName.MatchString(name) {
+		return fail[witTypes.Unit](store.MakeErrorInvalidName(name))
+	}
+	bucket, err := nats.OpenBucket(bucketName)
 	if err != nil {
-		return fail[witTypes.Unit](err.(storeError).wit)
+		return fail[witTypes.Unit](storageError(err))
 	}
 	defer bucket.Close()
 
-	// Manifest first: once it is gone the object is gone, and a failure part
-	// way through the chunks leaves unreachable garbage rather than a
-	// half-deleted object that still lists.
-	if err := bucket.Purge(metaKey(name)); err != nil {
+	marker, err := json.Marshal(manifest{Name: name, Deleted: true})
+	if err != nil {
 		return fail[witTypes.Unit](storageError(err))
 	}
-	purgeChunks(bucket, name, m.Upload, m.Chunks)
-	if m.Previous != "" {
-		purgeChunks(bucket, name, m.Previous, m.PreviousChunks)
+
+	for range maxCommitAttempts {
+		m, revision, err := readManifest(bucket, name)
+		if errors.Is(err, nats.ErrKeyNotFound) || (err == nil && m.Deleted) {
+			return fail[witTypes.Unit](store.MakeErrorNotFound())
+		}
+		if err != nil {
+			return fail[witTypes.Unit](storageError(err))
+		}
+
+		_, err = bucket.Update(metaKey(name), marker, revision)
+		var mismatch *nats.RevisionMismatchError
+		if errors.As(err, &mismatch) {
+			continue // a put committed first; delete what it wrote instead
+		}
+		if err != nil {
+			return fail[witTypes.Unit](storageError(err))
+		}
+
+		purgeChunks(bucket, name, m.Upload, m.Chunks)
+		if m.Previous != "" {
+			purgeChunks(bucket, name, m.Previous, m.PreviousChunks)
+		}
+		return witTypes.Ok[witTypes.Unit, store.Error](witTypes.Unit{})
 	}
-	return witTypes.Ok[witTypes.Unit, store.Error](witTypes.Unit{})
+	return fail[witTypes.Unit](storageError(fmt.Errorf("manifest for %q kept changing; gave up after %d attempts", name, maxCommitAttempts)))
 }
 
 // --- helpers -----------------------------------------------------------------
@@ -360,6 +440,9 @@ func openObject(name string) (*nats.Bucket, *manifest, error) {
 		return nil, nil, storeError{storageError(err)}
 	}
 	m, _, err := readManifest(bucket, name)
+	if err == nil && m.Deleted {
+		err = nats.ErrKeyNotFound
+	}
 	if err != nil {
 		bucket.Close()
 		if errors.Is(err, nats.ErrKeyNotFound) {
