@@ -31,6 +31,7 @@ dev:
 
 workload:
   environment:
-    RECORDER_OBJECT: readings
-    RECORDER_RECORDS: "100000"
-    RECORDER_INTERVAL: 5m
+    config:
+      RECORDER_OBJECT: readings
+      RECORDER_RECORDS: "100000"
+      RECORDER_INTERVAL: 5m
