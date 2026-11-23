@@ -180,15 +180,21 @@ This is the same layout NATS's own object store uses, on a plain KV bucket.
   commit. A failure before it purges the new chunks and leaves the old
   version exactly as it was.
 - **Get** reads the manifest once, then streams that version's chunks in
-  order and checks the SHA-256 at the end. A reader that started before a
-  replace keeps reading the version it started with.
-- **The replaced version's chunks are kept until the put after next.** That
-  gives a download that was under way when its object was replaced one full
-  generation to finish. A reader that is still going two replaces later fails
+  order. It checks the size and SHA-256 before it sends the last chunk, so an
+  object that fails the check always arrives short of its `Content-Length`.
+  A reader that started before a replace keeps reading the version it
+  started with.
+- **The replaced version's chunks are kept until the next commit of the
+  same name.** That gives a download that was under way when its object was
+  replaced until then to finish. The grace period is one commit, not a span
+  of time: a reader still going when the next put of the name commits fails
   with an `err` on its future rather than mixing versions.
-- **Delete** purges the manifest first, then the chunks. A failure part way
-  through leaves unreachable chunks, never a half-deleted object that still
-  lists.
+- **Delete** is a commit too. It swaps a small deleted marker in for the
+  manifest with the same compare-and-swap, so it only removes the version it
+  read, then purges that version's chunks and the ones kept before it. A
+  download of the deleted object that is still under way fails part way. The
+  marker stays under `meta.<name>` until the name is stored again, and does
+  not list.
 
 ## Prerequisites
 
@@ -310,7 +316,8 @@ Filters are `site`, `sensor`, `min` and `limit`, and `format` is `ndjson`
 so `min=95` always finds something.
 
 How many lines were scanned and matched is only known once the query is done,
-so it comes in HTTP trailers. curl only shows trailers in `--raw` mode, and
+so it comes in HTTP trailers. A query that fails part way sends
+`X-Query-Error` instead of the counts. curl only shows trailers in `--raw` mode, and
 the host only sends them to a client that asks with `TE: trailers`:
 
 ```bash
