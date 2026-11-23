@@ -10,6 +10,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/csv"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -74,21 +75,41 @@ func filterReadings(dst io.Writer, src io.Reader, filter query.Filter) (query.Su
 	var summary query.Summary
 	w := bufio.NewWriterSize(dst, 64<<10)
 
-	csv := filter.Format == query.FormatCsv
-	if csv {
-		w.WriteString("ts,site,sensor,metric,value\n")
+	emit := func(line []byte, _ *reading) error {
+		if _, err := w.Write(line); err != nil {
+			return err
+		}
+		return w.WriteByte('\n')
+	}
+	if filter.Format == query.FormatCsv {
+		// encoding/csv quotes a field that holds a comma, quote or newline,
+		// which a reading uploaded from elsewhere may well contain.
+		out := csv.NewWriter(w)
+		emit = func(_ []byte, r *reading) error {
+			if err := out.Write([]string{r.TS, r.Site, r.Sensor, r.Metric, strconv.FormatFloat(r.Value, 'f', -1, 64)}); err != nil {
+				return err
+			}
+			out.Flush()
+			return out.Error()
+		}
+		if err := out.Write([]string{"ts", "site", "sensor", "metric", "value"}); err != nil {
+			return summary, err
+		}
 	}
 
 	lines := bufio.NewScanner(src)
 	lines.Buffer(make([]byte, 0, 4<<10), maxLine)
 
+	// Stop once the limit is reached, including a limit of zero. Returning
+	// drops the input stream, which tells the store to stop reading chunks
+	// nobody is going to look at.
+	limited := filter.Limit.IsSome()
 	limit := uint64(0)
-	if filter.Limit.IsSome() {
+	if limited {
 		limit = uint64(filter.Limit.Some())
 	}
 
-	row := make([]byte, 0, 256)
-	for lines.Scan() {
+	for (!limited || summary.Matched < limit) && lines.Scan() {
 		line := lines.Bytes()
 		if len(line) == 0 {
 			continue
@@ -104,30 +125,12 @@ func filterReadings(dst io.Writer, src io.Reader, filter query.Filter) (query.Su
 			continue
 		}
 
-		if csv {
-			row = row[:0]
-			row = append(row, r.TS...)
-			row = append(row, ',')
-			row = append(row, r.Site...)
-			row = append(row, ',')
-			row = append(row, r.Sensor...)
-			row = append(row, ',')
-			row = append(row, r.Metric...)
-			row = append(row, ',')
-			row = strconv.AppendFloat(row, r.Value, 'f', -1, 64)
-			row = append(row, '\n')
-			w.Write(row)
-		} else {
-			w.Write(line)
-			w.WriteByte('\n')
+		// A failed write means the reader of the output has gone. Stop
+		// rather than scan, and make the store fetch, the rest of the input.
+		if err := emit(line, &r); err != nil {
+			return summary, err
 		}
 		summary.Matched++
-
-		if limit > 0 && summary.Matched >= limit {
-			// Done early. Returning drops the input stream, which tells the
-			// store to stop reading chunks nobody is going to look at.
-			return summary, w.Flush()
-		}
 	}
 	if err := lines.Err(); err != nil {
 		w.Flush()

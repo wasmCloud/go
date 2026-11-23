@@ -93,9 +93,10 @@ func getObject(w http.ResponseWriter, r *http.Request) {
 	h.Set("X-Archive-Sha256", info.Sha256)
 
 	if n, err := io.Copy(w, body); err != nil {
-		// Too late for a status code: the headers are gone. Ending the body
-		// short of Content-Length is how HTTP/1.1 says "this is broken", and
-		// the store has already logged why.
+		// Too late for a status code: the headers are gone. The store checks
+		// the object before sending its last chunk, so a failure always ends
+		// the body short of Content-Length, which is how HTTP/1.1 says "this
+		// is broken". The store has already logged why.
 		wasilog.ContextLogger("get").Warn("download incomplete", "name", info.Name, "sent", n, "size", info.Size, "err", err)
 	}
 }
@@ -135,19 +136,19 @@ func queryObject(w http.ResponseWriter, r *http.Request) {
 		h.Add("Trailer", name)
 	}
 
-	_, err = io.Copy(w, body)
-	s := body.Value()
-	h.Set("X-Query-Scanned", strconv.FormatUint(s.Scanned, 10))
-	h.Set("X-Query-Matched", strconv.FormatUint(s.Matched, 10))
-	h.Set("X-Query-Malformed", strconv.FormatUint(s.Malformed, 10))
-	if err != nil {
+	if _, err := io.Copy(w, body); err != nil {
 		// The status line was sent with the first match, so the failure goes
 		// in a trailer: a client that checks it knows the results stopped
-		// short.
+		// short. The counts are left out, since a failed run does not
+		// report them.
 		h.Set("X-Query-Error", err.Error())
 		wasilog.ContextLogger("query").Warn("query incomplete", "name", r.PathValue("name"), "err", err)
 		return
 	}
+	s := body.Value()
+	h.Set("X-Query-Scanned", strconv.FormatUint(s.Scanned, 10))
+	h.Set("X-Query-Matched", strconv.FormatUint(s.Matched, 10))
+	h.Set("X-Query-Malformed", strconv.FormatUint(s.Malformed, 10))
 	wasilog.ContextLogger("query").Info("query complete", "name", r.PathValue("name"),
 		"scanned", s.Scanned, "matched", s.Matched, "malformed", s.Malformed)
 }
@@ -185,11 +186,11 @@ func parseFilter(r *http.Request) (wasmcloud_archive_query.Filter, error) {
 		Format:   wasmcloud_archive_query.FormatNdjson,
 	}
 	if v := q.Get("min"); v != "" {
-		min, err := strconv.ParseFloat(v, 64)
+		minValue, err := strconv.ParseFloat(v, 64)
 		if err != nil {
 			return f, fmt.Errorf("min: %w", err)
 		}
-		f.MinValue = witTypes.Some(min)
+		f.MinValue = witTypes.Some(minValue)
 	}
 	if v := q.Get("limit"); v != "" {
 		limit, err := strconv.ParseUint(v, 10, 32)
