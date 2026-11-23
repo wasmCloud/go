@@ -6,6 +6,6 @@ package wasmcloud:examples@0.1.0;
 // logging) and wasmcloud:archive/store-exports (the interface it serves); see
 // .wash/config.yaml.
 world nats-kv-store {
-  import wasmcloud:nats/types@0.1.0;
-  import wasmcloud:nats/kv@0.1.0;
+  import wasmcloud:nats/types@0.1.4;
+  import wasmcloud:nats/kv@0.1.4;
 }
