@@ -8,9 +8,9 @@ world nats-jetstream-orders {
 
   import wasi:logging/logging@0.1.0-draft;
 
-  import wasmcloud:nats/types@0.1.0;
-  import wasmcloud:nats/jetstream@0.1.0;
-  import wasmcloud:nats/kv@0.1.0;
+  import wasmcloud:nats/types@0.1.4;
+  import wasmcloud:nats/jetstream@0.1.4;
+  import wasmcloud:nats/kv@0.1.4;
 
-  export wasmcloud:nats/jetstream-handler@0.1.0;
+  export wasmcloud:nats/jetstream-handler@0.1.4;
 }

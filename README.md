@@ -11,7 +11,7 @@ that run on [wasmCloud](https://wasmcloud.com) v2.
   and an **async WASI P3** world (`wasi:http@0.3.0`, streaming bodies and
   native goroutine concurrency).
 - [`component/nats`](./component/nats) — NATS-native messaging on
-  `wasmcloud:nats@0.1.0`: core pub/sub and request-reply, JetStream, and
+  `wasmcloud:nats@0.1.4`: core pub/sub and request-reply, JetStream, and
   JetStream KV, for what the portable
   [`component/messaging`](./component/messaging) package cannot
   express — acknowledged delivery and redelivery, replay from an arbitrary
@@ -73,7 +73,7 @@ wash dev
 The unmarked examples build as sync WASI P2 components with stock Go. The
 marked ones target the async P3 world: `http-p3-streaming` asks for it
 directly, and the `nats-*` examples inherit it because every function on
-`wasmcloud:nats@0.1.0` is async. componentize-go selects a patched Go
+`wasmcloud:nats@0.1.4` is async. componentize-go selects a patched Go
 toolchain for those automatically — see
 [http-p3-streaming](./examples/components/http-p3-streaming#toolchain-note).
 

@@ -4,8 +4,8 @@ import (
 	"time"
 
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
-	js "go.wasmcloud.dev/component/imports/wasmcloud_nats_0_1_0_jetstream"
-	types "go.wasmcloud.dev/component/imports/wasmcloud_nats_0_1_0_types"
+	js "go.wasmcloud.dev/component/imports/wasmcloud_nats_0_1_4_jetstream"
+	types "go.wasmcloud.dev/component/imports/wasmcloud_nats_0_1_4_types"
 )
 
 // MsgIDHeader deduplicates a JetStream publish within the stream's duplicate

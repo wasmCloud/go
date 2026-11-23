@@ -156,7 +156,7 @@ A component imports one only by declaring it in its own world:
 | `messaging` | `wasmcloud:messaging@0.3.0`, with an exported handler for incoming messages |
 | `postgres` | `wasmcloud:postgres@0.2.0` |
 | `blobstore` | `wasmcloud:blobstore@0.1.0` |
-| `nats` | `wasmcloud:nats@0.1.0`, with exported handlers for core, JetStream and KV deliveries |
+| `nats` | `wasmcloud:nats@0.1.4`, with exported handlers for core, JetStream and KV deliveries |
 
 ### go.wasmcloud.dev/plugin
 
@@ -174,7 +174,7 @@ The plugin's own capability interface is in its own WIT.
 - **Outgoing HTTP**: `http-client` and `http-p3-streaming` make outgoing requests.
 - **Key-value**: `http-keyvalue-crud` imports `wasi:keyvalue/store@0.2.0-draft`.
 - **Tracing**: `http-otel` imports `wasi:otel@0.2.0-rc.2`.
-- **NATS**: the `nats-*` examples import `wasmcloud:nats@0.1.0`
+- **NATS**: the `nats-*` examples import `wasmcloud:nats@0.1.4`
   through the host's NATS plugin, and some export its handlers.
 
 Each example declares its interfaces in its `wit/` directory and README.

@@ -1,6 +1,7 @@
 // Bindings-generation worlds for the wasmCloud host-plugin capability
 // interfaces (vendored under deps/ from wasmCloud v2.8.0, except
-// wasmcloud:nats, which is not in a release yet and comes from main).
+// wasmcloud:nats@0.1.4, which is not in a release yet and comes from wasmCloud
+// main at 015459c8 — the first rev carrying kv-admin).
 //
 // These worlds exist only so regenerate_bindings.sh can generate the import
 // bindings under imports/ and the export glue under exports/. They are NOT
@@ -46,10 +47,13 @@ world wasmcloud-capabilities {
   // and compare-and-swap on a KV revision, none of which the portable
   // messaging interface can express. Every function is an `async func`, so a
   // component importing it targets WASI P3.
-  import wasmcloud:nats/types@0.1.0;
-  import wasmcloud:nats/core@0.1.0;
-  import wasmcloud:nats/jetstream@0.1.0;
-  import wasmcloud:nats/kv@0.1.0;
+  import wasmcloud:nats/types@0.1.4;
+  import wasmcloud:nats/core@0.1.4;
+  import wasmcloud:nats/jetstream@0.1.4;
+  import wasmcloud:nats/kv@0.1.4;
+  // Bucket lifecycle: create (ensure), read config, delete. Gated host-side
+  // by `bucket-create-allow` and `bucket-delete-allow` on the binding.
+  import wasmcloud:nats/kv-admin@0.1.4;
 }
 
 // Export-glue world for the optional wasmcloud:messaging handler callback.
@@ -64,13 +68,13 @@ world wasmcloud-messaging-handler {
 // a single world covering all three would force every component to export
 // all three.
 world wasmcloud-nats-core-handler {
-  export wasmcloud:nats/core-handler@0.1.0;
+  export wasmcloud:nats/core-handler@0.1.4;
 }
 
 world wasmcloud-nats-jetstream-handler {
-  export wasmcloud:nats/jetstream-handler@0.1.0;
+  export wasmcloud:nats/jetstream-handler@0.1.4;
 }
 
 world wasmcloud-nats-kv-handler {
-  export wasmcloud:nats/kv-handler@0.1.0;
+  export wasmcloud:nats/kv-handler@0.1.4;
 }

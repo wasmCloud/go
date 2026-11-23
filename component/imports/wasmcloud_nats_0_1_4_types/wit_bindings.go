@@ -21,10 +21,10 @@
 //     wasmcloud:keyvalue@0.2.0
 //     wasmcloud:messaging@0.3.0
 //     wasmcloud:postgres@0.2.0
-//     wasmcloud:nats@0.1.0
+//     wasmcloud:nats@0.1.4
 //     wasmcloud:component-go@0.2.0
 
-package wasmcloud_nats_0_1_0_types
+package wasmcloud_nats_0_1_4_types
 
 import (
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
@@ -80,9 +80,9 @@ const (
 )
 
 // What kind of name was refused, and so which grant the binding would need:
-// `subject-allow`, `stream-allow`, or `bucket-allow`. Those are declared by
-// whoever configured the host, not by the workload, so a refusal here is
-// something to take to an operator.
+// `subject-allow`, `stream-allow`, `stream-delete-allow`, `bucket-allow`,
+// `bucket-create-allow`, or `bucket-delete-allow`. The host operator owns
+// these grants.
 //
 // Subscription patterns are not here: they are checked once at bind time,
 // where a refusal fails the deployment rather than reaching a guest.
@@ -143,8 +143,7 @@ const (
 	NatsError_Jetstream uint8 = 6
 	// The key was not found in a KV bucket.
 	NatsError_KeyNotFound uint8 = 7
-	// CAS `update` failed. Payload carries the actual current revision, so a
-	// retry does not need a re-read.
+	// A conditional KV write failed. Carries the current revision.
 	NatsError_RevisionMismatch uint8 = 8
 	// A pull-consumer `fetch` returned empty within the timeout: the
 	// consumer had nothing to give. Compare `limit-exceeded`, where the
@@ -161,6 +160,13 @@ const (
 	//   hold its whole memory budget. `info` says nothing about this one:
 	//   drop the `message-handle`s from earlier batches, since acking one
 	//   does not release it.
+	//
+	// `kv-admin.create-bucket` also returns it, as
+	// `create-bucket-error.nats`, when the requested storage is not in the
+	// host's `bucket-storage-allow`, when the requested `max-bytes` is over
+	// its `bucket-max-bytes` and no such bucket exists (an existing one is
+	// `config-conflict`), or when the JetStream account's stream or storage
+	// limits refuse a new bucket.
 	//
 	// Either way nothing was delivered, and retrying unchanged fails the
 	// same way.

@@ -125,7 +125,7 @@ open, so it exists only in a patched fork.
 
 Eight of the thirteen examples need it — `http-p3-streaming`, both
 `http-local-routing` modules, plus all five `nats-*` modules. The nats ones are not opting in: every function on
-`wasmcloud:nats@0.1.0` is async, so importing it forces the P3 world.
+`wasmcloud:nats@0.1.4` is async, so importing it forces the P3 world.
 
 componentize-go handles this for you. It resolves the target world, and if the
 world needs async it probes your Go by reading

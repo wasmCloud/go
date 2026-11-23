@@ -21,7 +21,7 @@
 //     wasmcloud:keyvalue@0.2.0
 //     wasmcloud:messaging@0.3.0
 //     wasmcloud:postgres@0.2.0
-//     wasmcloud:nats@0.1.0
+//     wasmcloud:nats@0.1.4
 //     wasmcloud:component-go@0.2.0
 
 package wit_exports
@@ -30,8 +30,8 @@ import (
 	witAsync "go.bytecodealliance.org/pkg/wit/async"
 	witRuntime "go.bytecodealliance.org/pkg/wit/runtime"
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
-	"go.wasmcloud.dev/component/exports/wasmcloud_component_go_wasmcloud_nats_jetstream_handler_0_2_0/export_wasmcloud_nats_0_1_0_jetstream_handler"
-	"go.wasmcloud.dev/component/imports/wasmcloud_nats_0_1_0_jetstream"
+	"go.wasmcloud.dev/component/exports/wasmcloud_component_go_wasmcloud_nats_jetstream_handler_0_2_0/export_wasmcloud_nats_0_1_4_jetstream_handler"
+	"go.wasmcloud.dev/component/imports/wasmcloud_nats_0_1_4_jetstream"
 	"runtime"
 	"unsafe"
 )
@@ -40,12 +40,12 @@ var staticPinner = runtime.Pinner{}
 var exportReturnArea = uintptr(witRuntime.Allocate(&staticPinner, 0, 1))
 var syncExportPinner = runtime.Pinner{}
 
-//go:wasmexport [async-lift]wasmcloud:nats/jetstream-handler@0.1.0#handle-message
-func wasm_export_wasmcloud_nats_0_1_0_jetstream_handler_handle_message(arg0 int32) int32 {
+//go:wasmexport [async-lift]wasmcloud:nats/jetstream-handler@0.1.4#handle-message
+func wasm_export_wasmcloud_nats_0_1_4_jetstream_handler_handle_message(arg0 int32) int32 {
 	return int32(witAsync.Run(func() {
 		pinner := &runtime.Pinner{}
 		defer pinner.Unpin()
-		result := export_wasmcloud_nats_0_1_0_jetstream_handler.HandleMessage(wasmcloud_nats_0_1_0_jetstream.MessageHandleFromOwnHandle(int32(uintptr(arg0))))
+		result := export_wasmcloud_nats_0_1_4_jetstream_handler.HandleMessage(wasmcloud_nats_0_1_4_jetstream.MessageHandleFromOwnHandle(int32(uintptr(arg0))))
 		var option int32
 		var option0 uintptr
 		var option1 uint32
@@ -66,15 +66,15 @@ func wasm_export_wasmcloud_nats_0_1_0_jetstream_handler_handle_message(arg0 int3
 		default:
 			panic("unreachable")
 		}
-		wasm_export_task_return_wasmcloud_nats_0_1_0_jetstream_handler_handle_message(option, option0, option1)
+		wasm_export_task_return_wasmcloud_nats_0_1_4_jetstream_handler_handle_message(option, option0, option1)
 
 	}))
 }
 
-//go:wasmexport [callback][async-lift]wasmcloud:nats/jetstream-handler@0.1.0#handle-message
-func wasm_export_callback_wasmcloud_nats_0_1_0_jetstream_handler_handle_message(event0 uint32, event1 uint32, event2 uint32) uint32 {
+//go:wasmexport [callback][async-lift]wasmcloud:nats/jetstream-handler@0.1.4#handle-message
+func wasm_export_callback_wasmcloud_nats_0_1_4_jetstream_handler_handle_message(event0 uint32, event1 uint32, event2 uint32) uint32 {
 	return witAsync.Callback(event0, event1, event2)
 }
 
-//go:wasmimport [export]wasmcloud:nats/jetstream-handler@0.1.0 [task-return]handle-message
-func wasm_export_task_return_wasmcloud_nats_0_1_0_jetstream_handler_handle_message(arg0 int32, arg1 uintptr, arg2 uint32)
+//go:wasmimport [export]wasmcloud:nats/jetstream-handler@0.1.4 [task-return]handle-message
+func wasm_export_task_return_wasmcloud_nats_0_1_4_jetstream_handler_handle_message(arg0 int32, arg1 uintptr, arg2 uint32)

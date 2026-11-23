@@ -10,7 +10,7 @@ dev:
   host_interfaces:
     - namespace: wasmcloud
       package: nats
-      version: 0.1.0
+      version: 0.1.4
       interfaces: [types, core]
       config:
         servers: nats://127.0.0.1:4222

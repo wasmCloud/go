@@ -1,13 +1,16 @@
-package wasmcloud:nats@0.1.0;
+package wasmcloud:nats@0.1.4;
 
 /// Shared types and errors used across the wasmcloud:nats interfaces.
 ///
-/// Every operation in this package is an `async func`, so a component built
-/// for WASI P3 can keep many publishes, requests, and JetStream fetches in
-/// flight at once, and a handler can await other imports while the host
-/// continues delivering to the same instance. There is no sync revision: a
-/// sync-signature function cannot be lifted with the async canonical ABI, so
-/// one package cannot serve both, and P3 is where this interface is going.
+/// Every operation that crosses the NATS wire (publishes, requests,
+/// JetStream fetches and acks) is an `async func`, so a component built
+/// for WASI P3 can keep many in flight at once, and a handler can await
+/// other imports while the host continues delivering to the same instance.
+/// There is no sync revision of a wire operation: a sync-signature function
+/// cannot be lifted with the async canonical ABI, so one package cannot
+/// serve both, and P3 is where this interface is going. The accessors on
+/// `message-handle` are the exception: they read state already held on the
+/// handle and stay plain `func`.
 interface types {
   /// A NATS message. Applies to both core and JetStream messages.
   record nats-message {
@@ -39,9 +42,9 @@ interface types {
   }
 
   /// What kind of name was refused, and so which grant the binding would need:
-  /// `subject-allow`, `stream-allow`, or `bucket-allow`. Those are declared by
-  /// whoever configured the host, not by the workload, so a refusal here is
-  /// something to take to an operator.
+  /// `subject-allow`, `stream-allow`, `stream-delete-allow`, `bucket-allow`,
+  /// `bucket-create-allow`, or `bucket-delete-allow`. The host operator owns
+  /// these grants.
   ///
   /// Subscription patterns are not here: they are checked once at bind time,
   /// where a refusal fails the deployment rather than reaching a guest.
@@ -92,8 +95,7 @@ interface types {
     jetstream(string),
     /// The key was not found in a KV bucket.
     key-not-found,
-    /// CAS `update` failed. Payload carries the actual current revision, so a
-    /// retry does not need a re-read.
+    /// A conditional KV write failed. Carries the current revision.
     revision-mismatch(u64),
     /// A pull-consumer `fetch` returned empty within the timeout: the
     /// consumer had nothing to give. Compare `limit-exceeded`, where the
@@ -110,6 +112,13 @@ interface types {
     ///   hold its whole memory budget. `info` says nothing about this one:
     ///   drop the `message-handle`s from earlier batches, since acking one
     ///   does not release it.
+    ///
+    /// `kv-admin.create-bucket` also returns it, as
+    /// `create-bucket-error.nats`, when the requested storage is not in the
+    /// host's `bucket-storage-allow`, when the requested `max-bytes` is over
+    /// its `bucket-max-bytes` and no such bucket exists (an existing one is
+    /// `config-conflict`), or when the JetStream account's stream or storage
+    /// limits refuse a new bucket.
     ///
     /// Either way nothing was delivered, and retrying unchanged fails the
     /// same way.
@@ -196,6 +205,12 @@ interface jetstream {
     headers: option<list<header-entry>>,
   }
 
+  /// A stored message with the time the server stored it.
+  record stored-message-at {
+    message: stored-message,
+    stored-at-unix-nanos: u64,
+  }
+
   /// One subject a stream currently holds messages on, with its message count.
   record subject-count {
     subject: string,
@@ -278,6 +293,9 @@ interface jetstream {
   /// `in-progress` may be called repeatedly to extend ack-wait. It works
   /// under `ack-mode: auto` too, where the host owns the settle and every
   /// other method here returns `ack-owned-by-host`.
+  ///
+  /// Data accessors read the handle without a wire round trip.
+  /// Settlement operations are async.
   resource message-handle {
     /// Borrow the underlying message.
     message: func() -> nats-message;
@@ -285,6 +303,8 @@ interface jetstream {
     sequence: func() -> u64;
     /// Number of times this message has been delivered (1 on first delivery).
     delivery-count: func() -> u32;
+    /// When the server stored this message, from its delivery metadata.
+    stored-at-unix-nanos: func() -> u64;
 
     /// Acknowledge successful processing. Fire-and-forget: it resolves once
     /// the ack is written, not once the server has recorded it.
@@ -333,8 +353,35 @@ interface jetstream {
   /// client-managed reply subject.
   publish: async func(msg: nats-message) -> result<publish-ack, nats-error>;
 
-  /// Fetch a single message by its stream sequence number (direct-get).
+  /// Fetch a single message by its stream sequence number.
+  ///
+  /// A direct get: the request is answered by any server holding the stream
+  /// rather than routed to its leader, so the stream must have `allow-direct`
+  /// enabled and the server must be NATS 2.9 or newer. Without `allow-direct`
+  /// nothing answers the request, which surfaces as a `jetstream` error rather
+  /// than `not-found`. `get-last-by-subject` goes through the stream API and
+  /// has no such requirement.
   get-by-sequence: async func(stream-name: string, sequence: u64) -> result<stored-message, nats-error>;
+
+  /// The last message on a literal subject. `not-found` when none exists.
+  get-last-by-subject: async func(stream-name: string, subject: string) -> result<stored-message-at, nats-error>;
+
+  /// Fetch a message by sequence, including its stored time. A direct get,
+  /// with the same `allow-direct` and NATS 2.9+ requirements as
+  /// `get-by-sequence`.
+  get-by-sequence-at: async func(stream-name: string, sequence: u64) -> result<stored-message-at, nats-error>;
+
+  /// Purge a subject pattern, keeping the newest `keep` messages when given.
+  /// Requires `stream-delete-allow` and containment within `subject-allow`.
+  /// Returns the number removed. Requires NATS 2.9.18+ for safe filtered purges.
+  purge-subject: async func(stream-name: string, subject: string, keep: option<u64>) -> result<u64, nats-error>;
+
+  /// Delete one message. `not-found` when it is already gone.
+  /// Requires `stream-delete-allow` and the message's subject in `subject-allow`.
+  delete-message: async func(stream-name: string, sequence: u64) -> result<_, nats-error>;
+
+  /// When the server created the stream, in Unix nanoseconds.
+  get-stream-created: async func(stream-name: string) -> result<u64, nats-error>;
 
   /// Sequential replay: read up to `max-count` messages starting from
   /// `start-sequence`. Stateless — does not create a durable consumer.
@@ -375,8 +422,7 @@ interface jetstream {
 
 /// JetStream key-value store.
 ///
-/// Bucket lifecycle (create/delete/list) is intentionally absent for the same
-/// reason as stream administration — provision buckets out-of-band.
+/// Reads and writes only. Bucket lifecycle is in `kv-admin`.
 interface kv {
   use types.{nats-error};
 
@@ -405,6 +451,24 @@ interface kv {
     truncated: bool,
   }
 
+  /// Options for `select`.
+  record select-options {
+    /// Include delete/purge tombstones rather than skipping them. `keys()`
+    /// always skips them; false matches that.
+    include-tombstones: bool,
+    /// Send the value bytes. False asks the server for headers only, which
+    /// gives a cheap listing of keys and revisions with no 1000-key cap.
+    include-values: bool,
+    /// Caller's own bound on entries drained. 0 = unbounded, which is the
+    /// point of streaming; this exists for a caller that wants a ceiling of
+    /// its own, not as the host's.
+    max-entries: u64,
+    /// Wall-clock bound on the whole drain; hitting it resolves the paired
+    /// future with `timeout`. 0 = the binding's `request-timeout-ms`, or no
+    /// bound when the binding sets none.
+    timeout-ms: u32,
+  }
+
   /// Status snapshot for a bucket.
   record bucket-status {
     bucket: string,
@@ -431,6 +495,15 @@ interface kv {
     /// Compare-and-swap on revision. Fails with `revision-mismatch` on
     /// conflict, carrying the current revision so a retry needs no re-read.
     update: async func(key: string, value: list<u8>, expected-revision: u64) -> result<u64, nats-error>;
+    /// Create an absent key with a per-key TTL of at least 1000ms.
+    /// Rounded up to whole seconds to match the server's TTL precision.
+    /// Requires NATS 2.11+ and a bucket that allows message TTLs.
+    create-with-ttl: async func(key: string, value: list<u8>, ttl-ms: u64) -> result<u64, nats-error>;
+    /// Delete only at the expected revision. `revision-mismatch` on conflict.
+    /// `expected-revision` must be at least 1: revisions start at 1, and 0 is
+    /// refused rather than sent to the server, where it would match an absent
+    /// key and tombstone one that was never written.
+    delete-by-revision: async func(key: string, expected-revision: u64) -> result<_, nats-error>;
     /// Delete a key (tombstone, keeps history).
     delete: async func(key: string) -> result<_, nats-error>;
     /// Purge a key (removes history as well).
@@ -450,11 +523,115 @@ interface kv {
 
     /// Bucket state snapshot, read fresh from the server.
     status: async func() -> result<bucket-status, nats-error>;
+
+    /// Every live entry matching `filter`, streamed.
+    ///
+    /// This is the value-bearing counterpart to `keys()`, and the way to read
+    /// a bucket that holds more than one page. Values arrive with each entry
+    /// rather than costing a `get` per key.
+    ///
+    /// The guest's read rate is the flow control: the host holds at most one
+    /// batch of entries at a time and nothing is truncated.
+    ///
+    /// The paired future carries the terminal status, following what
+    /// `wasi:http@0.3.0` does for a body and its trailing status. A bare
+    /// stream cannot report a mid-drain failure, and "drained clean" versus
+    /// "the consumer went away at entry 31,000" is exactly the distinction a
+    /// large read needs. A stream that ends because the consumer was deleted
+    /// or the connection dropped must not be readable as a completed drain.
+    select: async func(filter: string, opts: select-options)
+      -> result<tuple<stream<entry>, future<result<_, nats-error>>>, nats-error>;
   }
 
   /// Open an existing bucket. Errors with `not-found` if it doesn't exist, or
   /// `denied` if the bucket is outside this workload's grant.
   open: async func(bucket: string) -> result<bucket, nats-error>;
+}
+
+/// JetStream KV bucket lifecycle: create, inspect, and delete buckets.
+///
+/// Every call needs the bucket in `bucket-allow`. Creating also needs
+/// `bucket-create-allow`, and deleting needs `bucket-delete-allow`. Both are
+/// deny-by-default and host-owned.
+///
+/// The host also bounds what is created. `bucket-create-allow` lists bucket
+/// names, or is `*` for any name. Under `*` the JetStream account's stream
+/// and storage limits bound how many buckets there can be, and a create they
+/// refuse is `limit-exceeded`. Either way `bucket-max-bytes` caps each
+/// bucket's size, and `bucket-storage-allow` decides whether it may use
+/// memory (file only unless the host allows memory).
+///
+/// Replicas, placement, mirrors, and sources are not exposed: they are
+/// cluster decisions. The host's `bucket-replicas` sets the replica count;
+/// the rest take the server's defaults.
+interface kv-admin {
+  use types.{nats-error};
+  use kv.{bucket};
+
+  /// Where the bucket's backing stream keeps its data.
+  enum storage-type {
+    file,
+    memory,
+  }
+
+  /// A bucket's configuration, as requested or as read back.
+  record bucket-config {
+    /// Letters, digits, `-` and `_`.
+    bucket: string,
+    /// Revisions kept per key, 1 to 64. 0 means 1.
+    history: u8,
+    /// How long a value lives, in milliseconds. 0 keeps values forever.
+    max-age-ms: u64,
+    /// Total size limit in bytes. 0 on create takes the host's
+    /// `bucket-max-bytes`, or unlimited when the host's is `unlimited`.
+    max-bytes: u64,
+    /// Largest single value in bytes. 0 is unlimited. At most 2^31 - 1.
+    max-value-size: u32,
+    storage: storage-type,
+    /// Enables per-key TTL (`bucket.create-with-ttl`) and sets how long the
+    /// server keeps the marker it writes when a key expires or ages out.
+    /// At least 1000ms, rounded up to whole seconds. Requires NATS 2.11+.
+    /// `none` disables both.
+    limit-marker-ttl-ms: option<u64>,
+  }
+
+  /// Why `create-bucket` failed.
+  variant create-bucket-error {
+    /// The bucket exists, and its configuration differs from the request or
+    /// is outside this binding's limits (a size over a lowered
+    /// `bucket-max-bytes`). It was left unchanged. Carries the configuration
+    /// it has, to compare or adopt.
+    config-conflict(bucket-config),
+    /// Any other failure, as every other call reports it.
+    nats(nats-error),
+  }
+
+  /// Ensure a bucket exists with a compatible configuration, and open it.
+  /// Requires NATS 2.10+. Safe to call on every start.
+  ///
+  /// The grant is checked first. A bucket outside `bucket-create-allow`, or
+  /// storage outside `bucket-storage-allow`, is refused even when the bucket
+  /// exists. A size over `bucket-max-bytes` is `limit-exceeded` when there is
+  /// no bucket, and `config-conflict` when there is one.
+  ///
+  /// - No bucket: it is created as asked, with the host's choices applied:
+  ///   `max-bytes: 0` takes the host's `bucket-max-bytes`, and the replica
+  ///   count is the host's `bucket-replicas`.
+  /// - A bucket that matches every field set here: it is opened unchanged.
+  ///   `max-bytes: 0` matches any size within the host's `bucket-max-bytes`,
+  ///   and replicas are never compared, so a startup call survives the host
+  ///   changing either.
+  /// - Any other bucket, including one over a lowered `bucket-max-bytes`: it
+  ///   is left unchanged and the call fails with `config-conflict`, carrying
+  ///   the configuration it has.
+  create-bucket: async func(config: bucket-config) -> result<bucket, create-bucket-error>;
+
+  /// Read a bucket's configuration. Needs only `bucket-allow`.
+  get-bucket-config: async func(bucket: string) -> result<bucket-config, nats-error>;
+
+  /// Delete a bucket and every key in it. Cannot be undone. `not-found` when
+  /// the bucket does not exist. Open `bucket` handles fail on their next call.
+  delete-bucket: async func(bucket: string) -> result<_, nats-error>;
 }
 
 /// Handler for JetStream deliveries.
@@ -487,8 +664,9 @@ interface kv-handler {
 }
 
 /// Every interface a workload can import. The grant — `subject-allow`,
-/// `stream-allow`, `bucket-allow`, all deny-by-default — is what bounds what a
-/// workload reaches, not which of these it imports, so this is one set rather
+/// `stream-allow`, `stream-delete-allow`, `bucket-allow`,
+/// `bucket-create-allow`, `bucket-delete-allow`, all deny-by-default —
+/// bounds what a workload reaches, so this is one set rather
 /// than three. Imports a component never calls are dropped at build time by
 /// both toolchains, so the generous surface costs it nothing.
 ///
@@ -499,6 +677,7 @@ world imports {
   import core;
   import jetstream;
   import kv;
+  import kv-admin;
 }
 
 /// A workload that publishes, or does request/reply. No subscriptions.
