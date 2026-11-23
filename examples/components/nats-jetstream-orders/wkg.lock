@@ -25,6 +25,6 @@ name = "wasmcloud:nats"
 registry = "wasmcloud.com"
 
 [[packages.versions]]
-requirement = "=0.1.0"
-version = "0.1.0"
-digest = "sha256:0c8c844d4936e1b1c6e6e7b64cae72ae9f1488b19523f73b4d96cf1fb1faf4b6"
+requirement = "=0.1.4"
+version = "0.1.4"
+digest = "sha256:303439a570ed7005e45c59a321b208a7400ac3f6c0327027666c2242099cfab5"

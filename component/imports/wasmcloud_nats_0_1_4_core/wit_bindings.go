@@ -21,27 +21,27 @@
 //     wasmcloud:keyvalue@0.2.0
 //     wasmcloud:messaging@0.3.0
 //     wasmcloud:postgres@0.2.0
-//     wasmcloud:nats@0.1.0
+//     wasmcloud:nats@0.1.4
 //     wasmcloud:component-go@0.2.0
 
-package wasmcloud_nats_0_1_0_core
+package wasmcloud_nats_0_1_4_core
 
 import (
 	witAsync "go.bytecodealliance.org/pkg/wit/async"
 	witRuntime "go.bytecodealliance.org/pkg/wit/runtime"
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
-	"go.wasmcloud.dev/component/imports/wasmcloud_nats_0_1_0_types"
+	"go.wasmcloud.dev/component/imports/wasmcloud_nats_0_1_4_types"
 	"runtime"
 	"unsafe"
 )
 
-type NatsMessage = wasmcloud_nats_0_1_0_types.NatsMessage
-type NatsError = wasmcloud_nats_0_1_0_types.NatsError
+type NatsMessage = wasmcloud_nats_0_1_4_types.NatsMessage
+type NatsError = wasmcloud_nats_0_1_4_types.NatsError
 
-//go:wasmimport wasmcloud:nats/core@0.1.0 [async-lower]publish
+//go:wasmimport wasmcloud:nats/core@0.1.4 [async-lower]publish
 func wasm_import_publish(arg0 uintptr, arg1 uintptr) int32
 
-func Publish(msg wasmcloud_nats_0_1_0_types.NatsMessage) witTypes.Result[witTypes.Unit, wasmcloud_nats_0_1_0_types.NatsError] {
+func Publish(msg wasmcloud_nats_0_1_4_types.NatsMessage) witTypes.Result[witTypes.Unit, wasmcloud_nats_0_1_4_types.NatsError] {
 	pinner := &runtime.Pinner{}
 	defer pinner.Unpin()
 
@@ -103,117 +103,117 @@ func Publish(msg wasmcloud_nats_0_1_0_types.NatsMessage) witTypes.Result[witType
 	}
 
 	witAsync.SubtaskWait(uint32(wasm_import_publish(uintptr(params), returnArea)))
-	var result12 witTypes.Result[witTypes.Unit, wasmcloud_nats_0_1_0_types.NatsError]
+	var result12 witTypes.Result[witTypes.Unit, wasmcloud_nats_0_1_4_types.NatsError]
 	switch uint8(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 0))) {
 	case 0:
 
-		result12 = witTypes.Ok[witTypes.Unit, wasmcloud_nats_0_1_0_types.NatsError](witTypes.Unit{})
+		result12 = witTypes.Ok[witTypes.Unit, wasmcloud_nats_0_1_4_types.NatsError](witTypes.Unit{})
 	case 1:
-		var variant11 wasmcloud_nats_0_1_0_types.NatsError
+		var variant11 wasmcloud_nats_0_1_4_types.NatsError
 		switch uint8(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 8))) {
 		case 0:
 			value := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant11 = wasmcloud_nats_0_1_0_types.MakeNatsErrorConnection(value)
+			variant11 = wasmcloud_nats_0_1_4_types.MakeNatsErrorConnection(value)
 
 		case 1:
 			value3 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant11 = wasmcloud_nats_0_1_0_types.MakeNatsErrorTimeout(value3)
+			variant11 = wasmcloud_nats_0_1_4_types.MakeNatsErrorTimeout(value3)
 
 		case 2:
 
-			variant11 = wasmcloud_nats_0_1_0_types.MakeNatsErrorNoResponders()
+			variant11 = wasmcloud_nats_0_1_4_types.MakeNatsErrorNoResponders()
 
 		case 3:
-			var variant wasmcloud_nats_0_1_0_types.DeniedResource
+			var variant wasmcloud_nats_0_1_4_types.DeniedResource
 			switch uint8(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 24))) {
 			case 0:
 
-				variant = wasmcloud_nats_0_1_0_types.MakeDeniedResourceSubject()
+				variant = wasmcloud_nats_0_1_4_types.MakeDeniedResourceSubject()
 
 			case 1:
 
-				variant = wasmcloud_nats_0_1_0_types.MakeDeniedResourceStream()
+				variant = wasmcloud_nats_0_1_4_types.MakeDeniedResourceStream()
 
 			case 2:
 
-				variant = wasmcloud_nats_0_1_0_types.MakeDeniedResourceBucket()
+				variant = wasmcloud_nats_0_1_4_types.MakeDeniedResourceBucket()
 
 			case 3:
 
-				variant = wasmcloud_nats_0_1_0_types.MakeDeniedResourceMessage(uint64(*(*int64)(unsafe.Add(unsafe.Pointer(returnArea), 32))))
+				variant = wasmcloud_nats_0_1_4_types.MakeDeniedResourceMessage(uint64(*(*int64)(unsafe.Add(unsafe.Pointer(returnArea), 32))))
 
 			default:
 				panic("unreachable")
 			}
 			value4 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 40))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (40 + 1*4))))
 
-			variant11 = wasmcloud_nats_0_1_0_types.MakeNatsErrorDenied(wasmcloud_nats_0_1_0_types.Denial{Reason: uint8(uint8(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16)))), Target: variant, Name: value4})
+			variant11 = wasmcloud_nats_0_1_4_types.MakeNatsErrorDenied(wasmcloud_nats_0_1_4_types.Denial{Reason: uint8(uint8(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16)))), Target: variant, Name: value4})
 
 		case 4:
 
-			variant11 = wasmcloud_nats_0_1_0_types.MakeNatsErrorMaxPayloadExceeded(uint64(*(*int64)(unsafe.Add(unsafe.Pointer(returnArea), 16))))
+			variant11 = wasmcloud_nats_0_1_4_types.MakeNatsErrorMaxPayloadExceeded(uint64(*(*int64)(unsafe.Add(unsafe.Pointer(returnArea), 16))))
 
 		case 5:
 			value5 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant11 = wasmcloud_nats_0_1_0_types.MakeNatsErrorInvalidHeader(value5)
+			variant11 = wasmcloud_nats_0_1_4_types.MakeNatsErrorInvalidHeader(value5)
 
 		case 6:
 			value6 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant11 = wasmcloud_nats_0_1_0_types.MakeNatsErrorJetstream(value6)
+			variant11 = wasmcloud_nats_0_1_4_types.MakeNatsErrorJetstream(value6)
 
 		case 7:
 
-			variant11 = wasmcloud_nats_0_1_0_types.MakeNatsErrorKeyNotFound()
+			variant11 = wasmcloud_nats_0_1_4_types.MakeNatsErrorKeyNotFound()
 
 		case 8:
 
-			variant11 = wasmcloud_nats_0_1_0_types.MakeNatsErrorRevisionMismatch(uint64(*(*int64)(unsafe.Add(unsafe.Pointer(returnArea), 16))))
+			variant11 = wasmcloud_nats_0_1_4_types.MakeNatsErrorRevisionMismatch(uint64(*(*int64)(unsafe.Add(unsafe.Pointer(returnArea), 16))))
 
 		case 9:
 
-			variant11 = wasmcloud_nats_0_1_0_types.MakeNatsErrorNoMessages()
+			variant11 = wasmcloud_nats_0_1_4_types.MakeNatsErrorNoMessages()
 
 		case 10:
 			value7 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant11 = wasmcloud_nats_0_1_0_types.MakeNatsErrorLimitExceeded(value7)
+			variant11 = wasmcloud_nats_0_1_4_types.MakeNatsErrorLimitExceeded(value7)
 
 		case 11:
 			value8 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant11 = wasmcloud_nats_0_1_0_types.MakeNatsErrorNotFound(value8)
+			variant11 = wasmcloud_nats_0_1_4_types.MakeNatsErrorNotFound(value8)
 
 		case 12:
 			value9 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant11 = wasmcloud_nats_0_1_0_types.MakeNatsErrorUnsupportedByServer(value9)
+			variant11 = wasmcloud_nats_0_1_4_types.MakeNatsErrorUnsupportedByServer(value9)
 
 		case 13:
 
-			variant11 = wasmcloud_nats_0_1_0_types.MakeNatsErrorDisconnected()
+			variant11 = wasmcloud_nats_0_1_4_types.MakeNatsErrorDisconnected()
 
 		case 14:
 
-			variant11 = wasmcloud_nats_0_1_0_types.MakeNatsErrorAlreadySettled()
+			variant11 = wasmcloud_nats_0_1_4_types.MakeNatsErrorAlreadySettled()
 
 		case 15:
 
-			variant11 = wasmcloud_nats_0_1_0_types.MakeNatsErrorAckOwnedByHost()
+			variant11 = wasmcloud_nats_0_1_4_types.MakeNatsErrorAckOwnedByHost()
 
 		case 16:
 			value10 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant11 = wasmcloud_nats_0_1_0_types.MakeNatsErrorUnexpected(value10)
+			variant11 = wasmcloud_nats_0_1_4_types.MakeNatsErrorUnexpected(value10)
 
 		default:
 			panic("unreachable")
 		}
 
-		result12 = witTypes.Err[witTypes.Unit, wasmcloud_nats_0_1_0_types.NatsError](variant11)
+		result12 = witTypes.Err[witTypes.Unit, wasmcloud_nats_0_1_4_types.NatsError](variant11)
 	default:
 		panic("unreachable")
 	}
@@ -222,10 +222,10 @@ func Publish(msg wasmcloud_nats_0_1_0_types.NatsMessage) witTypes.Result[witType
 
 }
 
-//go:wasmimport wasmcloud:nats/core@0.1.0 [async-lower]request
+//go:wasmimport wasmcloud:nats/core@0.1.4 [async-lower]request
 func wasm_import_request(arg0 uintptr, arg1 uintptr) int32
 
-func Request(msg wasmcloud_nats_0_1_0_types.NatsMessage, timeoutMs uint32) witTypes.Result[wasmcloud_nats_0_1_0_types.NatsMessage, wasmcloud_nats_0_1_0_types.NatsError] {
+func Request(msg wasmcloud_nats_0_1_4_types.NatsMessage, timeoutMs uint32) witTypes.Result[wasmcloud_nats_0_1_4_types.NatsMessage, wasmcloud_nats_0_1_4_types.NatsError] {
 	pinner := &runtime.Pinner{}
 	defer pinner.Unpin()
 
@@ -288,7 +288,7 @@ func Request(msg wasmcloud_nats_0_1_0_types.NatsMessage, timeoutMs uint32) witTy
 	*(*int32)(unsafe.Add(unsafe.Pointer(unsafe.Add(unsafe.Pointer(params), (10*4))), 0)) = int32(timeoutMs)
 
 	witAsync.SubtaskWait(uint32(wasm_import_request(uintptr(params), returnArea)))
-	var result19 witTypes.Result[wasmcloud_nats_0_1_0_types.NatsMessage, wasmcloud_nats_0_1_0_types.NatsError]
+	var result19 witTypes.Result[wasmcloud_nats_0_1_4_types.NatsMessage, wasmcloud_nats_0_1_4_types.NatsError]
 	switch uint8(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 0))) {
 	case 0:
 		value := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 8))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 1*4))))
@@ -305,133 +305,133 @@ func Request(msg wasmcloud_nats_0_1_0_types.NatsMessage, timeoutMs uint32) witTy
 		default:
 			panic("unreachable")
 		}
-		var option8 witTypes.Option[[]wasmcloud_nats_0_1_0_types.HeaderEntry]
+		var option8 witTypes.Option[[]wasmcloud_nats_0_1_4_types.HeaderEntry]
 		switch uint8(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 7*4)))) {
 		case 0:
 
-			option8 = witTypes.None[[]wasmcloud_nats_0_1_0_types.HeaderEntry]()
+			option8 = witTypes.None[[]wasmcloud_nats_0_1_4_types.HeaderEntry]()
 		case 1:
-			result7 := make([]wasmcloud_nats_0_1_0_types.HeaderEntry, 0, *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 9*4))))
+			result7 := make([]wasmcloud_nats_0_1_4_types.HeaderEntry, 0, *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 9*4))))
 			for index := 0; index < int(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 9*4)))); index++ {
 				base := unsafe.Add(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 8*4))))), index*(4*4))
 				value5 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(base), 0))))), *(*uint32)(unsafe.Add(unsafe.Pointer(base), 4)))
 				value6 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(base), (2 * 4)))))), *(*uint32)(unsafe.Add(unsafe.Pointer(base), (3 * 4))))
 
-				result7 = append(result7, wasmcloud_nats_0_1_0_types.HeaderEntry{Name: value5, Value: value6})
+				result7 = append(result7, wasmcloud_nats_0_1_4_types.HeaderEntry{Name: value5, Value: value6})
 			}
 
-			option8 = witTypes.Some[[]wasmcloud_nats_0_1_0_types.HeaderEntry](result7)
+			option8 = witTypes.Some[[]wasmcloud_nats_0_1_4_types.HeaderEntry](result7)
 		default:
 			panic("unreachable")
 		}
 
-		result19 = witTypes.Ok[wasmcloud_nats_0_1_0_types.NatsMessage, wasmcloud_nats_0_1_0_types.NatsError](wasmcloud_nats_0_1_0_types.NatsMessage{Subject: value, Body: value3, ReplyTo: option, Headers: option8})
+		result19 = witTypes.Ok[wasmcloud_nats_0_1_4_types.NatsMessage, wasmcloud_nats_0_1_4_types.NatsError](wasmcloud_nats_0_1_4_types.NatsMessage{Subject: value, Body: value3, ReplyTo: option, Headers: option8})
 	case 1:
-		var variant18 wasmcloud_nats_0_1_0_types.NatsError
+		var variant18 wasmcloud_nats_0_1_4_types.NatsError
 		switch uint8(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 8))) {
 		case 0:
 			value9 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant18 = wasmcloud_nats_0_1_0_types.MakeNatsErrorConnection(value9)
+			variant18 = wasmcloud_nats_0_1_4_types.MakeNatsErrorConnection(value9)
 
 		case 1:
 			value10 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant18 = wasmcloud_nats_0_1_0_types.MakeNatsErrorTimeout(value10)
+			variant18 = wasmcloud_nats_0_1_4_types.MakeNatsErrorTimeout(value10)
 
 		case 2:
 
-			variant18 = wasmcloud_nats_0_1_0_types.MakeNatsErrorNoResponders()
+			variant18 = wasmcloud_nats_0_1_4_types.MakeNatsErrorNoResponders()
 
 		case 3:
-			var variant wasmcloud_nats_0_1_0_types.DeniedResource
+			var variant wasmcloud_nats_0_1_4_types.DeniedResource
 			switch uint8(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 24))) {
 			case 0:
 
-				variant = wasmcloud_nats_0_1_0_types.MakeDeniedResourceSubject()
+				variant = wasmcloud_nats_0_1_4_types.MakeDeniedResourceSubject()
 
 			case 1:
 
-				variant = wasmcloud_nats_0_1_0_types.MakeDeniedResourceStream()
+				variant = wasmcloud_nats_0_1_4_types.MakeDeniedResourceStream()
 
 			case 2:
 
-				variant = wasmcloud_nats_0_1_0_types.MakeDeniedResourceBucket()
+				variant = wasmcloud_nats_0_1_4_types.MakeDeniedResourceBucket()
 
 			case 3:
 
-				variant = wasmcloud_nats_0_1_0_types.MakeDeniedResourceMessage(uint64(*(*int64)(unsafe.Add(unsafe.Pointer(returnArea), 32))))
+				variant = wasmcloud_nats_0_1_4_types.MakeDeniedResourceMessage(uint64(*(*int64)(unsafe.Add(unsafe.Pointer(returnArea), 32))))
 
 			default:
 				panic("unreachable")
 			}
 			value11 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 40))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (40 + 1*4))))
 
-			variant18 = wasmcloud_nats_0_1_0_types.MakeNatsErrorDenied(wasmcloud_nats_0_1_0_types.Denial{Reason: uint8(uint8(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16)))), Target: variant, Name: value11})
+			variant18 = wasmcloud_nats_0_1_4_types.MakeNatsErrorDenied(wasmcloud_nats_0_1_4_types.Denial{Reason: uint8(uint8(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16)))), Target: variant, Name: value11})
 
 		case 4:
 
-			variant18 = wasmcloud_nats_0_1_0_types.MakeNatsErrorMaxPayloadExceeded(uint64(*(*int64)(unsafe.Add(unsafe.Pointer(returnArea), 16))))
+			variant18 = wasmcloud_nats_0_1_4_types.MakeNatsErrorMaxPayloadExceeded(uint64(*(*int64)(unsafe.Add(unsafe.Pointer(returnArea), 16))))
 
 		case 5:
 			value12 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant18 = wasmcloud_nats_0_1_0_types.MakeNatsErrorInvalidHeader(value12)
+			variant18 = wasmcloud_nats_0_1_4_types.MakeNatsErrorInvalidHeader(value12)
 
 		case 6:
 			value13 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant18 = wasmcloud_nats_0_1_0_types.MakeNatsErrorJetstream(value13)
+			variant18 = wasmcloud_nats_0_1_4_types.MakeNatsErrorJetstream(value13)
 
 		case 7:
 
-			variant18 = wasmcloud_nats_0_1_0_types.MakeNatsErrorKeyNotFound()
+			variant18 = wasmcloud_nats_0_1_4_types.MakeNatsErrorKeyNotFound()
 
 		case 8:
 
-			variant18 = wasmcloud_nats_0_1_0_types.MakeNatsErrorRevisionMismatch(uint64(*(*int64)(unsafe.Add(unsafe.Pointer(returnArea), 16))))
+			variant18 = wasmcloud_nats_0_1_4_types.MakeNatsErrorRevisionMismatch(uint64(*(*int64)(unsafe.Add(unsafe.Pointer(returnArea), 16))))
 
 		case 9:
 
-			variant18 = wasmcloud_nats_0_1_0_types.MakeNatsErrorNoMessages()
+			variant18 = wasmcloud_nats_0_1_4_types.MakeNatsErrorNoMessages()
 
 		case 10:
 			value14 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant18 = wasmcloud_nats_0_1_0_types.MakeNatsErrorLimitExceeded(value14)
+			variant18 = wasmcloud_nats_0_1_4_types.MakeNatsErrorLimitExceeded(value14)
 
 		case 11:
 			value15 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant18 = wasmcloud_nats_0_1_0_types.MakeNatsErrorNotFound(value15)
+			variant18 = wasmcloud_nats_0_1_4_types.MakeNatsErrorNotFound(value15)
 
 		case 12:
 			value16 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant18 = wasmcloud_nats_0_1_0_types.MakeNatsErrorUnsupportedByServer(value16)
+			variant18 = wasmcloud_nats_0_1_4_types.MakeNatsErrorUnsupportedByServer(value16)
 
 		case 13:
 
-			variant18 = wasmcloud_nats_0_1_0_types.MakeNatsErrorDisconnected()
+			variant18 = wasmcloud_nats_0_1_4_types.MakeNatsErrorDisconnected()
 
 		case 14:
 
-			variant18 = wasmcloud_nats_0_1_0_types.MakeNatsErrorAlreadySettled()
+			variant18 = wasmcloud_nats_0_1_4_types.MakeNatsErrorAlreadySettled()
 
 		case 15:
 
-			variant18 = wasmcloud_nats_0_1_0_types.MakeNatsErrorAckOwnedByHost()
+			variant18 = wasmcloud_nats_0_1_4_types.MakeNatsErrorAckOwnedByHost()
 
 		case 16:
 			value17 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 16))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (16 + 1*4))))
 
-			variant18 = wasmcloud_nats_0_1_0_types.MakeNatsErrorUnexpected(value17)
+			variant18 = wasmcloud_nats_0_1_4_types.MakeNatsErrorUnexpected(value17)
 
 		default:
 			panic("unreachable")
 		}
 
-		result19 = witTypes.Err[wasmcloud_nats_0_1_0_types.NatsMessage, wasmcloud_nats_0_1_0_types.NatsError](variant18)
+		result19 = witTypes.Err[wasmcloud_nats_0_1_4_types.NatsMessage, wasmcloud_nats_0_1_4_types.NatsError](variant18)
 	default:
 		panic("unreachable")
 	}

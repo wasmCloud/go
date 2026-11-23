@@ -25,8 +25,8 @@ world wasip2 {
 //
 //   world app {
 //     include wasmcloud:component-go/headless@0.2.0;
-//     import wasmcloud:nats/types@0.1.0;
-//     export wasmcloud:nats/core-handler@0.1.0;
+//     import wasmcloud:nats/types@0.1.4;
+//     export wasmcloud:nats/core-handler@0.1.4;
 //   }
 world headless {
   include wasi:cli/imports@0.2.8;

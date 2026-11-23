@@ -4,8 +4,8 @@ import (
 	"time"
 
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
-	core "go.wasmcloud.dev/component/imports/wasmcloud_nats_0_1_0_core"
-	types "go.wasmcloud.dev/component/imports/wasmcloud_nats_0_1_0_types"
+	core "go.wasmcloud.dev/component/imports/wasmcloud_nats_0_1_4_core"
+	types "go.wasmcloud.dev/component/imports/wasmcloud_nats_0_1_4_types"
 )
 
 // Header is a single NATS message header.
@@ -35,7 +35,7 @@ func (m Message) Header(name string) (string, bool) {
 }
 
 // Core is the core-NATS surface this package calls: exactly the two functions
-// `wasmcloud:nats/core@0.1.0` defines, in the generated bindings' own types.
+// `wasmcloud:nats/core@0.1.4` defines, in the generated bindings' own types.
 //
 // The default implementation is the SDK's committed bindings, which name the
 // plain (unlabeled) instance. A component that imports the interface under an
@@ -49,7 +49,7 @@ type Core interface {
 }
 
 // Conn is one core-NATS binding: the connection, credentials, and grants the
-// host attached to a single instance of `wasmcloud:nats/core@0.1.0`. A
+// host attached to a single instance of `wasmcloud:nats/core@0.1.4`. A
 // component with more than one binding holds one [Conn] per label.
 type Conn struct{ core Core }
 

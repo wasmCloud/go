@@ -1,4 +1,4 @@
-// Package corehandler wires up the optional wasmcloud:nats/core-handler@0.1.0
+// Package corehandler wires up the optional wasmcloud:nats/core-handler@0.1.4
 // export so a component receives core NATS messages pushed by the host.
 //
 // Importing this package links the `handle-message` wasm export into the
@@ -6,8 +6,8 @@
 //
 //	world app {
 //	  include wasmcloud:component-go/headless@0.2.0;
-//	  import wasmcloud:nats/types@0.1.0;
-//	  export wasmcloud:nats/core-handler@0.1.0;
+//	  import wasmcloud:nats/types@0.1.4;
+//	  export wasmcloud:nats/core-handler@0.1.4;
 //	}
 //
 // Register a callback during init:
@@ -39,8 +39,8 @@ package corehandler
 
 import (
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
-	export "go.wasmcloud.dev/component/exports/wasmcloud_component_go_wasmcloud_nats_core_handler_0_2_0/export_wasmcloud_nats_0_1_0_core_handler"
-	types "go.wasmcloud.dev/component/imports/wasmcloud_nats_0_1_0_types"
+	export "go.wasmcloud.dev/component/exports/wasmcloud_component_go_wasmcloud_nats_core_handler_0_2_0/export_wasmcloud_nats_0_1_4_core_handler"
+	types "go.wasmcloud.dev/component/imports/wasmcloud_nats_0_1_4_types"
 	"go.wasmcloud.dev/component/nats"
 
 	// Pull in the //go:wasmexport glue for the handle-message export.

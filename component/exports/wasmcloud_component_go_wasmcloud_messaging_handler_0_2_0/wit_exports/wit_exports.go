@@ -21,7 +21,7 @@
 //     wasmcloud:keyvalue@0.2.0
 //     wasmcloud:messaging@0.3.0
 //     wasmcloud:postgres@0.2.0
-//     wasmcloud:nats@0.1.0
+//     wasmcloud:nats@0.1.4
 //     wasmcloud:component-go@0.2.0
 
 package wit_exports

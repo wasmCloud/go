@@ -21,7 +21,7 @@
 //     wasmcloud:keyvalue@0.2.0
 //     wasmcloud:messaging@0.3.0
 //     wasmcloud:postgres@0.2.0
-//     wasmcloud:nats@0.1.0
+//     wasmcloud:nats@0.1.4
 //     wasmcloud:component-go@0.2.0
 
 package wit_exports
@@ -30,8 +30,8 @@ import (
 	witAsync "go.bytecodealliance.org/pkg/wit/async"
 	witRuntime "go.bytecodealliance.org/pkg/wit/runtime"
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
-	"go.wasmcloud.dev/component/exports/wasmcloud_component_go_wasmcloud_nats_kv_handler_0_2_0/export_wasmcloud_nats_0_1_0_kv_handler"
-	"go.wasmcloud.dev/component/imports/wasmcloud_nats_0_1_0_kv"
+	"go.wasmcloud.dev/component/exports/wasmcloud_component_go_wasmcloud_nats_kv_handler_0_2_0/export_wasmcloud_nats_0_1_4_kv_handler"
+	"go.wasmcloud.dev/component/imports/wasmcloud_nats_0_1_4_kv"
 	"runtime"
 	"unsafe"
 )
@@ -40,8 +40,8 @@ var staticPinner = runtime.Pinner{}
 var exportReturnArea = uintptr(witRuntime.Allocate(&staticPinner, 0, 1))
 var syncExportPinner = runtime.Pinner{}
 
-//go:wasmexport [async-lift]wasmcloud:nats/kv-handler@0.1.0#handle-event
-func wasm_export_wasmcloud_nats_0_1_0_kv_handler_handle_event(arg0 uintptr, arg1 uint32, arg2 uintptr, arg3 uint32, arg4 uintptr, arg5 uint32, arg6 int64, arg7 int64, arg8 int32) int32 {
+//go:wasmexport [async-lift]wasmcloud:nats/kv-handler@0.1.4#handle-event
+func wasm_export_wasmcloud_nats_0_1_4_kv_handler_handle_event(arg0 uintptr, arg1 uint32, arg2 uintptr, arg3 uint32, arg4 uintptr, arg5 uint32, arg6 int64, arg7 int64, arg8 int32) int32 {
 	return int32(witAsync.Run(func() {
 		pinner := &runtime.Pinner{}
 		defer pinner.Unpin()
@@ -49,7 +49,7 @@ func wasm_export_wasmcloud_nats_0_1_0_kv_handler_handle_event(arg0 uintptr, arg1
 		value0 := unsafe.String((*uint8)(unsafe.Pointer(arg2)), arg3)
 		value1 := unsafe.Slice((*uint8)(unsafe.Pointer(arg4)), arg5)
 		witRuntime.Unpin()
-		result := export_wasmcloud_nats_0_1_0_kv_handler.HandleEvent(value, wasmcloud_nats_0_1_0_kv.Entry{Key: value0, Value: value1, Revision: uint64(arg6), CreatedAtUnixNanos: uint64(arg7), Operation: uint8(arg8)})
+		result := export_wasmcloud_nats_0_1_4_kv_handler.HandleEvent(value, wasmcloud_nats_0_1_4_kv.Entry{Key: value0, Value: value1, Revision: uint64(arg6), CreatedAtUnixNanos: uint64(arg7), Operation: uint8(arg8)})
 		var option int32
 		var option2 uintptr
 		var option3 uint32
@@ -70,15 +70,15 @@ func wasm_export_wasmcloud_nats_0_1_0_kv_handler_handle_event(arg0 uintptr, arg1
 		default:
 			panic("unreachable")
 		}
-		wasm_export_task_return_wasmcloud_nats_0_1_0_kv_handler_handle_event(option, option2, option3)
+		wasm_export_task_return_wasmcloud_nats_0_1_4_kv_handler_handle_event(option, option2, option3)
 
 	}))
 }
 
-//go:wasmexport [callback][async-lift]wasmcloud:nats/kv-handler@0.1.0#handle-event
-func wasm_export_callback_wasmcloud_nats_0_1_0_kv_handler_handle_event(event0 uint32, event1 uint32, event2 uint32) uint32 {
+//go:wasmexport [callback][async-lift]wasmcloud:nats/kv-handler@0.1.4#handle-event
+func wasm_export_callback_wasmcloud_nats_0_1_4_kv_handler_handle_event(event0 uint32, event1 uint32, event2 uint32) uint32 {
 	return witAsync.Callback(event0, event1, event2)
 }
 
-//go:wasmimport [export]wasmcloud:nats/kv-handler@0.1.0 [task-return]handle-event
-func wasm_export_task_return_wasmcloud_nats_0_1_0_kv_handler_handle_event(arg0 int32, arg1 uintptr, arg2 uint32)
+//go:wasmimport [export]wasmcloud:nats/kv-handler@0.1.4 [task-return]handle-event
+func wasm_export_task_return_wasmcloud_nats_0_1_4_kv_handler_handle_event(arg0 int32, arg1 uintptr, arg2 uint32)

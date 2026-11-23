@@ -1,5 +1,5 @@
 // Package jetstreamhandler wires up the optional
-// wasmcloud:nats/jetstream-handler@0.1.0 export so a component receives
+// wasmcloud:nats/jetstream-handler@0.1.4 export so a component receives
 // JetStream deliveries pushed by the host.
 //
 // Importing this package links the `handle-message` wasm export into the
@@ -7,9 +7,9 @@
 //
 //	world app {
 //	  include wasmcloud:component-go/headless@0.2.0;
-//	  import wasmcloud:nats/types@0.1.0;
-//	  import wasmcloud:nats/jetstream@0.1.0;
-//	  export wasmcloud:nats/jetstream-handler@0.1.0;
+//	  import wasmcloud:nats/types@0.1.4;
+//	  import wasmcloud:nats/jetstream@0.1.4;
+//	  export wasmcloud:nats/jetstream-handler@0.1.4;
 //	}
 //
 // Register a callback during init:
@@ -54,8 +54,8 @@ package jetstreamhandler
 
 import (
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
-	export "go.wasmcloud.dev/component/exports/wasmcloud_component_go_wasmcloud_nats_jetstream_handler_0_2_0/export_wasmcloud_nats_0_1_0_jetstream_handler"
-	js "go.wasmcloud.dev/component/imports/wasmcloud_nats_0_1_0_jetstream"
+	export "go.wasmcloud.dev/component/exports/wasmcloud_component_go_wasmcloud_nats_jetstream_handler_0_2_0/export_wasmcloud_nats_0_1_4_jetstream_handler"
+	js "go.wasmcloud.dev/component/imports/wasmcloud_nats_0_1_4_jetstream"
 	"go.wasmcloud.dev/component/nats"
 
 	// Pull in the //go:wasmexport glue for the handle-message export.

@@ -60,7 +60,7 @@ spec:
             host: nats-stream-replay
         - namespace: wasmcloud
           package: nats
-          version: "0.1.0"
+          version: "0.1.4"
           # No handler interface: this component is driven by HTTP, so the
           # host pushes nothing at it and there are no subscriptions to
           # declare.

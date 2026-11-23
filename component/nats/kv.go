@@ -3,7 +3,7 @@ package nats
 import (
 	"time"
 
-	kv "go.wasmcloud.dev/component/imports/wasmcloud_nats_0_1_0_kv"
+	kv "go.wasmcloud.dev/component/imports/wasmcloud_nats_0_1_4_kv"
 )
 
 // Operation is what produced a KV entry.
@@ -55,10 +55,10 @@ type Bucket struct{ inner *kv.Bucket }
 
 // OpenBucket opens an existing bucket.
 //
-// It never creates one: bucket lifecycle is deliberately outside this
-// interface, so provision it out-of-band. A missing bucket returns a
-// [NotFoundError]; one outside the workload's `bucket-allow` grant returns a
-// [DeniedError].
+// It never creates one. Provision the bucket out-of-band, or ensure it from
+// the component with [CreateBucket], which the host gates separately on
+// `bucket-create-allow`. A missing bucket returns a [NotFoundError]; one
+// outside the workload's `bucket-allow` grant returns a [DeniedError].
 func OpenBucket(bucket string) (*Bucket, error) {
 	res := kv.Open(bucket)
 	if res.IsErr() {
