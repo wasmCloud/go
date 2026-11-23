@@ -14,6 +14,10 @@ Read the sections that match the files being changed.
 - Prefer a script that CI calls, and that is just as easy to run locally, over logic inlined in a workflow.
 - Extend the existing bash scripts in `airgap/` in their current style.
   For new logic that is more than glue, add a Go command and run it with `go run`.
+  There is no root `go.mod`, so give the command its own module under `scripts/<name>/`,
+  like [`scripts/bench/httpbench`](../../../scripts/bench/httpbench/),
+  and add its directory to the `gomod` `directories` list in
+  [`.github/dependabot.yml`](../../../.github/dependabot.yml).
 
 ## Workflows
 

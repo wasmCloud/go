@@ -64,8 +64,12 @@ From the example directory:
 
 ```
 - [ ] gofmt -l .                     (no output)
+- [ ] GOOS=wasip1 GOARCH=wasm go vet -unsafeptr=false -composites=false ./...
 - [ ] wash build
 - [ ] wash dev, then the CI test-command from another shell
 ```
+
+Generated WIT bindings trip the `unsafeptr` and `composites` analyzers, so `go vet` turns them off.
+Skip `go vet` in `templates/`, which ship without a `go.sum`.
 
 If `wash` or the patched Go is not installed, say which checks could not run.

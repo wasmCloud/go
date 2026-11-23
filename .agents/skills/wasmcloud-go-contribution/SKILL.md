@@ -38,6 +38,10 @@ Mark every commit that introduces a breaking change to `component/` or `plugin/`
 - A `!` in the title, for example `feat(messaging)!: drop the legacy handler`.
 - A `BREAKING CHANGE: <what breaks and how to migrate>` footer.
 
+The SDK modules are at v0, so a breaking change only needs these markers.
+From v1 on, a breaking change also needs a new major version suffix in the module path
+(`go.wasmcloud.dev/component/v2`) and the matching tag prefix (`component/v2.x.y`).
+
 ## Pull requests
 
 - After local tests and applicable lint and format checks pass, open a pull request as a draft,

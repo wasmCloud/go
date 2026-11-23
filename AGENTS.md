@@ -12,7 +12,7 @@
   Comments explain the code and its rationale.
 - Run relevant local tests and applicable lint and format checks before opening a PR.
   Re-run relevant checks after fixes, and report checks that could not run.
-- Never hand-edit generated bindings under `component/` or `plugin/` `imports/` and `exports/wit_exports/`.
+- Never hand-edit generated bindings under `component/` or `plugin/` `imports/` and `exports/*/wit_exports/`.
   Regenerate them as described in the SDK skill.
 - A more specific `AGENTS.md` takes precedence over the skills below for the directory it covers.
   Repository instructions and checked-in lint and format configuration take precedence over external skills.
