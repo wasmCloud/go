@@ -19,13 +19,13 @@ import (
 
 	"go.bytecodealliance.org/wasi/wasilog"
 
-	exports "github.com/wasmCloud/go/examples/components/nats-kv-streaming/contract/bindings/queryexports/export_wasmcloud_archive_query"
-	query "github.com/wasmCloud/go/examples/components/nats-kv-streaming/contract/bindings/queryexports/wasmcloud_archive_query"
+	exports "github.com/wasmCloud/go/examples/components/nats-kv-streaming/contract/bindings/queryexports/exports/export_wasmcloud_archive_query"
+	query "github.com/wasmCloud/go/examples/components/nats-kv-streaming/contract/bindings/queryexports/imports/wasmcloud_archive_query"
 	"github.com/wasmCloud/go/examples/components/nats-kv-streaming/contract/streamio"
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
 
 	// Links the //go:wasmexport glue for wasmcloud:archive/query.
-	_ "github.com/wasmCloud/go/examples/components/nats-kv-streaming/contract/bindings/queryexports/wit_exports"
+	_ "github.com/wasmCloud/go/examples/components/nats-kv-streaming/contract/bindings/queryexports/exports/wit_exports"
 
 	// Puts the SDK's WIT, and the headless world this component is built
 	// with, where componentize-go looks for them.
@@ -81,7 +81,7 @@ func filterReadings(dst io.Writer, src io.Reader, filter query.Filter) (query.Su
 		}
 		return w.WriteByte('\n')
 	}
-	if filter.Format == query.FormatCsv {
+	if filter.Format == query.Format_Csv {
 		// encoding/csv quotes a field that holds a comma, quote or newline,
 		// which a reading uploaded from elsewhere may well contain.
 		out := csv.NewWriter(w)

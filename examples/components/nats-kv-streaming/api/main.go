@@ -26,8 +26,8 @@ import (
 	"go.bytecodealliance.org/wasi/wasihttp"
 	"go.bytecodealliance.org/wasi/wasilog"
 
-	"github.com/wasmCloud/go/examples/components/nats-kv-streaming/contract/bindings/client/wasmcloud_archive_query"
-	store "github.com/wasmCloud/go/examples/components/nats-kv-streaming/contract/bindings/client/wasmcloud_archive_store"
+	"github.com/wasmCloud/go/examples/components/nats-kv-streaming/contract/bindings/client/imports/wasmcloud_archive_query"
+	store "github.com/wasmCloud/go/examples/components/nats-kv-streaming/contract/bindings/client/imports/wasmcloud_archive_store"
 	"github.com/wasmCloud/go/examples/components/nats-kv-streaming/contract/streamio"
 
 	// Anchor go.wasmcloud.dev/component in go.mod: it carries the wasmCloud
@@ -124,7 +124,7 @@ func queryObject(w http.ResponseWriter, r *http.Request) {
 	defer body.Close()
 
 	h := w.Header()
-	if filter.Format == wasmcloud_archive_query.FormatCsv {
+	if filter.Format == wasmcloud_archive_query.Format_Csv {
 		h.Set("Content-Type", "text/csv")
 	} else {
 		h.Set("Content-Type", "application/x-ndjson")
@@ -183,7 +183,7 @@ func parseFilter(r *http.Request) (wasmcloud_archive_query.Filter, error) {
 		Sensor:   optional(q.Get("sensor")),
 		MinValue: witTypes.None[float64](),
 		Limit:    witTypes.None[uint32](),
-		Format:   wasmcloud_archive_query.FormatNdjson,
+		Format:   wasmcloud_archive_query.Format_Ndjson,
 	}
 	if v := q.Get("min"); v != "" {
 		minValue, err := strconv.ParseFloat(v, 64)
@@ -202,7 +202,7 @@ func parseFilter(r *http.Request) (wasmcloud_archive_query.Filter, error) {
 	switch q.Get("format") {
 	case "", "ndjson":
 	case "csv":
-		f.Format = wasmcloud_archive_query.FormatCsv
+		f.Format = wasmcloud_archive_query.Format_Csv
 	default:
 		return f, errors.New("format: want csv or ndjson")
 	}
@@ -240,13 +240,13 @@ func toJSON(info store.ObjectInfo) objectJSON {
 
 func writeStoreError(w http.ResponseWriter, e store.Error) {
 	switch e.Tag() {
-	case store.ErrorNotFound:
+	case store.Error_NotFound:
 		http.Error(w, "not found", http.StatusNotFound)
-	case store.ErrorInvalidName:
+	case store.Error_InvalidName:
 		http.Error(w, "invalid name "+strconv.Quote(e.InvalidName())+": use 1-64 of [A-Za-z0-9_-]", http.StatusBadRequest)
-	case store.ErrorAborted:
+	case store.Error_Aborted:
 		http.Error(w, "upload aborted: "+e.Aborted(), http.StatusBadRequest)
-	case store.ErrorStorage:
+	case store.Error_Storage:
 		http.Error(w, "storage: "+e.Storage(), http.StatusBadGateway)
 	default:
 		http.Error(w, "unknown store error", http.StatusInternalServerError)

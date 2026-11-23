@@ -11,7 +11,7 @@ import (
 
 	// Bindings for the wasi:keyvalue/store interface, generated from ./wit
 	// by componentize-go.
-	store "github.com/wasmCloud/go/examples/components/http-keyvalue-crud/wasi_keyvalue_store"
+	store "github.com/wasmCloud/go/examples/components/http-keyvalue-crud/imports/wasi_keyvalue_store"
 
 	// The wasihttp package enables us to write more idiomatic Go when using wasi:http.
 	"go.bytecodealliance.org/wasi/wasihttp"
@@ -152,9 +152,9 @@ func deleteHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params)
 // errString renders a wasi:keyvalue/store error variant as text.
 func errString(e store.Error) string {
 	switch e.Tag() {
-	case store.ErrorNoSuchStore:
+	case store.Error_NoSuchStore:
 		return "no such store"
-	case store.ErrorAccessDenied:
+	case store.Error_AccessDenied:
 		return "access denied"
 	default:
 		return e.Other()

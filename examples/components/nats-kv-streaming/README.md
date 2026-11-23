@@ -450,8 +450,8 @@ on the `wasi:http` entry to the hostname your ingress forwards to the
 
 ## Regenerating the bindings
 
-The packages under `contract/bindings/` and `recorder/wit_exports/` are
-generated and committed. The `export_*` packages next to them are written by
+The packages under `contract/bindings/` and `recorder/exports/wit_exports/` are
+generated and committed. The `exports/export_*` packages beside them are written by
 hand: each is the small trampoline the generated glue calls, and forwards to
 the function the component registers in `init`. After changing the WIT, or
 bumping componentize-go, regenerate with:

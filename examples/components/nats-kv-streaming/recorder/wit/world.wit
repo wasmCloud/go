@@ -11,7 +11,7 @@ world nats-kv-recorder {
   export wasi:cli/run@0.3.0;
 }
 
-// Generates only the export glue for `run` (wit_exports/). The clock import
+// Generates only the export glue for `run` (exports/wit_exports/). The clock import
 // needs no bindings: the SDK's sleep package declares it itself.
 world run-exports {
   export wasi:cli/run@0.3.0;
