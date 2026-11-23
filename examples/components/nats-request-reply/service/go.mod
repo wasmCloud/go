@@ -12,7 +12,7 @@ require (
 	github.com/bytecodealliance/componentize-go v0.5.4 // indirect
 	github.com/gofrs/flock v0.13.0 // indirect
 	go.bytecodealliance.org/pkg v0.4.1 // indirect
-	golang.org/x/sys v0.49.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
 )
 
 tool github.com/bytecodealliance/componentize-go
