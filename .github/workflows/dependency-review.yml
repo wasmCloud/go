@@ -57,4 +57,4 @@ jobs:
       # Fetched through the Go module proxy and verified against the Go
       # checksum database, like any other module.
       - name: Scan every module
-        run: go run github.com/google/osv-scanner/v2/cmd/osv-scanner@v2.7.0 scan source --recursive --config=osv-scanner.toml ./
+        run: go run github.com/google/osv-scanner/v2/cmd/osv-scanner@v2.7.1 scan source --recursive --config=osv-scanner.toml ./
