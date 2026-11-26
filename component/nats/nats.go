@@ -79,7 +79,9 @@ var Default = NewConn(plainCore{})
 // fire-and-forget; use [JetStreamPublish] for durable delivery.
 func Publish(msg Message) error { return Default.Publish(msg) }
 
-// Request publishes msg and waits up to timeout for a single reply.
+// Request publishes msg and waits up to timeout for a single reply. If no
+// reply arrives in time the error matches [ErrTimeout]; if nothing is
+// subscribed to the subject it is [ErrNoResponders] instead.
 //
 // Replies arrive on a per-workload inbox prefix, so two workloads on one
 // host cannot observe each other's responses.

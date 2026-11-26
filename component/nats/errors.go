@@ -7,9 +7,14 @@ import (
 	types "go.wasmcloud.dev/component/imports/wasmcloud_nats_0_1_4_types"
 )
 
-// Sentinel errors for the payload-free cases of wasmcloud:nats/types.nats-error.
-// Test for them with errors.Is.
+// Sentinel errors for the payload-free cases of wasmcloud:nats/types.nats-error,
+// plus [ErrTimeout]. Test for them with errors.Is.
 var (
+	// ErrTimeout means the call did not complete within its deadline: a
+	// [Request] got no reply in time, or the host gave up on a call after the
+	// binding's `request-timeout-ms`. The returned error wraps it together
+	// with the host's detail, which names the call that timed out.
+	ErrTimeout = errors.New("nats: timeout")
 	// ErrNoResponders means nothing is subscribed to the subject. It is
 	// distinct from a timeout: retrying immediately fails the same way
 	// until a responder appears, so back off or fail fast rather than spin.
@@ -189,7 +194,7 @@ func convertError(e types.NatsError) error {
 	case types.NatsError_Connection:
 		return fmt.Errorf("nats: connection: %s", e.Connection())
 	case types.NatsError_Timeout:
-		return fmt.Errorf("nats: timeout: %s", e.Timeout())
+		return fmt.Errorf("%w: %s", ErrTimeout, e.Timeout())
 	case types.NatsError_NoResponders:
 		return ErrNoResponders
 	case types.NatsError_Denied:
