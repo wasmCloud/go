@@ -40,7 +40,7 @@ spec:
           interfaces: [logging]
         - namespace: wasmcloud
           package: nats
-          version: "0.1.0"
+          version: "0.1.4"
           interfaces: [types, core, core-handler]
           config:
             # subject[:queue], comma separated. The queue group is what makes
@@ -112,7 +112,7 @@ spec:
             host: nats-request-gateway
         - namespace: wasmcloud
           package: nats
-          version: "0.1.0"
+          version: "0.1.4"
           interfaces: [types, core]
           # No `config`: the gateway asks for nothing to be pushed at it, and
           # what it may request — `service.>` — is the host's to grant. A

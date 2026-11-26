@@ -1,0 +1,5 @@
+# `wash build` writes the encoded WIT package (archive-0.1.0.wasm) here.
+*.wasm
+# Created by `wash build` (or `wash wit fetch`); this package has no
+# dependencies, so it stays empty.
+wit/deps/

@@ -19,7 +19,7 @@ How it works:
 Like the [http-keyvalue-crud](../http-keyvalue-crud) example, the extra
 interfaces come from an app-local world ([wit/world.wit](./wit/world.wit))
 that [componentize-go.toml](./componentize-go.toml) merges with the SDK's
-`wasip2` world at build time. The `wasi_otel_*` bindings are generated
+`wasip2` world at build time. The `imports/wasi_otel_*` bindings are generated
 with:
 
 ```shell

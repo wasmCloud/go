@@ -4,7 +4,7 @@ Every version you need to build a component against a released
 `go.wasmcloud.dev/component`, and how to build with no network at all.
 
 The versions below are verified against
-[`component/v0.2.0`](https://github.com/wasmCloud/go/releases/tag/component%2Fv0.2.0).
+[`component/v0.3.0`](https://github.com/wasmCloud/go/releases/tag/component%2Fv0.3.0).
 They live in [`airgap/versions.env`](./airgap/versions.env), which is the file
 the tooling reads; this document is the prose. `make airgap-versions` re-derives
 every value from its real upstream source and fails if the two disagree.
@@ -14,12 +14,12 @@ every value from its real upstream source and fails if the two disagree.
 | What | Version |
 |---|---|
 | Go | 1.27.3 (`go.bytecodealliance.org/pkg` and `/wasi` declare `go 1.27.1`, the minimum) |
-| `go.wasmcloud.dev/component` | v0.2.0 |
+| `go.wasmcloud.dev/component` | v0.3.0 |
 | `go.bytecodealliance.org/pkg` | v0.4.1 |
 | `go.bytecodealliance.org/wasi` | v0.1.1 |
-| componentize-go | v0.4.3 (module and toolchain) |
-| wit-bindgen-go | 0.61.1 (rev `4f9a02d7`) |
-| wit-component / wit-parser | 0.258.0 |
+| componentize-go | v0.5.4 (module and toolchain) |
+| wit-bindgen-go | 0.63.0 (rev `4a6406d2`) |
+| wit-component / wit-parser | 0.262.0 |
 | Patched Go (**async worlds only**) | `dicej/go` `go1.27.1-wasi-on-idle` |
 | `wash` | v2.10.3 |
 
@@ -32,7 +32,7 @@ that is a bug — please open an issue.
 directive, is a ~130-line downloader. Its `main.go` hardcodes a release string:
 
 ```go
-release := "v0.4.3"
+release := "v0.5.4"
 ```
 
 and fetches *that* Rust binary from GitHub Releases into a user cache. The real
@@ -40,7 +40,7 @@ and fetches *that* Rust binary from GitHub Releases into a user cache. The real
 not anywhere in the Go module graph.
 
 **Tagged releases name themselves**, so the module and the toolchain agree:
-v0.4.1 fetches v0.4.1, v0.4.2 fetches v0.4.2, v0.4.3 fetches v0.4.3. Pin a tag
+v0.4.3 fetches v0.4.3, v0.5.4 fetches v0.5.4. Pin a tag
 and there is nothing to think about. That is what this repo does.
 
 **A pseudo-version breaks that, silently.** A pseudo-version names an untagged
@@ -52,10 +52,9 @@ run. This repo was in exactly that state before: it pinned
 `v0.4.2-0.20260827144128-20f3b0c2a412`, a pre-release of v0.4.2, and therefore
 built everything with v0.4.1 and wit-bindgen 0.59.0.
 
-componentize-go v0.5.0 is the first *tag* that breaks the rule: its `main.go`
-still says `release := "v0.4.3"`, so depending on v0.5.0 runs the v0.4.3
-toolchain. This repo stays on v0.4.3, where module and toolchain agree, until a
-tag that names itself is published.
+componentize-go v0.5.0 was a *tag* that broke the rule: its `main.go` still
+said `release := "v0.4.3"`, so depending on v0.5.0 ran the v0.4.3 toolchain.
+Check `release :=` before bumping to a new tag; v0.5.4 names itself.
 
 So: **read toolchain versions from the release named by `release :=`, not from
 the module you depend on**, and do not bump this dependency to a `main`
@@ -125,7 +124,7 @@ open, so it exists only in a patched fork.
 
 Eight of the thirteen examples need it — `http-p3-streaming`, both
 `http-local-routing` modules, plus all five `nats-*` modules. The nats ones are not opting in: every function on
-`wasmcloud:nats@0.1.0` is async, so importing it forces the P3 world.
+`wasmcloud:nats@0.1.4` is async, so importing it forces the P3 world.
 
 componentize-go handles this for you. It resolves the target world, and if the
 world needs async it probes your Go by reading
@@ -137,7 +136,7 @@ Two patched builds exist:
 
 | Patched build | Pairs with | How you get it |
 |---|---|---|
-| `go1.27.1-wasi-on-idle` | Go 1.27 | **Automatic** — componentize-go v0.4.3 fetches it |
+| `go1.27.1-wasi-on-idle` | Go 1.27 | **Automatic** — componentize-go v0.5.4 fetches it |
 | `go1.25.5-wasi-on-idle-v2` | Go 1.25 | Fetched by componentize-go v0.4.2 and earlier; no longer used here |
 
 Go 1.25 is no longer an option for this repo: `go.bytecodealliance.org/pkg`
@@ -150,13 +149,13 @@ side:
 
 **Install Go 1.27.1 or newer; do not rely on `GOTOOLCHAIN=auto`.** If your
 `go` is older, `go tool componentize-go` switches to a downloaded 1.27.1 and
-exports `GOROOT` pointing at it. componentize-go v0.4.3 probes for the patch by
+exports `GOROOT` pointing at it. componentize-go v0.5.4 probes for the patch by
 running `go env GOROOT`, and the inherited variable makes the patched toolchain
 report the *stock* root, so the probe fails. The `--go` flag goes through the
 same probe and does not help. Sync builds are unaffected.
 
 **Upgrading from componentize-go v0.4.2 or earlier: delete the cached patched
-Go.** The cache is version-blind (see below), so a machine that built an async
+Go.** Releases before v0.5.x reuse whatever tree is cached, so a machine that built an async
 world before keeps its `go1.25.5` tree and never fetches `go1.27.1`. That old
 toolchain sees the modules' `go 1.27.1` directive, re-execs into stock 1.27.1,
 and fails the same probe. Remove `componentize-go/v2/go-<os>-<arch>-bootstrap`
@@ -187,9 +186,10 @@ The path must end in `bin/go`: the patch probe walks two directories up to find
 
 **Alternative — seed the cache.** Unpack the tree to
 `$XDG_CACHE_HOME/componentize-go/v2/go-<os>-<arch>-bootstrap` and it will be
-picked up. This works, and is what the air-gapped image does, but it is
-version-blind: the path does not encode the Go version and the lookup only
-checks whether the binary exists, so a stale toolchain is reused forever.
+picked up. This is what the air-gapped image does. The path does not encode the
+Go version; componentize-go v0.5.4 reads the tree's `VERSION` file and deletes
+and re-downloads a tree that is not the Go it expects (1.27.1), so a seeded
+tree must be exactly that version.
 
 > **Do not trust `go version` on a patched toolchain.** `GOTOOLCHAIN=auto` makes
 > it re-exec into your stock Go and report that version instead. Check the
@@ -223,7 +223,7 @@ The two componentize-go caches share one root, so seeding
 `$XDG_CACHE_HOME/componentize-go` covers both. Set `XDG_CACHE_HOME` explicitly
 rather than relying on `$HOME`, so the path is predictable.
 
-`version.txt` must contain the release string the wrapper expects (`v0.4.3`
+`version.txt` must contain the release string the wrapper expects (`v0.5.4`
 here) or it will re-download on the first build, air gap or not.
 
 The air-gapped image does exactly this, and does not let either tool fetch for

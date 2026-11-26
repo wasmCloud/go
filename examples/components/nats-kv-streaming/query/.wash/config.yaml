@@ -1,0 +1,9 @@
+build:
+  # The SDK's headless world plus the archive interface this component serves.
+  # It imports nothing else: no NATS, no HTTP, only logging.
+  command: >-
+    go tool componentize-go
+    -w wasmcloud:component-go/headless@0.2.0
+    -w wasmcloud:archive/query-exports@0.1.0
+    build -o build/query.wasm
+  component_path: build/query.wasm

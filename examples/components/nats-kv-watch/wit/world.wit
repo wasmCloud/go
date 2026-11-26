@@ -8,10 +8,10 @@ world nats-kv-watch {
 
   import wasi:logging/logging@0.1.0-draft;
 
-  import wasmcloud:nats/types@0.1.0;
-  import wasmcloud:nats/kv@0.1.0;
+  import wasmcloud:nats/types@0.1.4;
+  import wasmcloud:nats/kv@0.1.4;
   // Change notifications are published over core NATS.
-  import wasmcloud:nats/core@0.1.0;
+  import wasmcloud:nats/core@0.1.4;
 
-  export wasmcloud:nats/kv-handler@0.1.0;
+  export wasmcloud:nats/kv-handler@0.1.4;
 }

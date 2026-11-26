@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	types "go.wasmcloud.dev/component/imports/wasmcloud_nats_0_1_0_types"
+	types "go.wasmcloud.dev/component/imports/wasmcloud_nats_0_1_4_types"
 )
 
 // Sentinel errors for the payload-free cases of wasmcloud:nats/types.nats-error,

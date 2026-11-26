@@ -1,0 +1,11 @@
+package wasmcloud:examples@0.1.0;
+
+// What the store component imports beyond the SDK's headless world: the NATS
+// KV client, and nothing else. The build merges this world with
+// wasmcloud:component-go/headless (the CLI imports a Go runtime needs, plus
+// logging) and wasmcloud:archive/store-exports (the interface it serves); see
+// .wash/config.yaml.
+world nats-kv-store {
+  import wasmcloud:nats/types@0.1.4;
+  import wasmcloud:nats/kv@0.1.4;
+}

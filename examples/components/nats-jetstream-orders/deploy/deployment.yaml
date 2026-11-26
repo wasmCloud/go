@@ -25,7 +25,7 @@ spec:
       hostInterfaces:
         - namespace: wasmcloud
           package: nats
-          version: "0.1.0"
+          version: "0.1.4"
           interfaces: [types, jetstream, kv, jetstream-handler]
           config:
             # STREAM:filter[:policy[:queue]]. An ask, not a grant: the host

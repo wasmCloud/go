@@ -16,7 +16,7 @@ ARG GO_VERSION=1.27.3
 FROM golang:${GO_VERSION}-bookworm AS seed
 
 ARG WASH_VERSION=v2.10.3
-ARG COMPONENTIZE_GO_BINARY=v0.4.3
+ARG COMPONENTIZE_GO_BINARY=v0.5.4
 ARG PATCHED_GO_TAG=go1.27.1-wasi-on-idle
 # Populated automatically by BuildKit. Must be declared with NO default: a
 # default shadows the real value, and the image then gets a wrong-architecture

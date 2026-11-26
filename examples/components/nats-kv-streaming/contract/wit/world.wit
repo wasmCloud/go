@@ -1,0 +1,144 @@
+package wasmcloud:archive@0.1.0;
+
+/// Large objects on a NATS KV bucket.
+///
+/// A KV value is a single NATS message, so it is bounded by the server's
+/// `max_payload` (1 MiB unless you raise it), and a `get` hands the whole value
+/// to the guest as one allocation. This interface stores an object as a
+/// manifest plus fixed-size chunks instead, and moves the bytes as
+/// `stream<u8>`: no component on either side of a call ever holds more than a
+/// chunk of an object at once, whatever its size.
+///
+/// A stream says nothing about *why* it ended. Each one here travels with a
+/// `future` that the writer resolves once it has written its last byte: `ok`
+/// means everything arrived, `err` means the bytes before it are a fragment.
+/// This is the same pairing `wasi:http` uses for bodies and trailers.
+interface store {
+  /// What the store knows about an object, read from its manifest.
+  record object-info {
+    name: string,
+    content-type: string,
+    /// Total size in bytes.
+    size: u64,
+    /// The size of every chunk but the last.
+    chunk-size: u32,
+    chunks: u32,
+    /// Lowercase hex SHA-256 of the whole object.
+    sha256: string,
+    /// When the object was committed, in milliseconds since the Unix epoch.
+    created-at-ms: u64,
+  }
+
+  variant error {
+    /// No object with that name.
+    not-found,
+    /// Names are 1 to 64 characters of `[A-Za-z0-9_-]`.
+    invalid-name(string),
+    /// The writer resolved `done` with an error, or its stream broke. Nothing
+    /// was stored and the previous object, if any, is untouched.
+    aborted(string),
+    /// A NATS KV call failed.
+    storage(string),
+  }
+
+  /// Stores `data` under `name`, replacing any existing object.
+  ///
+  /// `put` reads `data` to its end and then awaits `done`: `ok` commits the
+  /// object, `err` discards every chunk written so far. The manifest is
+  /// written last, so a concurrent `get` sees the old object or the new one,
+  /// never a mix.
+  put: async func(
+    name: string,
+    content-type: string,
+    data: stream<u8>,
+    done: future<result<_, string>>,
+  ) -> result<object-info, error>;
+
+  /// Opens an object for reading.
+  ///
+  /// The stream yields the bytes of the version the manifest named when `get`
+  /// was called, one chunk at a time. The future resolves once the last byte
+  /// is written: `ok` if all `size` bytes were delivered and their SHA-256
+  /// matched the manifest, `err` otherwise.
+  get: async func(name: string) -> result<tuple<object-info, stream<u8>, future<result<_, string>>>, error>;
+
+  /// Reads an object's manifest without opening its data.
+  stat: async func(name: string) -> result<object-info, error>;
+
+  /// Every object in the store, by name.
+  list-objects: async func() -> result<list<object-info>, error>;
+
+  /// Removes an object and its chunks.
+  delete: async func(name: string) -> result<_, error>;
+}
+
+/// Filters and re-encodes newline-delimited JSON sensor readings as they
+/// stream past, so a query over a large object never materializes it.
+interface query {
+  enum format {
+    ndjson,
+    csv,
+  }
+
+  record filter {
+    /// Keep only readings from this site.
+    site: option<string>,
+    /// Keep only readings from this sensor.
+    sensor: option<string>,
+    /// Keep only readings whose value is at least this.
+    min-value: option<f64>,
+    /// Stop after this many matches.
+    limit: option<u32>,
+    format: format,
+  }
+
+  /// What a run did, reported once its output is complete.
+  record summary {
+    /// Lines read from the input.
+    scanned: u64,
+    /// Lines written to the output.
+    matched: u64,
+    /// Lines that were not a valid reading and were left out.
+    malformed: u64,
+  }
+
+  /// Reads readings from `input` and writes the ones matching `filter` to the
+  /// returned stream.
+  ///
+  /// `input-done` is the input writer's own outcome; an `err` there, or a
+  /// broken input stream, fails the run. The returned future resolves after
+  /// the last output byte, with the summary or the reason the output is
+  /// incomplete.
+  run: async func(
+    input: stream<u8>,
+    input-done: future<result<_, string>>,
+    filter: filter,
+  ) -> tuple<stream<u8>, future<result<summary, string>>>;
+}
+
+// --- Worlds -----------------------------------------------------------------
+//
+// One side of one or both interfaces each. A component is built from one of
+// these merged with the SDK world that supplies the WASI imports Go needs,
+// plus the component's own world for anything else it imports (see each
+// component's .wash/config.yaml). Keeping wasmcloud:nats and WASI out of this
+// package means it has no dependencies to fetch.
+//
+// The same worlds generate the committed bindings under bindings/, so those
+// contain only this package's two interfaces.
+
+// What a caller of the store and query components imports.
+world client {
+  import store;
+  import query;
+}
+
+// What the store component exports.
+world store-exports {
+  export store;
+}
+
+// What the query component exports.
+world query-exports {
+  export query;
+}

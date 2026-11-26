@@ -102,15 +102,16 @@ jobs:
             skip-dev-test: true
             test-command: "true"
 
-          # skip-dev-test: no released wash serves `wasmcloud:nats` — the
-          # plugin is still unmerged (wasmCloud/wasmCloud#5494), so v2.8.0
-          # starts these workloads with "no plugins found for requested
-          # interfaces" and every smoke test times out. Build-only until a
-          # release ships it; same treatment as http-otel above. Drop
+          # skip-dev-test: these went build-only while no wash release served
+          # `wasmcloud:nats`; v2.8.0 starts them with "no plugins found for
+          # requested interfaces". The plugin (wasmCloud/wasmCloud#5494)
+          # ships in every release from v2.9.0, and setup-wash-action
+          # installs the latest one, so that reason is gone. What is left is
+          # switching the smoke tests on and seeing them pass here: drop
           # skip-dev-test from all three together and the harness below runs
           # them unchanged.
           #
-          # The nats-setup blocks are kept for that day: each one is the
+          # The nats-setup blocks are ready for that: each one is the
           # README's prerequisite section, since streams and buckets are the
           # operator's to create, never the component's.
           - folder: nats-stream-replay
@@ -165,6 +166,27 @@ jobs:
             skip-dev-test: true
             test-command: "true"
           - folder: nats-request-reply/gateway
+            skip-dev-test: true
+            test-command: "true"
+
+          # Build-only: one workload of four components, and `wash dev` in
+          # api/ loads the other three from their build/ directories, which
+          # this one-folder-per-leg harness never builds. The contract leg
+          # builds the shared WIT package; the other legs compile its Go
+          # bindings through their `replace => ../contract`.
+          - folder: nats-kv-streaming/contract
+            skip-dev-test: true
+            test-command: "true"
+          - folder: nats-kv-streaming/store
+            skip-dev-test: true
+            test-command: "true"
+          - folder: nats-kv-streaming/query
+            skip-dev-test: true
+            test-command: "true"
+          - folder: nats-kv-streaming/recorder
+            skip-dev-test: true
+            test-command: "true"
+          - folder: nats-kv-streaming/api
             skip-dev-test: true
             test-command: "true"
     steps:

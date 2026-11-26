@@ -11,11 +11,9 @@ updates:
       day: "monday"
       time: "09:00"
       timezone: "America/New_York"
+    # github-actions has no semver cooldowns, only default-days.
     cooldown:
       default-days: 7
-      semver-major-days: 14
-      semver-minor-days: 7
-      semver-patch-days: 3
     # Each group batches its kind of update into a single PR.
     groups:
       github-actions:
@@ -64,6 +62,11 @@ updates:
       - "/examples/components/http-password-checker"
       - "/examples/components/http-server"
       - "/examples/components/nats-jetstream-orders"
+      - "/examples/components/nats-kv-streaming/api"
+      - "/examples/components/nats-kv-streaming/contract"
+      - "/examples/components/nats-kv-streaming/query"
+      - "/examples/components/nats-kv-streaming/recorder"
+      - "/examples/components/nats-kv-streaming/store"
       - "/examples/components/nats-kv-watch"
       - "/examples/components/nats-request-reply/gateway"
       - "/examples/components/nats-request-reply/service"

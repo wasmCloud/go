@@ -1,7 +1,7 @@
 // Package nats provides NATS-native messaging for wasmCloud components: core
 // pub/sub and request-reply, JetStream, and JetStream KV.
 //
-// It wraps `wasmcloud:nats@0.1.0`, whose every function is an `async func`.
+// It wraps `wasmcloud:nats@0.1.4`, whose every function is an `async func`.
 // That makes it a WASI P3 interface: lifting a sync-signature function with
 // the async canonical ABI fails component validation, so there is no sync
 // revision and a component that imports it targets P3. The Go API is
@@ -36,9 +36,9 @@
 //	  include wasi:cli/imports@0.2.8;
 //
 //	  import wasi:logging/logging@0.1.0-draft;
-//	  import wasmcloud:nats/types@0.1.0;
-//	  import wasmcloud:nats/jetstream@0.1.0;
-//	  import wasmcloud:nats/kv@0.1.0;
+//	  import wasmcloud:nats/types@0.1.4;
+//	  import wasmcloud:nats/jetstream@0.1.4;
+//	  import wasmcloud:nats/kv@0.1.4;
 //	}
 //
 // The SDK ships that shape as a world of its own — `headless` — for a project
@@ -46,7 +46,7 @@
 //
 //	world app {
 //	  include wasmcloud:component-go/headless@0.2.0;
-//	  import wasmcloud:nats/types@0.1.0;
+//	  import wasmcloud:nats/types@0.1.4;
 //	}
 //
 // A component that *does* serve HTTP as well as NATS includes the HTTP world
@@ -54,9 +54,9 @@
 //
 //	world app {
 //	  include wasmcloud:component-go/wasip3@0.2.0;
-//	  import wasmcloud:nats/types@0.1.0;
-//	  import wasmcloud:nats/jetstream@0.1.0;
-//	  import wasmcloud:nats/kv@0.1.0;
+//	  import wasmcloud:nats/types@0.1.4;
+//	  import wasmcloud:nats/jetstream@0.1.4;
+//	  import wasmcloud:nats/kv@0.1.4;
 //	}
 //
 // In both cases the workload manifest must declare the matching
@@ -77,7 +77,7 @@
 // # Generating bindings
 //
 // Use componentize-go, not wit-bindgen-go. Every function in
-// `wasmcloud:nats@0.1.0` is an `async func`, and wit-bindgen-go does not
+// `wasmcloud:nats@0.1.4` is an `async func`, and wit-bindgen-go does not
 // support the component-model async ABI: it exits 0 and generates a package
 // with all 30 async functions silently missing.
 //
@@ -92,6 +92,16 @@
 // is checked against `subject-allow` too, so grant the subjects a stream
 // stores alongside the stream.
 //
+// Bucket lifecycle has grants of its own. [CreateBucket] needs the bucket in
+// `bucket-create-allow` as well as `bucket-allow`, and [DeleteBucket] needs
+// `bucket-delete-allow`. The host also owns what a created bucket may be:
+// `bucket-max-bytes` (required with `bucket-create-allow`) caps its size,
+// `bucket-storage-allow` decides whether it may use memory, and
+// `bucket-replicas` sets its replica count, which a component never chooses.
+// Import `wasmcloud:nats/kv-admin@0.1.4` and declare `kv-admin` in the
+// manifest's interfaces to use them; a host older than wasmCloud 015459c8
+// does not serve it.
+//
 // Where those grants are *written* is the host's business, not the
 // component's. A `wash host` declares each binding under a `host.plugins`
 // entry with `id: wasmcloud-nats` — the servers, the credentials, and the
@@ -101,7 +111,7 @@
 //	hostInterfaces:
 //	  - namespace: wasmcloud
 //	    package: nats
-//	    version: "0.1.0"
+//	    version: "0.1.4"
 //	    # `(implements orders)`: the binding the host declared.
 //	    name: orders
 //	    interfaces: [types, jetstream, kv, jetstream-handler]
@@ -124,9 +134,9 @@
 // whatever the component imported: it selects the `(implements <label>)`
 // *instance* the host binds. The plain instance is then left unbound, and a
 // component built against this package — whose committed bindings name
-// `wasmcloud:nats/core@0.1.0` — fails to start with
+// `wasmcloud:nats/core@0.1.4` — fails to start with
 //
-//	component imports instance `wasmcloud:nats/core@0.1.0`, but a matching
+//	component imports instance `wasmcloud:nats/core@0.1.4`, but a matching
 //	implementation was not found in the linker
 //
 // which names the interface, not the routing. So: use this package as-is with
@@ -139,8 +149,8 @@
 //
 //	world app {
 //	  include wasmcloud:component-go/headless@0.2.0;
-//	  import wasmcloud:nats/types@0.1.0;
-//	  import orders: wasmcloud:nats/core@0.1.0;
+//	  import wasmcloud:nats/types@0.1.4;
+//	  import orders: wasmcloud:nats/core@0.1.4;
 //	}
 //
 // componentize-go emits one package per labeled instance, named for the label
@@ -151,7 +161,7 @@
 //	  --pkg-name go.wasmcloud.dev/component/imports --include-versions
 //
 // Types from an interface imported *unlabeled* — everything in
-// `wasmcloud:nats/types@0.1.0` — then resolve to this module's committed
+// `wasmcloud:nats/types@0.1.4` — then resolve to this module's committed
 // packages instead of being regenerated, so the labeled package speaks
 // exactly the Go types this one does. Keep the `orders` directory, drop the
 // rest, and hand it to [NewConn]:

@@ -7,7 +7,7 @@ This example also shows how a component adds interfaces beyond the SDK's
 default world: [wit/world.wit](./wit/world.wit) declares a small world
 importing `wasi:keyvalue/store`, [componentize-go.toml](./componentize-go.toml)
 merges it with the SDK's `wasip2` world at build time, and the
-`wasi_keyvalue_store/` bindings are generated with:
+`imports/wasi_keyvalue_store/` bindings are generated with:
 
 ```shell
 go tool componentize-go --ignore-toml-files \

@@ -149,7 +149,7 @@ jobs:
           VERSION: ${{ steps.ver.outputs.version }}
         run: |
           if ! bash airgap/verify-sdk-sums.sh --local "$VERSION"; then
-            echo "::error::component/ changed on main after the release PR was prepared, so the examples' go.sum is wrong for this commit. Nothing was tagged. Bump the examples again (airgap/bump-sdk.sh --provisional $VERSION) in a PR, then dispatch this workflow with the new merge commit."
+            echo "::error::An example go.sum disagrees with component/ at this commit (see the WRONG lines above), most likely because component/ changed on main after the release PR was prepared. Nothing was tagged. Bump the examples again (airgap/bump-sdk.sh --provisional $VERSION) in a PR, then dispatch this workflow with the new merge commit."
             exit 1
           fi
 

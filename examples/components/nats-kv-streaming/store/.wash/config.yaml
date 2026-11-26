@@ -1,0 +1,12 @@
+build:
+  # Three worlds, merged: the SDK's headless world (the CLI imports a Go
+  # runtime needs, plus logging), the archive interface this component serves,
+  # and its own world (the wasmcloud:nats KV client). wasmcloud:nats is async
+  # throughout, so the result is a WASI P3 component.
+  command: >-
+    go tool componentize-go
+    -w wasmcloud:component-go/headless@0.2.0
+    -w wasmcloud:archive/store-exports@0.1.0
+    -w wasmcloud:examples/nats-kv-store@0.1.0
+    build -o build/store.wasm
+  component_path: build/store.wasm

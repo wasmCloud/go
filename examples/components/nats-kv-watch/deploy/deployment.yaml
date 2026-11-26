@@ -39,7 +39,7 @@ spec:
           interfaces: [logging]
         - namespace: wasmcloud
           package: nats
-          version: "0.1.0"
+          version: "0.1.4"
           interfaces: [types, kv, core, kv-handler]
           config:
             # bucket:filter, comma separated. This is an ask, not a grant:

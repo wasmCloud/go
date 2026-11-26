@@ -21,7 +21,7 @@
 //     wasmcloud:keyvalue@0.2.0
 //     wasmcloud:messaging@0.3.0
 //     wasmcloud:postgres@0.2.0
-//     wasmcloud:nats@0.1.0
+//     wasmcloud:nats@0.1.4
 //     wasmcloud:component-go@0.2.0
 
 package wit_exports
@@ -30,8 +30,8 @@ import (
 	witAsync "go.bytecodealliance.org/pkg/wit/async"
 	witRuntime "go.bytecodealliance.org/pkg/wit/runtime"
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
-	"go.wasmcloud.dev/component/exports/wasmcloud_component_go_wasmcloud_nats_core_handler_0_2_0/export_wasmcloud_nats_0_1_0_core_handler"
-	"go.wasmcloud.dev/component/imports/wasmcloud_nats_0_1_0_types"
+	"go.wasmcloud.dev/component/exports/wasmcloud_component_go_wasmcloud_nats_core_handler_0_2_0/export_wasmcloud_nats_0_1_4_core_handler"
+	"go.wasmcloud.dev/component/imports/wasmcloud_nats_0_1_4_types"
 	"runtime"
 	"unsafe"
 )
@@ -40,8 +40,8 @@ var staticPinner = runtime.Pinner{}
 var exportReturnArea = uintptr(witRuntime.Allocate(&staticPinner, 0, 1))
 var syncExportPinner = runtime.Pinner{}
 
-//go:wasmexport [async-lift]wasmcloud:nats/core-handler@0.1.0#handle-message
-func wasm_export_wasmcloud_nats_0_1_0_core_handler_handle_message(arg0 uintptr, arg1 uint32, arg2 uintptr, arg3 uint32, arg4 int32, arg5 uintptr, arg6 uint32, arg7 int32, arg8 uintptr, arg9 uint32) int32 {
+//go:wasmexport [async-lift]wasmcloud:nats/core-handler@0.1.4#handle-message
+func wasm_export_wasmcloud_nats_0_1_4_core_handler_handle_message(arg0 uintptr, arg1 uint32, arg2 uintptr, arg3 uint32, arg4 int32, arg5 uintptr, arg6 uint32, arg7 int32, arg8 uintptr, arg9 uint32) int32 {
 	return int32(witAsync.Run(func() {
 		pinner := &runtime.Pinner{}
 		defer pinner.Unpin()
@@ -59,27 +59,27 @@ func wasm_export_wasmcloud_nats_0_1_0_core_handler_handle_message(arg0 uintptr, 
 		default:
 			panic("unreachable")
 		}
-		var option4 witTypes.Option[[]wasmcloud_nats_0_1_0_types.HeaderEntry]
+		var option4 witTypes.Option[[]wasmcloud_nats_0_1_4_types.HeaderEntry]
 		switch arg7 {
 		case 0:
 
-			option4 = witTypes.None[[]wasmcloud_nats_0_1_0_types.HeaderEntry]()
+			option4 = witTypes.None[[]wasmcloud_nats_0_1_4_types.HeaderEntry]()
 		case 1:
-			result := make([]wasmcloud_nats_0_1_0_types.HeaderEntry, 0, arg9)
+			result := make([]wasmcloud_nats_0_1_4_types.HeaderEntry, 0, arg9)
 			for index := 0; index < int(arg9); index++ {
 				base := unsafe.Add(unsafe.Pointer(arg8), index*(4*4))
 				value2 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(base), 0))))), *(*uint32)(unsafe.Add(unsafe.Pointer(base), 4)))
 				value3 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(base), (2 * 4)))))), *(*uint32)(unsafe.Add(unsafe.Pointer(base), (3 * 4))))
 
-				result = append(result, wasmcloud_nats_0_1_0_types.HeaderEntry{Name: value2, Value: value3})
+				result = append(result, wasmcloud_nats_0_1_4_types.HeaderEntry{Name: value2, Value: value3})
 			}
 
-			option4 = witTypes.Some[[]wasmcloud_nats_0_1_0_types.HeaderEntry](result)
+			option4 = witTypes.Some[[]wasmcloud_nats_0_1_4_types.HeaderEntry](result)
 		default:
 			panic("unreachable")
 		}
 		witRuntime.Unpin()
-		result5 := export_wasmcloud_nats_0_1_0_core_handler.HandleMessage(wasmcloud_nats_0_1_0_types.NatsMessage{Subject: value, Body: value0, ReplyTo: option, Headers: option4})
+		result5 := export_wasmcloud_nats_0_1_4_core_handler.HandleMessage(wasmcloud_nats_0_1_4_types.NatsMessage{Subject: value, Body: value0, ReplyTo: option, Headers: option4})
 		var option6 int32
 		var option7 uintptr
 		var option8 uint32
@@ -100,15 +100,15 @@ func wasm_export_wasmcloud_nats_0_1_0_core_handler_handle_message(arg0 uintptr, 
 		default:
 			panic("unreachable")
 		}
-		wasm_export_task_return_wasmcloud_nats_0_1_0_core_handler_handle_message(option6, option7, option8)
+		wasm_export_task_return_wasmcloud_nats_0_1_4_core_handler_handle_message(option6, option7, option8)
 
 	}))
 }
 
-//go:wasmexport [callback][async-lift]wasmcloud:nats/core-handler@0.1.0#handle-message
-func wasm_export_callback_wasmcloud_nats_0_1_0_core_handler_handle_message(event0 uint32, event1 uint32, event2 uint32) uint32 {
+//go:wasmexport [callback][async-lift]wasmcloud:nats/core-handler@0.1.4#handle-message
+func wasm_export_callback_wasmcloud_nats_0_1_4_core_handler_handle_message(event0 uint32, event1 uint32, event2 uint32) uint32 {
 	return witAsync.Callback(event0, event1, event2)
 }
 
-//go:wasmimport [export]wasmcloud:nats/core-handler@0.1.0 [task-return]handle-message
-func wasm_export_task_return_wasmcloud_nats_0_1_0_core_handler_handle_message(arg0 int32, arg1 uintptr, arg2 uint32)
+//go:wasmimport [export]wasmcloud:nats/core-handler@0.1.4 [task-return]handle-message
+func wasm_export_task_return_wasmcloud_nats_0_1_4_core_handler_handle_message(arg0 int32, arg1 uintptr, arg2 uint32)

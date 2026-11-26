@@ -4,6 +4,6 @@ package wasmcloud:examples@0.1.0;
 // The component is built with both worlds merged: the SDK world provides
 // wasi:http, this world adds JetStream reads.
 world nats-stream-replay {
-  import wasmcloud:nats/types@0.1.0;
-  import wasmcloud:nats/jetstream@0.1.0;
+  import wasmcloud:nats/types@0.1.4;
+  import wasmcloud:nats/jetstream@0.1.4;
 }

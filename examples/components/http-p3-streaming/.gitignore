@@ -1,0 +1,8 @@
+# Build with `wash build`, which writes the component under build/.
+build/
+*.wasm
+# A plain `go build` names its output after the module and gives it no
+# .wasm extension, so *.wasm does not catch it.
+/http-p3-streaming
+# Fetched by `wash build` (or `wash wit fetch`) from wkg.lock.
+wit/deps/
